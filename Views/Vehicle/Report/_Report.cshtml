@@ -23,7 +23,7 @@
         <!-- Cuadrícula Principal del Panel (Sin líneas divisorias bruscas) -->
         <div class="row hideOnPrint g-3 mb-3">
             <!-- Columna 1: Desglose de Gastos por Categoría -->
-            <div class="col-12 col-lg-3">
+            <div class="col-12 col-lg-4">
                 <div class="dashboard-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="dashboard-card-title"><i class="bi bi-pie-chart-fill text-warning me-1"></i>Gastos por Categoría</span>
@@ -42,7 +42,7 @@
             </div>
 
             <!-- Columna 2: Historial Mensual de Gastos y Distancia -->
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-5">
                 <div class="dashboard-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="dashboard-card-title"><i class="bi bi-bar-chart-fill text-primary me-1"></i>Evolución Mensual</span>
@@ -158,10 +158,10 @@
             </div>
         </div>
 
-        <!-- Fila Inferior: Recordatorios, Consumo y Colaboradores -->
+        <!-- Fila Inferior: Recordatorios y Curva de Consumo -->
         <div class="row hideOnPrint g-3">
             <!-- Fila Inferior 1: Recordatorios por Urgencia -->
-            <div class="col-12 col-lg-3">
+            <div class="col-12 col-lg-4">
                 <div class="dashboard-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="dashboard-card-title"><i class="bi bi-bell-fill text-danger me-1"></i>Recordatorios</span>
@@ -179,7 +179,7 @@
             </div>
 
             <!-- Fila Inferior 2: Consumo Medio Mensual -->
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-8">
                 <div class="dashboard-card h-100 d-flex flex-column">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="dashboard-card-title"><i class="bi bi-fuel-pump-fill text-info me-1"></i>Curva de Consumo (l/100km)</span>
@@ -189,20 +189,12 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Fila Inferior 3: Colaboradores -->
-            <div class="col-12 col-lg-3">
-                <div class="dashboard-card h-100 d-flex flex-column p-3" id="collaboratorContent">
-                    @await Html.PartialAsync("Report/_Collaborators", Model.Collaborators)
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- Barra flotante para móviles -->
     <div class="row lubelogger-record-nav pt-1 hideOnPrint">
         <div class="d-flex justify-content-between">
-            <button onclick="scrollCollaboratorsIntoView()" class="btn btn-outline-secondary btn-md mt-1 mb-1"><i class="bi bi-person-add"></i></button>
             <button onclick="showGlobalSearch()" class="btn btn-outline-primary btn-md mt-1 mb-1"><i class="bi bi-search"></i></button>
             <div>
                 <button class="btn btn-outline-secondary btn-md mt-1 mb-1" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
