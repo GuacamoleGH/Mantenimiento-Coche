@@ -1,0 +1,185 @@
+@using CarCareTracker.Helper
+@using System.Globalization
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@model Vehicle
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+
+    // --- Cálculo de estado de ITV ---
+    int? itvDaysLeft = null;
+    string itvBadgeClass = "badge bg-secondary";
+    string itvStatusText = translator.Translate(userLanguage, "Not_Configured");
+    string itvBorderClass = "border-secondary";
+    if (!string.IsNullOrWhiteSpace(Model.ItvExpiry))
+    {
+        if (DateTime.TryParse(Model.ItvExpiry, CultureInfo.CurrentCulture, DateTimeStyles.None, out var itvDate))
+        {
+            var diff = (itvDate.Date - DateTime.Today).Days;
+            itvDaysLeft = diff;
+            if (diff < 0)
+            {
+                itvBadgeClass = "badge bg-danger text-white";
+                itvStatusText = $"Vencida hace {Math.Abs(diff)} días";
+                itvBorderClass = "border-danger border-2";
+            }
+            else if (diff <= 30)
+            {
+                itvBadgeClass = "badge bg-warning text-dark";
+                itvStatusText = $"Vence en {diff} días";
+                itvBorderClass = "border-warning border-2";
+            }
+            else
+            {
+                itvBadgeClass = "badge bg-success text-white";
+                itvStatusText = $"Vigente ({diff} días restantes)";
+                itvBorderClass = "border-success";
+            }
+        }
+        else
+        {
+            itvStatusText = Model.ItvExpiry;
+        }
+    }
+
+    // --- Cálculo de estado de Seguro ---
+    int? insDaysLeft = null;
+    string insBadgeClass = "badge bg-secondary";
+    string insStatusText = translator.Translate(userLanguage, "Not_Configured");
+    string insBorderClass = "border-secondary";
+    if (!string.IsNullOrWhiteSpace(Model.InsuranceExpiry))
+    {
+        if (DateTime.TryParse(Model.InsuranceExpiry, CultureInfo.CurrentCulture, DateTimeStyles.None, out var insDate))
+        {
+            var diff = (insDate.Date - DateTime.Today).Days;
+            insDaysLeft = diff;
+            if (diff < 0)
+            {
+                insBadgeClass = "badge bg-danger text-white";
+                insStatusText = $"Vencido hace {Math.Abs(diff)} días";
+                insBorderClass = "border-danger border-2";
+            }
+            else if (diff <= 30)
+            {
+                insBadgeClass = "badge bg-warning text-dark";
+                insStatusText = $"Renovación en {diff} días";
+                insBorderClass = "border-warning border-2";
+            }
+            else
+            {
+                insBadgeClass = "badge bg-info text-dark";
+                insStatusText = $"En vigor ({diff} días restantes)";
+                insBorderClass = "border-info";
+            }
+        }
+        else
+        {
+            insStatusText = Model.InsuranceExpiry;
+        }
+    }
+
+    bool hasTechnicalSpecs = !string.IsNullOrWhiteSpace(Model.Vin) ||
+                             !string.IsNullOrWhiteSpace(Model.EngineCode) ||
+                             !string.IsNullOrWhiteSpace(Model.EngineOil) ||
+                             !string.IsNullOrWhiteSpace(Model.SparkPlugs) ||
+                             !string.IsNullOrWhiteSpace(Model.TyreSizes);
+}
+
+<div class="container-fluid px-3 pt-2 pb-3 mb-3 bg-body-tertiary border rounded-3 shadow-sm hideOnPrint">
+    <div class="row align-items-center g-3">
+        <!-- Fila Superior: Datos Principales del Coche y Acciones Rápidas -->
+        <div class="col-12 col-lg-7 d-flex align-items-center flex-wrap gap-2">
+            <span class="fs-4 fw-bold">@($"{Model.Year} {Model.Make} {Model.Model}")</span>
+            @if (!string.IsNullOrWhiteSpace(Model.LicensePlate))
+            {
+                <span class="badge bg-dark text-light border px-2 py-1 fs-6 font-monospace">@Model.LicensePlate</span>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Vin))
+            {
+                <span class="badge bg-body-secondary text-body border px-2 py-1 font-monospace" style="cursor:pointer;" onclick="navigator.clipboard.writeText('@Model.Vin'); successToast('@translator.Translate(userLanguage, "Copy_VIN")');" title="Clic para copiar VIN">
+                    <i class="bi bi-upc-scan me-1"></i>VIN: @Model.Vin <i class="bi bi-copy ms-1 small"></i>
+                </span>
+            }
+        </div>
+
+        <!-- Botones de Acción Rápida (1-Click Actions) -->
+        <div class="col-12 col-lg-5 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
+            <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="showAddGasRecordModal()">
+                <i class="bi bi-fuel-pump-fill me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
+            </button>
+            <button type="button" class="btn btn-sm btn-primary shadow-sm" onclick="showAddServiceRecordModal()">
+                <i class="bi bi-tools me-1"></i>@translator.Translate(userLanguage, "Add_Service")
+            </button>
+            <button type="button" class="btn btn-sm btn-info text-dark shadow-sm" onclick="showAddOdometerRecordModal()">
+                <i class="bi bi-speedometer2 me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" onclick="showAddCollisionRecordModal()">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
+            </button>
+        </div>
+    </div>
+
+    <hr class="my-2 opacity-50" />
+
+    <!-- Fila Inferior: Tarjetas de ITV, Seguro y Ficha Técnica -->
+    <div class="row g-2">
+        <!-- Tarjeta de ITV -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="p-2 bg-body rounded border @itvBorderClass h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="fw-semibold small"><i class="bi bi-clipboard2-check-fill text-warning me-1"></i>@translator.Translate(userLanguage, "ITV_Inspection")</span>
+                    <span class="@itvBadgeClass small">@itvStatusText</span>
+                </div>
+                <div class="small text-body-secondary d-flex justify-content-between align-items-center">
+                    <span>Próxima fecha:</span>
+                    <strong class="font-monospace text-body">@(string.IsNullOrWhiteSpace(Model.ItvExpiry) ? "---" : Model.ItvExpiry)</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Seguro -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="p-2 bg-body rounded border @insBorderClass h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="fw-semibold small"><i class="bi bi-shield-fill-check text-info me-1"></i>@translator.Translate(userLanguage, "Insurance")</span>
+                    <span class="@insBadgeClass small">@insStatusText</span>
+                </div>
+                <div class="small text-body-secondary d-flex justify-content-between align-items-center">
+                    <span class="text-truncate me-1">@(string.IsNullOrWhiteSpace(Model.InsuranceCompany) ? "Póliza:" : Model.InsuranceCompany)</span>
+                    <strong class="font-monospace text-body">@(string.IsNullOrWhiteSpace(Model.InsuranceExpiry) ? "---" : Model.InsuranceExpiry)</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Ficha Técnica / Consumibles Motor -->
+        <div class="col-12 col-xl-6">
+            <div class="p-2 bg-body rounded border h-100">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="fw-semibold small"><i class="bi bi-gear-wide-connected text-success me-1"></i>@translator.Translate(userLanguage, "Technical_Specs")</span>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-body-secondary" onclick="editVehicle(@Model.Id)">
+                        <i class="bi bi-pencil-square me-1"></i>Editar datos
+                    </button>
+                </div>
+                <div class="row g-2 small text-body-secondary">
+                    <div class="col-6 col-sm-3">
+                        <span class="d-block text-truncate">Motor:</span>
+                        <strong class="text-body text-truncate d-block" title="@Model.EngineCode">@(string.IsNullOrWhiteSpace(Model.EngineCode) ? "---" : Model.EngineCode)</strong>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <span class="d-block text-truncate">Aceite:</span>
+                        <strong class="text-body text-truncate d-block" title="@Model.EngineOil">@(string.IsNullOrWhiteSpace(Model.EngineOil) ? "---" : Model.EngineOil)</strong>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <span class="d-block text-truncate">Bujías:</span>
+                        <strong class="text-body text-truncate d-block" title="@Model.SparkPlugs">@(string.IsNullOrWhiteSpace(Model.SparkPlugs) ? "---" : Model.SparkPlugs)</strong>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <span class="d-block text-truncate">Neumáticos:</span>
+                        <strong class="text-body text-truncate d-block" title="@Model.TyreSizes">@(string.IsNullOrWhiteSpace(Model.TyreSizes) ? "---" : Model.TyreSizes)</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

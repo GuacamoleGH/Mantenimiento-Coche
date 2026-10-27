@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace CarCareTracker.Models
 {
@@ -39,5 +39,19 @@ namespace CarCareTracker.Models
         /// Determines what is displayed in place of the license plate.
         /// </summary>
         public string VehicleIdentifier { get; set; } = "LicensePlate";
+
+        // --- Ficha Técnica Extendida y Plazos Legales (España) ---
+        public string Vin { get; set; } = string.Empty;
+        public string EngineCode { get; set; } = string.Empty;
+        public string EngineOil { get; set; } = string.Empty;
+        public string SparkPlugs { get; set; } = string.Empty;
+        public string TyreSizes { get; set; } = string.Empty;
+
+        [JsonConverter(typeof(FromDateOptional))]
+        public string ItvExpiry { get; set; } = string.Empty;
+
+        [JsonConverter(typeof(FromDateOptional))]
+        public string InsuranceExpiry { get; set; } = string.Empty;
+        public string InsuranceCompany { get; set; } = string.Empty;
     }
 }

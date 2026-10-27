@@ -194,6 +194,7 @@
     </ul>
 </div>
 <div class="container">
+    @await Html.PartialAsync("_VehicleCockpit", Model)
     <div class="tab-content" id="vehicleTabContent">
         <div class="tab-pane fade" id="servicerecord-tab-pane" role="tabpanel" tabindex="0"></div>
         <div class="tab-pane fade" id="gas-tab-pane" role="tabpanel" tabindex="0"></div>

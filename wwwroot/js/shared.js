@@ -105,6 +105,14 @@ function saveVehicle(isEdit) {
     var vehiclePurchasePrice = $("#inputPurchasePrice").val();
     var vehicleSoldPrice = $("#inputSoldPrice").val();
     var vehicleIdentifier = $("#inputIdentifier").val();
+    var vehicleVin = $("#inputVin").val() || '';
+    var vehicleEngineCode = $("#inputEngineCode").val() || '';
+    var vehicleEngineOil = $("#inputEngineOil").val() || '';
+    var vehicleSparkPlugs = $("#inputSparkPlugs").val() || '';
+    var vehicleTyreSizes = $("#inputTyreSizes").val() || '';
+    var vehicleItvExpiry = $("#inputItvExpiry").val() || '';
+    var vehicleInsuranceExpiry = $("#inputInsuranceExpiry").val() || '';
+    var vehicleInsuranceCompany = $("#inputInsuranceCompany").val() || '';
     var vehicleDashboardMetrics = $("#collapseMetricInfo :checked").map(function () {
         return this.value;
     }).toArray();
@@ -224,7 +232,15 @@ function saveVehicle(isEdit) {
         purchasePrice: vehiclePurchasePrice,
         soldPrice: vehicleSoldPrice,
         dashboardMetrics: vehicleDashboardMetrics,
-        vehicleIdentifier: vehicleIdentifier
+        vehicleIdentifier: vehicleIdentifier,
+        vin: vehicleVin,
+        engineCode: vehicleEngineCode,
+        engineOil: vehicleEngineOil,
+        sparkPlugs: vehicleSparkPlugs,
+        tyreSizes: vehicleTyreSizes,
+        itvExpiry: vehicleItvExpiry,
+        insuranceExpiry: vehicleInsuranceExpiry,
+        insuranceCompany: vehicleInsuranceCompany
     }, function (data) {
         if (data.success) {
             if (!isEdit) {
