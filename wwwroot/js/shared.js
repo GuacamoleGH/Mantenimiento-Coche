@@ -1989,25 +1989,26 @@ function bindNavBarResize() {
     resizeObserver.observe(document.querySelector('.lubelogger-navbar'));
 }
 function checkNavBarOverflow() {
-    //check height
+    // Show all primary tabs, ensure dropdown items in 'Más' remain visible
     $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
-    $('.nav-item-more > ul > li').hide(); //hide collapsed items
-    //check if icons loaded
+    $('.nav-item-more > ul > li.nav-item-dropdown-item').show();
+    $('.nav-item-more').show();
+    
+    // Check if icons loaded
     let iconWidth = `${$('.lubelogger-navbar > .lubelogger-tab > .nav-item .bi').width()}px`;
     let iconFontSize = $('.lubelogger-navbar > .lubelogger-tab > .nav-item .bi').css('font-size');
     const removeNavbarItems = () => {
         let navbarHeight = $('.lubelogger-navbar').height();
-        if (navbarHeight > 48) {
-            //get all elems in the nav
+        if (navbarHeight > 54) {
             let sortedElems = $('.lubelogger-navbar > .lubelogger-tab > .nav-item:visible:not(".nav-item-persist")').toArray().sort((a, b) => {
-                let orderA = $(a).css('order');
-                let orderB = $(b).css('order');
+                let orderA = parseInt($(a).css('order')) || 0;
+                let orderB = parseInt($(b).css('order')) || 0;
                 return orderA - orderB;
             });
             for (let i = sortedElems.length - 1; i > -1; i--) {
                 navbarHeight = $('.lubelogger-navbar').height();
-                if (navbarHeight > 48) {
-                    $(sortedElems[i]).hide(); //hide elem.
+                if (navbarHeight > 54) {
+                    $(sortedElems[i]).hide();
                     let hiddenButtonId = $(sortedElems[i]).find('button').attr('id');
                     let buttonToShow = $(`.nav-item-more > ul > li > #${hiddenButtonId}`).closest('li');
                     buttonToShow.show();
@@ -2015,14 +2016,12 @@ function checkNavBarOverflow() {
                     break;
                 }
             }
-        } else {
-            $('.nav-item-more').hide();
         }
     }
     if (iconWidth != iconFontSize) {
         setTimeout(() => { checkNavBarOverflow(); }, 500);
     } else {
-        removeNavbarItems()
+        removeNavbarItems();
     }
 }
 function openAttachmentPreview(fileName, fileLocation) {

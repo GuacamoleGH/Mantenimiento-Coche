@@ -280,9 +280,9 @@ body {
 }
 
 .lubelogger-navbar-container {
-    border-bottom: 1px solid var(--bs-border-color-translucent);
-    padding-top: 0.35rem;
-    padding-bottom: 0.35rem;
+    border-bottom: none !important;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
 
 .lubelogger-tab {
@@ -1269,10 +1269,11 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 /* Barra Superior Translúcida (Navbar) */
 .lubelogger-navbar-container.frosted {
-    background-color: rgba(11, 15, 25, 0.82) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(11, 15, 25, 0.90) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: none !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 /* Cockpit Ficha de Vehículo */
@@ -1354,4 +1355,136 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     background: transparent !important;
     color: #f1f5f9 !important;
     border: none !important;
+}
+
+
+/* Modern Minimalist Cockpit & Technical Specs */
+.spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.6rem;
+}
+
+.spec-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 0.55rem 0.85rem;
+    min-height: 48px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.spec-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.spec-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.spec-icon-motor { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.spec-icon-aceite { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.spec-icon-bujias { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.spec-icon-ruedas { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+
+.spec-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.spec-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #94a3b8;
+    font-weight: 600;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.spec-value {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #f8fafc;
+    line-height: 1.25;
+    word-break: break-word;
+}
+
+/* Cockpit Action Buttons */
+.btn-cockpit-fuel {
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #4ade80 !important;
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+.btn-cockpit-fuel:hover {
+    background: #22c55e !important;
+    color: #ffffff !important;
+    border-color: #22c55e !important;
+}
+
+.btn-cockpit-service {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+.btn-cockpit-service:hover {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+}
+
+.btn-cockpit-odo {
+    background: rgba(6, 182, 212, 0.15) !important;
+    color: #22d3ee !important;
+    border: 1px solid rgba(6, 182, 212, 0.3) !important;
+}
+.btn-cockpit-odo:hover {
+    background: #06b6d4 !important;
+    color: #0b0f19 !important;
+    border-color: #06b6d4 !important;
+}
+
+.btn-cockpit-repair {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+.btn-cockpit-repair:hover {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
+}
+
+/* Nav Item More Minimalist */
+.nav-item-more .dropdown-menu {
+    border-radius: 12px;
+    background: #131926;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    min-width: 200px;
+}
+.nav-item-more .dropdown-item {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #cbd5e1;
+    border-radius: 6px;
+    margin: 2px 6px;
+    width: auto;
+}
+.nav-item-more .dropdown-item:hover, .nav-item-more .dropdown-item.active {
+    background: rgba(59, 130, 246, 0.2);
+    color: #ffffff;
 }
