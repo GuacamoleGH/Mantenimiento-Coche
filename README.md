@@ -1,52 +1,74 @@
-![image](https://github.com/hargata/lubelog/assets/155338622/545debcd-d80a-44da-b892-4c652ab0384a)
+# Mantenimiento Coche (Fork Personal de LubeLogger)
 
-Self-Hosted, Open-Source, Web-Based Vehicle Maintenance and Fuel Mileage Tracker
+> Aplicación web *self-hosted* para el control exhaustivo de vehículos, mantenimientos, reparaciones, repostajes, gastos, documentación y vencimientos.
 
-Website: https://lubelogger.com
+Este proyecto es un fork y evolución personalizada de [LubeLogger](https://github.com/hargata/lubelog), adaptado específicamente a las necesidades del parque automovilístico en España, con una interfaz moderna y ágil, soporte multiusuario controlado y ficha técnica detallada.
 
-## Why
-Because nobody should have to deal with a homemade spreadsheet or a shoebox full of receipts when it comes to vehicle maintenance.
+---
 
-## Showcase
-[Promotional Brochure](https://lubelogger.com/brochure.pdf)
+## 🚗 Vehículo Principal de Referencia
 
-[Screenshots](/docs/screenshots.md)
+El diseño y los primeros módulos se optimizan para un **Mazda3 (2010, Generación BL)**:
+- **Motorización:** 2.0 DISI Gasolina (código motor `LF-VD`, 151 CV / 111 kW).
+- **Consumibles destacados:** Aceite motor 5W-30 / 0W-20 A5/B5, bujías de iridio, cadena de distribución.
+- **Alertas legales prioritarias:** Fecha de próxima **ITV** y vencimiento de **Seguro** con avisos destacados en el panel principal.
 
-## Demo
-Try it out before you download it! The live demo resets every 20 minutes.
+*La aplicación es 100% configurable para admitir cualquier otro vehículo, motocicleta o furgoneta.*
 
-[Live Demo](https://demo.lubelogger.com) Login using username "test" and password "1234"
+---
 
-## Download
-LubeLogger is available as both a Docker Image and a Windows Standalone Executable.
+## ✨ Características y Evolución sobre LubeLogger
 
-Read this [Getting Started Guide](https://docs.lubelogger.com/Installation/Getting%20Started) on how to download either of them
+- [x] **Localización 100% en Español:** Sistema de unidades y formatos adaptados a España (€, L/100km, km, Litros, fechas `DD/MM/YYYY`).
+- [ ] **Ficha Técnica y Cockpit:** Panel de acceso rápido a consumibles, especificaciones de motor y estado legal sin rebuscar entre pestañas.
+- [ ] **Alertas de ITV y Seguro:** Tarjetas visuales dedicadas con cuenta atrás en días para no descuidar revisiones obligatorias.
+- [ ] **Rediseño Visual Moderno (UI/UX):** Interfaz limpia, barra lateral no invasiva, botones rápidos de registro (*1-Click Actions*) y diseño optimizado para móvil.
+- [ ] **Permisos de Garaje Compartido:** Todos los usuarios registrados pueden consultar los vehículos de la comunidad/familia (modo lectura), pero solo el propietario puede modificar o borrar sus registros.
+- [ ] **Autenticación Ampliada:** Inicio de sesión local seguro + soporte para inicio de sesión social mediante **Google** y **Discord** (OAuth2/OIDC).
+- [ ] **Persistencia Flexible:**
+  - **Local:** LiteDB embebida (cero dependencias externas en desarrollo).
+  - **Servidor:** PostgreSQL nativo con contenedor Docker y script de copias de seguridad.
 
-### Kubernetes Deployment
-[Helm Chart](https://artifacthub.io/packages/helm/anza-labs/lubelogger) provided by [Anza-Labs](https://github.com/anza-labs)
+---
 
-### Need Help?
-[Documentation](https://docs.lubelogger.com/)
+## 🛠️ Requisitos e Inicio Rápido en Local
 
-[Troubleshooting Guide](https://docs.lubelogger.com/Installation/Troubleshooting)
+### Requisitos
+- **[.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)** (ya verificado en Windows).
+- **Git** (versión 2.40+).
 
-[Search Existing Issues](https://github.com/hargata/lubelog/issues)
+*(No se requiere Docker en el ordenador local para desarrollar o probar).*
 
-## Dependencies
-- [Bootstrap](https://github.com/twbs/bootstrap)
-- [LiteDB](https://github.com/mbdavid/litedb)
-- [Npgsql](https://github.com/npgsql/npgsql)
-- [Bootstrap-DatePicker](https://github.com/uxsolutions/bootstrap-datepicker)
-- [SweetAlert2](https://github.com/sweetalert2/sweetalert2)
-- [CsvHelper](https://github.com/JoshClose/CsvHelper)
-- [Chart.js](https://github.com/chartjs/Chart.js)
-- [Drawdown](https://github.com/adamvleggett/drawdown)
-- [MailKit](https://github.com/jstedfast/MailKit)
-- [Masonry](https://github.com/desandro/masonry)
-- [QRCode-Generator](https://github.com/kazuhikoarase/qrcode-generator)
+### Ejecución en 2 pasos
 
-## License
-MIT
+1. Clona tu repositorio si aún no lo tienes:
+   ```powershell
+   git clone https://github.com/GuacamoleGH/Mantenimiento-Coche.git
+   cd Mantenimiento-Coche
+   ```
 
-## Support
-To support this project, please see [Funding](https://docs.lubelogger.com/Misc/Funding)
+2. Compila y ejecuta:
+   ```powershell
+   dotnet run
+   ```
+
+3. Abre tu navegador en:
+   ```
+   http://localhost:5000
+   ```
+
+Toda la información generada localmente se guarda en la carpeta local `data/` (excluida del control de versiones por `.gitignore`).
+
+---
+
+## 📖 Documentación
+
+- [Guía de Compilación y Desarrollo (BUILD.md)](./BUILD.md)
+- [Arquitectura de Datos y Despliegue en Servidor](./BUILD.md#despliegue-en-servidor-casero)
+
+---
+
+## 📄 Licencia y Atribución
+
+Este proyecto se distribuye bajo los términos de la **Licencia MIT**.  
+Basado en el trabajo original de [Hargata Softworks](https://github.com/hargata/lubelog) (Copyright © 2024 Hargata Softworks).
