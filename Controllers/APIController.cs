@@ -1,0 +1,714 @@
+﻿using CarCareTracker.External.Interfaces;
+using CarCareTracker.Filter;
+using CarCareTracker.Helper;
+using CarCareTracker.Logic;
+using CarCareTracker.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using System.Security.Claims;
+using System.Text.Json;
+
+namespace CarCareTracker.Controllers
+{
+    [Authorize]
+    public partial class APIController : Controller
+    {
+        private readonly IVehicleDataAccess _dataAccess;
+        private readonly INoteDataAccess _noteDataAccess;
+        private readonly IServiceRecordDataAccess _serviceRecordDataAccess;
+        private readonly IGasRecordDataAccess _gasRecordDataAccess;
+        private readonly ICollisionRecordDataAccess _collisionRecordDataAccess;
+        private readonly ITaxRecordDataAccess _taxRecordDataAccess;
+        private readonly IReminderRecordDataAccess _reminderRecordDataAccess;
+        private readonly IUpgradeRecordDataAccess _upgradeRecordDataAccess;
+        private readonly IOdometerRecordDataAccess _odometerRecordDataAccess;
+        private readonly ISupplyRecordDataAccess _supplyRecordDataAccess;
+        private readonly IPlanRecordDataAccess _planRecordDataAccess;
+        private readonly IEquipmentRecordDataAccess _equipmentRecordDataAccess;
+        private readonly IUserAccessDataAccess _userAccessDataAccess;
+        private readonly IUserRecordDataAccess _userRecordDataAccess;
+        private readonly IExtraFieldDataAccess _extraFieldDataAccess;
+        private readonly IReminderHelper _reminderHelper;
+        private readonly IEquipmentHelper _equipmentHelper;
+        private readonly IGasHelper _gasHelper;
+        private readonly IUserLogic _userLogic;
+        private readonly IVehicleLogic _vehicleLogic;
+        private readonly IOdometerLogic _odometerLogic;
+        private readonly IFileHelper _fileHelper;
+        private readonly IMailHelper _mailHelper;
+        private readonly IConfigHelper _config;
+        private readonly IWebHostEnvironment _webEnv;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IEventLogic _eventLogic;
+        private readonly IDBHealthCheck _dbHealthCheck;
+        public APIController(IVehicleDataAccess dataAccess,
+            IGasHelper gasHelper,
+            IEquipmentHelper equipmentHelper,
+            IReminderHelper reminderHelper,
+            INoteDataAccess noteDataAccess,
+            IServiceRecordDataAccess serviceRecordDataAccess,
+            IGasRecordDataAccess gasRecordDataAccess,
+            ICollisionRecordDataAccess collisionRecordDataAccess,
+            ITaxRecordDataAccess taxRecordDataAccess,
+            IReminderRecordDataAccess reminderRecordDataAccess,
+            IUpgradeRecordDataAccess upgradeRecordDataAccess,
+            IOdometerRecordDataAccess odometerRecordDataAccess,
+            ISupplyRecordDataAccess supplyRecordDataAccess,
+            IPlanRecordDataAccess planRecordDataAccess,
+            IEquipmentRecordDataAccess equipmentRecordDataAccess,
+            IUserAccessDataAccess userAccessDataAccess,
+            IUserRecordDataAccess userRecordDataAccess,
+            IExtraFieldDataAccess extraFieldDataAccess,
+            IMailHelper mailHelper,
+            IFileHelper fileHelper,
+            IConfigHelper config,
+            IUserLogic userLogic,
+            IVehicleLogic vehicleLogic,
+            IOdometerLogic odometerLogic,
+            IEventLogic eventLogic,
+            IWebHostEnvironment webEnv,
+            IHttpClientFactory httpClientFactory,
+            IDBHealthCheck dbHealthCheck)
+        {
+            _dataAccess = dataAccess;
+            _noteDataAccess = noteDataAccess;
+            _serviceRecordDataAccess = serviceRecordDataAccess;
+            _gasRecordDataAccess = gasRecordDataAccess;
+            _collisionRecordDataAccess = collisionRecordDataAccess;
+            _taxRecordDataAccess = taxRecordDataAccess;
+            _reminderRecordDataAccess = reminderRecordDataAccess;
+            _upgradeRecordDataAccess = upgradeRecordDataAccess;
+            _odometerRecordDataAccess = odometerRecordDataAccess;
+            _supplyRecordDataAccess = supplyRecordDataAccess;
+            _planRecordDataAccess = planRecordDataAccess;
+            _equipmentRecordDataAccess = equipmentRecordDataAccess;
+            _userAccessDataAccess = userAccessDataAccess;
+            _userRecordDataAccess = userRecordDataAccess;
+            _extraFieldDataAccess = extraFieldDataAccess;
+            _mailHelper = mailHelper;
+            _gasHelper = gasHelper;
+            _equipmentHelper = equipmentHelper;
+            _reminderHelper = reminderHelper;
+            _userLogic = userLogic;
+            _odometerLogic = odometerLogic;
+            _vehicleLogic = vehicleLogic;
+            _eventLogic = eventLogic;
+            _fileHelper = fileHelper;
+            _config = config;
+            _webEnv = webEnv;
+            _httpClientFactory = httpClientFactory;
+            _dbHealthCheck = dbHealthCheck;
+        }
+        public async Task<IActionResult> Index()
+        {
+            //load up documentation
+            var apiDocFilePath = _fileHelper.GetFullFilePath("/defaults/api.json");
+            var apiDocText = await _fileHelper.GetFileTextAsync(apiDocFilePath);
+            var apiDocData = JsonSerializer.Deserialize<List<APIDocumentation>>(apiDocText) ?? new List<APIDocumentation>();
+            return View(apiDocData);
+        }
+        private int GetUserID()
+        {
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty);
+        }
+        [HttpGet]
+        [Route("/api/whoami")]
+        public IActionResult WhoAmI()
+        {
+            var result = new UserExportModel
+            {
+                Username = User.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
+                EmailAddress = User.IsInRole(nameof(UserData.IsRootUser)) ? _config.GetDefaultReminderEmail() : User.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+                IsAdmin = User.IsInRole(nameof(UserData.IsAdmin)).ToString(),
+                IsRoot = User.IsInRole(nameof(UserData.IsRootUser)).ToString()
+            };
+            if (_config.GetInvariantApi() || Request.Headers.ContainsKey("culture-invariant"))
+            {
+                return Json(result, StaticHelper.GetInvariantOption());
+            }
+            else
+            {
+                return Json(result);
+            }
+        }
+        [HttpGet]
+        [Route("/health")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetServerHealth()
+        {
+            var viewModel = new ServerHealth
+            {
+                Version = StaticHelper.VersionNumber
+            };
+            DateTime startTime = DateTime.Now;
+            var databaseHealth = _dbHealthCheck.GetDatabaseHealth();
+            viewModel.Checks.Add(databaseHealth);
+            DateTime endTime = DateTime.Now;
+            var secondsElapsed = endTime - startTime;
+            viewModel.TotalDuration = secondsElapsed;
+            if (viewModel.Status == "fail")
+            {
+                Response.StatusCode = 500;
+            }
+            return Json(viewModel);
+        }
+        [HttpGet]
+        [Route("/api/info")]
+        public async Task<IActionResult> GetServerInformation()
+        {
+            var currentCulture = CultureInfo.CurrentCulture;
+            var viewModel = new ServerInformation
+            {
+                Locale = currentCulture.Name,
+                CurrentVersion = StaticHelper.VersionNumber,
+                CurrencySymbol = currentCulture.NumberFormat.CurrencySymbol,
+                DecimalSeparator = currentCulture.NumberFormat.NumberDecimalSeparator,
+                DateFormat = currentCulture.DateTimeFormat.ShortDatePattern
+            };
+            return Json(viewModel);
+        }
+        [HttpGet]
+        [Route("/api/version")]
+        public async Task<IActionResult> ServerVersion(bool checkForUpdate = false)
+        {
+            var viewModel = new ReleaseVersion
+            {
+                CurrentVersion = StaticHelper.VersionNumber,
+                LatestVersion = StaticHelper.VersionNumber
+            };
+            if (checkForUpdate)
+            {
+                try
+                {
+                    var httpClient = _httpClientFactory.CreateClient();
+                    httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("request");
+                    var releaseResponse = await httpClient.GetFromJsonAsync<ReleaseResponse>(StaticHelper.ReleasePath) ?? new ReleaseResponse();
+                    if (!string.IsNullOrWhiteSpace(releaseResponse.tag_name))
+                    {
+                        viewModel.LatestVersion = releaseResponse.tag_name;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Json(OperationResponse.Failed($"Unable to retrieve latest version from GitHub API: {ex.Message}"));
+                }
+            }
+            return Json(viewModel);
+        }
+        [HttpGet]
+        [Route("/api/vehicles")]
+        public IActionResult Vehicles()
+        {
+            var result = _dataAccess.GetVehicles();
+            if (!User.IsInRole(nameof(UserData.IsRootUser)))
+            {
+                result = _userLogic.FilterUserVehicles(result, GetUserID());
+            }
+            if (_config.GetInvariantApi() || Request.Headers.ContainsKey("culture-invariant"))
+            {
+                return Json(result, StaticHelper.GetInvariantOption());
+            }
+            else
+            {
+                return Json(result);
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/vehicle/info")]
+        public IActionResult VehicleInfo(int vehicleId)
+        {
+            //stats for a specific or all vehicles
+            List<Vehicle> vehicles = new List<Vehicle>();
+            if (vehicleId != default)
+            {
+                if (_userLogic.UserCanEditVehicle(GetUserID(), vehicleId, HouseholdPermission.View))
+                {
+                    vehicles.Add(_dataAccess.GetVehicleById(vehicleId));
+                } else
+                {
+                    return Forbid();
+                }
+            } else
+            {
+                var result = _dataAccess.GetVehicles();
+                if (!User.IsInRole(nameof(UserData.IsRootUser)))
+                {
+                    result = _userLogic.FilterUserVehicles(result, GetUserID());
+                }
+                vehicles.AddRange(result);
+            }
+
+            var apiResult = _vehicleLogic.GetVehicleInfo(vehicles);
+            if (_config.GetInvariantApi() || Request.Headers.ContainsKey("culture-invariant"))
+            {
+                return Json(apiResult, StaticHelper.GetInvariantOption());
+            }
+            else
+            {
+                return Json(apiResult);
+            }
+        }
+        [TypeFilter(typeof(CollaboratorFilter))]
+        [HttpGet]
+        [Route("/api/vehicle/adjustedodometer")]
+        public IActionResult AdjustedOdometer(int vehicleId, int odometer)
+        {
+            var vehicle = _dataAccess.GetVehicleById(vehicleId);
+            if (vehicle == null || !vehicle.HasOdometerAdjustment)
+            {
+                return Json(odometer);
+            } else
+            {
+                var convertedOdometer = (odometer + int.Parse(vehicle.OdometerDifference)) * decimal.Parse(vehicle.OdometerMultiplier);
+                return Json(convertedOdometer);
+            }
+        }
+        [TypeFilter(typeof(APIKeyFilter), Arguments = new object[] { HouseholdPermission.Edit })]
+        [HttpPost]
+        [Route("/api/vehicles/add")]
+        [Consumes("application/json")]
+        public IActionResult AddVehicleJson([FromBody] VehicleImportModel input) => AddVehicle(input);
+        [TypeFilter(typeof(APIKeyFilter), Arguments = new object[] { HouseholdPermission.Edit })]
+        [HttpPost]
+        [Route("/api/vehicles/add")]
+        public IActionResult AddVehicle(VehicleImportModel input)
+        {
+            //validation
+            if (string.IsNullOrWhiteSpace(input.Year) ||
+                string.IsNullOrWhiteSpace(input.Make) ||
+                string.IsNullOrWhiteSpace(input.Model) ||
+                string.IsNullOrWhiteSpace(input.Identifier) ||
+                string.IsNullOrWhiteSpace(input.FuelType))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Input object invalid, Year, Make, Model, Identifier, and FuelType cannot be empty."));
+            }
+            if (input.Identifier == "LicensePlate" && string.IsNullOrWhiteSpace(input.LicensePlate))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Input object invalid, LicensePlate cannot be empty."));
+            }
+            if (input.ExtraFields == null)
+            {
+                input.ExtraFields = new List<ExtraField>();
+            }
+            if (input.Identifier != "LicensePlate" && string.IsNullOrWhiteSpace(input.ExtraFields.FirstOrDefault(x=>x.Name == input.Identifier)?.Value))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed($"Input object invalid, Identifier {input.Identifier} is specified but the value is not found in extra fields."));
+            }
+            var validFuelTypes = new List<string> { "Gasoline", "Diesel", "Electric" };
+            if (!validFuelTypes.Contains(input.FuelType))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Input object invalid, Fuel Type must be either Gasoline, Diesel, or Eletric"));
+            }
+            try
+            {
+                var vehicle = new Vehicle()
+                {
+                    Year = int.Parse(input.Year),
+                    Make = input.Make,
+                    Model = input.Model,
+                    LicensePlate = input.LicensePlate,
+                    VehicleIdentifier = input.Identifier,
+                    UseHours = string.IsNullOrWhiteSpace(input.UseEngineHours) ? false : bool.Parse(input.UseEngineHours),
+                    OdometerOptional = string.IsNullOrWhiteSpace(input.OdometerOptional) ? false : bool.Parse(input.OdometerOptional),
+                    ExtraFields = input.ExtraFields,
+                    Tags = string.IsNullOrWhiteSpace(input.Tags) ? new List<string>() : input.Tags.Split(' ').Distinct().ToList()
+                };
+                switch (input.FuelType)
+                {
+                    case "Diesel":
+                        vehicle.IsDiesel = true;
+                        break;
+                    case "Electric":
+                        vehicle.IsElectric = true;
+                        break;
+                }
+                _dataAccess.SaveVehicle(vehicle);
+                if (vehicle.Id != default)
+                {
+                    _userLogic.AddUserAccessToVehicle(GetUserID(), vehicle.Id);
+                }
+                _eventLogic.PublishEvent(GetUserID(), WebHookPayload.Generic($"Created Vehicle {vehicle.Year} {vehicle.Make} {vehicle.Model}({StaticHelper.GetVehicleIdentifier(vehicle)}) via API", "vehicle.add.api", User.Identity?.Name ?? string.Empty, vehicle.Id.ToString()));
+                return Json(OperationResponse.Succeed("Vehicle Added", new { vehicleId = vehicle.Id }));
+            } catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(OperationResponse.Failed(ex.Message));
+            }
+        }
+        [TypeFilter(typeof(APIKeyFilter), Arguments = new object[] { HouseholdPermission.Delete })]
+        [HttpDelete]
+        [Route("/api/vehicles/delete")]
+        public IActionResult DeleteVehicle(int id)
+        {
+            var existingVehicle = _dataAccess.GetVehicleById(id);
+            if (existingVehicle == null || existingVehicle.Id == default)
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Invalid Vehicle Id"));
+            }
+            if (!_userLogic.UserCanDirectlyEditVehicle(GetUserID(), id))
+            {
+                Response.StatusCode = 403;
+                return Json(OperationResponse.Failed("Access Denied, you don't have access to this vehicle."));
+            }
+            var result = _userLogic.DeleteAllAccessToVehicle(id) && _vehicleLogic.DeleteVehicleRecords(id);
+            if (result)
+            {
+                _eventLogic.PublishEvent(GetUserID(), WebHookPayload.Generic($"Deleted Vehicle - Id: {id} via API", "vehicle.delete.api", User.Identity?.Name ?? string.Empty, id.ToString()));
+            }
+            return Json(OperationResponse.Conditional(result, "Vehicle Deleted", StaticHelper.GenericErrorMessage));
+        }
+        [TypeFilter(typeof(APIKeyFilter), Arguments = new object[] { HouseholdPermission.Edit })]
+        [HttpPut]
+        [Route("/api/vehicles/update")]
+        [Consumes("application/json")]
+        public IActionResult UpdateVehicleJson([FromBody] VehicleImportModel input) => UpdateVehicle(input);
+        [TypeFilter(typeof(APIKeyFilter), Arguments = new object[] { HouseholdPermission.Edit })]
+        [HttpPut]
+        [Route("/api/vehicles/update")]
+        public IActionResult UpdateVehicle(VehicleImportModel input)
+        {
+            //validation
+            if (string.IsNullOrWhiteSpace(input.Id) ||
+                string.IsNullOrWhiteSpace(input.Year) ||
+                string.IsNullOrWhiteSpace(input.Make) ||
+                string.IsNullOrWhiteSpace(input.Model) ||
+                string.IsNullOrWhiteSpace(input.Identifier) ||
+                string.IsNullOrWhiteSpace(input.FuelType))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Input object invalid, Id, Year, Make, Model, Identifier, and FuelType cannot be empty."));
+            }
+            if (input.Identifier == "LicensePlate" && string.IsNullOrWhiteSpace(input.LicensePlate))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Input object invalid, LicensePlate cannot be empty."));
+            }
+            if (input.ExtraFields == null)
+            {
+                input.ExtraFields = new List<ExtraField>();
+            }
+            if (input.Identifier != "LicensePlate" && string.IsNullOrWhiteSpace(input.ExtraFields.FirstOrDefault(x => x.Name == input.Identifier)?.Value))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed($"Input object invalid, Identifier {input.Identifier} is specified but the value is not found in extra fields."));
+            }
+            var validFuelTypes = new List<string> { "Gasoline", "Diesel", "Electric" };
+            if (!validFuelTypes.Contains(input.FuelType))
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("Input object invalid, Fuel Type must be either Gasoline, Diesel, or Eletric"));
+            }
+            try
+            {
+                var existingVehicle = _dataAccess.GetVehicleById(int.Parse(input.Id));
+                if (existingVehicle != null && existingVehicle.Id == int.Parse(input.Id))
+                {
+                    if (!_userLogic.UserCanEditVehicle(GetUserID(), existingVehicle.Id, HouseholdPermission.Edit))
+                    {
+                        Response.StatusCode = 403;
+                        return Json(OperationResponse.Failed("Access Denied, you don't have access to this vehicle."));
+                    }
+                    existingVehicle.Year = int.Parse(input.Year);
+                    existingVehicle.Make = input.Make;
+                    existingVehicle.Model = input.Model;
+                    existingVehicle.LicensePlate = input.LicensePlate;
+                    existingVehicle.VehicleIdentifier = input.Identifier;
+                    existingVehicle.UseHours = string.IsNullOrWhiteSpace(input.UseEngineHours) ? false : bool.Parse(input.UseEngineHours);
+                    existingVehicle.OdometerOptional = string.IsNullOrWhiteSpace(input.OdometerOptional) ? false : bool.Parse(input.OdometerOptional);
+                    existingVehicle.ExtraFields = input.ExtraFields;
+                    existingVehicle.Tags = string.IsNullOrWhiteSpace(input.Tags) ? new List<string>() : input.Tags.Split(' ').Distinct().ToList();
+                    switch (input.FuelType)
+                    {
+                        case "Diesel":
+                            existingVehicle.IsDiesel = true;
+                            break;
+                        case "Electric":
+                            existingVehicle.IsElectric = true;
+                            break;
+                    }
+                    _dataAccess.SaveVehicle(existingVehicle);
+                    _eventLogic.PublishEvent(GetUserID(), WebHookPayload.Generic($"Updated Vehicle {existingVehicle.Year} {existingVehicle.Make} {existingVehicle.Model}({StaticHelper.GetVehicleIdentifier(existingVehicle)}) via API", "vehicle.update.api", User.Identity?.Name ?? string.Empty, existingVehicle.Id.ToString()));
+                    return Json(OperationResponse.Succeed("Vehicle Updated"));
+                }
+                else
+                {
+                    Response.StatusCode = 400;
+                    return Json(OperationResponse.Failed("Invalid Vehicle Id"));
+                }
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(OperationResponse.Failed(ex.Message));
+            }
+        }
+        [HttpPost]
+        [Route("/api/documents/upload")]
+        public IActionResult UploadDocument(List<IFormFile> documents)
+        {
+            if (documents.Any())
+            {
+                List<UploadedFiles> uploadedFiles = new List<UploadedFiles>();
+                string uploadDirectory = "documents/";
+                string uploadPath = Path.Combine(_webEnv.ContentRootPath, "data", uploadDirectory);
+                if (!Directory.Exists(uploadPath))
+                    Directory.CreateDirectory(uploadPath);
+                foreach (IFormFile document in documents)
+                {
+                    string fileName = Guid.NewGuid() + Path.GetExtension(document.FileName);
+                    string filePath = Path.Combine(uploadPath, fileName);
+                    using (var stream = System.IO.File.Create(filePath))
+                    {
+                        document.CopyTo(stream);
+                    }
+                    uploadedFiles.Add(new UploadedFiles
+                    {
+                        Location = Path.Combine("/", uploadDirectory, fileName),
+                        Name = Path.GetFileName(document.FileName)
+                    });
+                }
+                return Json(uploadedFiles);
+            } else
+            {
+                Response.StatusCode = 400;
+                return Json(OperationResponse.Failed("No files to upload"));
+            }
+        }
+        [Authorize(Roles = nameof(UserData.IsRootUser))]
+        [HttpGet]
+        [Route("/api/vehicle/reminders/send")]
+        public async Task<IActionResult> SendReminders(ReminderMethodParameter parameters)
+        {
+            if (parameters.Urgencies == null || !parameters.Urgencies.Any())
+            {
+                //if no urgencies parameter, we will default to all urgencies.
+                parameters.Urgencies = new List<ReminderUrgency> { ReminderUrgency.NotUrgent, ReminderUrgency.Urgent, ReminderUrgency.VeryUrgent, ReminderUrgency.PastDue };
+            }
+            List<OperationResponse> operationResponses = new List<OperationResponse>();
+            var defaultEmailAddress = _config.GetDefaultReminderEmail();
+            List<string> tagsFilter = !string.IsNullOrWhiteSpace(parameters.Tags) ? parameters.Tags.Split(' ').Distinct().ToList() : new List<string>();
+            if (parameters.Id != default)
+            {
+                //if reminderId is provided, then we only send email out for that specific reminder
+                var reminder = _reminderRecordDataAccess.GetReminderRecordById(parameters.Id);
+                if (reminder == null || reminder.Id != parameters.Id)
+                {
+                    return Json(OperationResponse.Failed("No Emails Sent, No Reminders Matching Parameters"));
+                }
+                var vehicleId = reminder.VehicleId;
+                var vehicle = _dataAccess.GetVehicleById(vehicleId);
+                var currentMileage = _vehicleLogic.GetMaxMileage(vehicleId);
+                var reminders = new List<ReminderRecord> { reminder }; //convert  to list
+                var results = _reminderHelper.GetReminderRecordViewModels(reminders, currentMileage, DateTime.Now).OrderByDescending(x => x.Urgency).ToList();
+                results.RemoveAll(x => !parameters.Urgencies.Contains(x.Urgency));
+                if (tagsFilter.Any())
+                {
+                    results.RemoveAll(x => !x.Tags.Any(y => tagsFilter.Contains(y)));
+                }
+                if (!results.Any())
+                {
+                    return Json(OperationResponse.Failed("No Emails Sent, No Reminders Matching Parameters"));
+                }
+                //get list of recipients.
+                var userIds = _userAccessDataAccess.GetUserAccessByVehicleId(vehicleId).Select(x => x.Id.UserId);
+                List<string> emailRecipients = new List<string>();
+                if (!string.IsNullOrWhiteSpace(defaultEmailAddress))
+                {
+                    emailRecipients.Add(defaultEmailAddress);
+                }
+                foreach (int userId in userIds)
+                {
+                    var userData = _userRecordDataAccess.GetUserRecordById(userId);
+                    emailRecipients.Add(userData.EmailAddress);
+                }
+                if (!emailRecipients.Any())
+                {
+                    return Json(OperationResponse.Failed("No Emails Sent, No Recipients Configured"));
+                }
+                var result = await _mailHelper.NotifyUserForReminders(vehicle, emailRecipients, results);
+                operationResponses.Add(result);
+            } 
+            else
+            {
+                var vehicles = _dataAccess.GetVehicles();
+                foreach (Vehicle vehicle in vehicles)
+                {
+                    var vehicleId = vehicle.Id;
+                    //get reminders
+                    var currentMileage = _vehicleLogic.GetMaxMileage(vehicleId);
+                    var reminders = _reminderRecordDataAccess.GetReminderRecordsByVehicleId(vehicleId);
+                    var results = _reminderHelper.GetReminderRecordViewModels(reminders, currentMileage, DateTime.Now).OrderByDescending(x => x.Urgency).ToList();
+                    results.RemoveAll(x => !parameters.Urgencies.Contains(x.Urgency));
+                    if (tagsFilter.Any())
+                    {
+                        results.RemoveAll(x => !x.Tags.Any(y => tagsFilter.Contains(y)));
+                    }
+                    if (!results.Any())
+                    {
+                        continue;
+                    }
+                    //get list of recipients.
+                    var userIds = _userAccessDataAccess.GetUserAccessByVehicleId(vehicleId).Select(x => x.Id.UserId);
+                    List<string> emailRecipients = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(defaultEmailAddress))
+                    {
+                        emailRecipients.Add(defaultEmailAddress);
+                    }
+                    foreach (int userId in userIds)
+                    {
+                        var userData = _userRecordDataAccess.GetUserRecordById(userId);
+                        emailRecipients.Add(userData.EmailAddress);
+                    }
+                    if (!emailRecipients.Any())
+                    {
+                        continue;
+                    }
+                    var result = await _mailHelper.NotifyUserForReminders(vehicle, emailRecipients, results);
+                    operationResponses.Add(result);
+                }
+            }
+            if (!operationResponses.Any())
+            {
+                return Json(OperationResponse.Failed("No Emails Sent, No Vehicles Available or No Recipients Configured"));
+            }
+            else if (operationResponses.All(x => x.Success))
+            {
+                return Json(OperationResponse.Succeed($"Emails Sent({operationResponses.Count()})"));
+            } else if (operationResponses.All(x => !x.Success))
+            {
+                return Json(OperationResponse.Failed($"All Emails Failed({operationResponses.Count()}), Check SMTP Settings"));
+            } else
+            {
+                return Json(OperationResponse.Succeed($"Emails Sent({operationResponses.Count(x => x.Success)}), Emails Failed({operationResponses.Count(x => !x.Success)}), Check Recipient Settings"));
+            }
+        }
+        [HttpGet]
+        [Route("/api/extrafields")]
+        public IActionResult GetExtraFields()
+        {
+            try
+            {
+                List<RecordExtraFieldExportModel> result = new List<RecordExtraFieldExportModel>();
+                var extraFields = _extraFieldDataAccess.GetExtraFields();
+                if (extraFields.Any())
+                {
+                    foreach(RecordExtraField extraField in extraFields)
+                    {
+                        if (extraField.ExtraFields.Any())
+                        {
+                            result.Add(new RecordExtraFieldExportModel
+                            {
+                                RecordType = ((ImportMode)extraField.Id).ToString(),
+                                ExtraFields = extraField.ExtraFields.Select(x => new ExtraFieldExportModel { Name = x.Name, IsRequired = x.IsRequired.ToString(), FieldType = x.FieldType.ToString() }).ToList()
+                            });
+                        }
+                    }
+                }
+                if (_config.GetInvariantApi() || Request.Headers.ContainsKey("culture-invariant"))
+                {
+                    return Json(result, StaticHelper.GetInvariantOption());
+                }
+                else
+                {
+                    return Json(result);
+                }
+            } catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(OperationResponse.Failed(ex.Message));
+            }
+        }
+        [Authorize(Roles = nameof(UserData.IsRootUser))]
+        [HttpGet]
+        [Route("/api/makebackup")]
+        public async Task<IActionResult> MakeBackup(string? output = "")
+        {
+            var result = _fileHelper.MakeBackup();
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                return Json(result);
+            } 
+            else if (output.Trim().ToLower() == "download")
+            {
+                //download file
+                var fullExportFilePath = _fileHelper.GetFullFilePath(result, false);
+                var fileContents = await _fileHelper.GetFileBytesAsync(fullExportFilePath);
+                return File(fileContents, "application/zip", Path.GetFileName(result));
+            }
+            else if (output.Trim().ToLower() == "email")
+            {
+                var defaultEmailAddress = _config.GetDefaultReminderEmail();
+                if (!string.IsNullOrWhiteSpace(defaultEmailAddress))
+                {
+                    //download file
+                    var fullExportFilePath = _fileHelper.GetFullFilePath(result, false);
+                    var fileContents = await _fileHelper.GetFileBytesAsync(fullExportFilePath);
+                    var emailResponse = await _mailHelper.SendBackupEmail(Path.GetFileName(result), fileContents, defaultEmailAddress);
+                    return Json(emailResponse);
+                } 
+                else
+                {
+                    return Json(OperationResponse.Failed("No Emails Sent, No Recipients Configured"));
+                }
+            }
+            else
+            {
+                return Json(result);
+            }
+        }
+        [Authorize(Roles = nameof(UserData.IsRootUser))]
+        [HttpGet]
+        [Route("/api/tempfiles")]
+        public IActionResult GetTempFiles()
+        {
+            var tempFiles = _fileHelper.GetTempFiles();
+            return Json(tempFiles);
+        }
+        [Authorize(Roles = nameof(UserData.IsRootUser))]
+        [HttpGet]
+        [Route("/api/cleanup")]
+        public IActionResult CleanUp(bool deepClean = false)
+        {
+            var jsonResponse = new Dictionary<string, string>();
+            //Clear out temp folder
+            var tempFilesDeleted = _fileHelper.ClearTempFolder();
+            jsonResponse.Add("temp_files_deleted", tempFilesDeleted.ToString());
+            if (deepClean)
+            {
+                //clear out unused vehicle thumbnails
+                var vehicles = _dataAccess.GetVehicles();
+                var vehicleImages = _vehicleLogic.GetVehicleThumbnails(vehicles);
+                if (vehicleImages.Any())
+                {
+                    var thumbnailsDeleted = _fileHelper.ClearUnlinkedThumbnails(vehicleImages);
+                    jsonResponse.Add("unlinked_thumbnails_deleted", thumbnailsDeleted.ToString());
+                }
+                var vehicleDocuments = new List<string>();
+                vehicleDocuments.AddRange(_vehicleLogic.GetVehicleDocuments(vehicles));
+                //shop supplies
+                vehicleDocuments.AddRange(_vehicleLogic.GetStoreSupplyDocuments());
+                if (vehicleDocuments.Any())
+                {
+                    var documentsDeleted = _fileHelper.ClearUnlinkedDocuments(vehicleDocuments);
+                    jsonResponse.Add("unlinked_documents_deleted", documentsDeleted.ToString());
+                }
+            }
+            return Json(jsonResponse);
+        }
+        [Authorize(Roles = nameof(UserData.IsRootUser))]
+        [HttpGet]
+        [Route("/api/demo/restore")]
+        public IActionResult RestoreDemo()
+        {
+            var result = _fileHelper.RestoreBackup("/defaults/demo_default.zip", true);
+            return Json(result);
+        }
+    }
+}

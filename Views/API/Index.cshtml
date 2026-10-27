@@ -1,0 +1,116 @@
+﻿@using System.Text.Json
+@using CarCareTracker.Helper
+@{
+    ViewData["Title"] = "API";
+}
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+@model List<APIDocumentation>
+@section Scripts {
+    <script src="~/js/swigarette.js?v=@StaticHelper.VersionNumber"></script>
+}
+@section Nav {
+    <div class="container-fluid lubelogger-navbar-container frosted hideOnPrint">
+        <div class="row mt-2">
+            <div class="d-flex lubelogger-navbar">
+                <div class="me-2" style="cursor:pointer;" onclick="returnToGarage()">
+                    <img src="@config.GetSmallLogoUrl()" class="lubelogger-logo" />
+                </div>
+                <span class="text-truncate lead">API</span>
+                <span class="lead text-end flex-grow-1 d-none flex-wrap d-md-block">If authentication is enabled, use the credentials of the user for Basic Auth(RFC2617)</span>
+            </div>
+        </div>
+        <hr />
+    </div>
+}
+@foreach(APIDocumentation apiDoc in Model)
+{
+    if (apiDoc.CategoryName.ToLower() == "admin" && !User.IsInRole(nameof(UserData.IsRootUser))){
+        continue;
+    }
+    <div class="apiContainer">
+        <div style="cursor:pointer" class="collapsed" onclick="toggleAPICollapse(this)">
+            <div class="d-flex justify-content-between">
+                <span class="display-6">@apiDoc.CategoryName</span>
+                <span class="display-6 api-chevron"><i class="bi bi-chevron-up"></i></span>
+            </div>
+        </div>
+        <hr />
+        <div class="collapse">
+            @foreach(APIMethod apiMethod in apiDoc.Methods)
+            {
+                <div class="apiContainer">
+                    <div class="alert @($"alert-{StaticHelper.GetAPIMethodColor(apiMethod.MethodType)}") collapsed" onclick="toggleAPICollapse(this)">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="fw-semibold text-dark me-2 px-2 py-1 @($"bg-{StaticHelper.GetAPIMethodColor(apiMethod.MethodType)}") @($"border-{StaticHelper.GetAPIMethodColor(apiMethod.MethodType)}-subtle") rounded-2">@apiMethod.MethodType.ToString().ToUpper()</small>
+                                <span>@apiMethod.Path</span>
+                            </div>
+                            <span class="lead api-chevron"><i class="bi bi-chevron-up"></i></span>
+                        </div>
+                    </div>
+                    <div class="collapse border px-2 py-1 rounded-2 @($"border-{StaticHelper.GetAPIMethodColor(apiMethod.MethodType)}") mb-3">
+                        <div class="d-flex align-items-center">
+                            <span>@apiMethod.Description</span>
+                            <button class="ms-auto me-2 btn btn-primary" role="button" onclick="testAPIEndpoint(this)"><i class="bi bi-play-fill"></i></button>
+                            <button class="btn btn-secondary" role="button" onclick="copyAPIPath(this)" data-endpoint="@apiMethod.Path"><i class="bi bi-copy"></i></button>
+                        </div>
+                        <div class="api-tester d-none">
+                            <hr />
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        @foreach (APIQueryParam queryParam in apiMethod.QueryParams)
+                                        {
+                                            <label>@queryParam.Name<span class="@(queryParam.Required ? "text-danger" : "d-none")">*</span></label>
+                                            <input type="text" data-required="@queryParam.Required.ToString().ToLower()" data-param="@queryParam.Name" class="form-control api-tester-param" placeholder="@queryParam.Description">
+                                        }
+                                        @if (apiMethod.HasBody && !apiMethod.BodyIsFileUpload)
+                                        {
+                                            var bodyId = $"g{Guid.NewGuid().ToString().Substring(0,8)}";
+                                            <label>@translator.Translate(userLanguage, "Body Sample")</label>
+                                            <ul class="nav nav-pills mt-2 mb-2 @(apiMethod.BodySample.Count() == 1 ? "d-none" : "")">
+                                                @for (int i = 0; i < apiMethod.BodySample.Count(); i++)
+                                                {
+                                                    var bodySampleName = apiMethod.BodySampleNames.ElementAtOrDefault(i) ?? $"Body Sample {i + 1}";
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link @(i == 0 ? "active" : "")" data-bs-toggle="pill" data-bs-target="@($"#{bodyId}-{i}-tab-pane")" type="button" role="tab" aria-selected="false">@bodySampleName</button>
+                                                    </li>
+                                                }
+                                            </ul>
+                                            <div class="tab-content">
+                                                @for(int i = 0; i < apiMethod.BodySample.Count(); i++)
+                                                {
+                                                    var bodySampleString = JsonSerializer.Serialize(apiMethod.BodySample[i], StaticHelper.GetAPIDocumentationSerializerOption());
+                                                    <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="@($"{bodyId}-{i}-tab-pane")" role="tabpanel">
+                                                        <textarea class="form-control api-tester-body" data-file="false" data-param="@apiMethod.BodyParamName" rows="5">@bodySampleString</textarea>
+                                                    </div>
+                                                }
+                                            </div>
+                                        } 
+                                        else if (apiMethod.BodyIsFileUpload)
+                                        {
+                                            <label>@apiMethod.BodyParamName</label>
+                                            <input class="form-control api-tester-body" type="file" data-file="true" data-param="@apiMethod.BodyParamName" multiple accept="@config.GetAllowedFileUploadExtensions()">
+                                        }
+                                        <div class="d-grid mt-2">
+                                            <button class="btn btn-primary" role="button" data-method="@apiMethod.MethodType.ToString().ToUpper()" data-endpoint="@apiMethod.Path" onclick="executeAPIEndpoint(this)">@translator.Translate(userLanguage, "Execute")</button>
+                                        </div>
+                                        <div class="api-tester-result d-none">
+                                            <label>@translator.Translate(userLanguage, "Response")</label>
+                                            <textarea readonly class="form-control api-tester-result-text" rows="5"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

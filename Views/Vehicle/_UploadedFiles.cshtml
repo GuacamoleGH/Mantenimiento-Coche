@@ -1,0 +1,35 @@
+﻿@using CarCareTracker.Helper
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+@model List<UploadedFiles>
+@if (Model.Any())
+{
+    <label id="uploadedDocumentsLabel">@translator.Translate(userLanguage, "Uploaded Documents")</label>
+    <ul class="list-group" id="uploadedDocumentsList">
+        @foreach (UploadedFiles filesUploaded in Model)
+        {
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a style="cursor:pointer;" class="uploadedFileName d-flex align-items-center text-truncate" title="@filesUploaded.Name" onclick="openAttachmentPreview('@filesUploaded.Name', '@filesUploaded.Location')">
+                        <span class="lead me-2"><i class="bi @StaticHelper.GetIconByFileExtension(filesUploaded.Location)"></i></span><span class="text-link">@filesUploaded.Name</span>
+                    </a>
+                    <div class="d-flex align-items-center">
+                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="editFileName('@filesUploaded.Location', this)"><i class="bi bi-pencil"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFileFromUploadedFiles('@filesUploaded.Location', this)"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            </li>
+        }
+    </ul>
+}
+<script>
+    var uploadedFiles = [];
+     @foreach (UploadedFiles filesUploaded in Model)
+     {
+        @:uploadedFiles.push({ name: decodeHTMLEntities("@filesUploaded.Name"), location: "@filesUploaded.Location" });
+     }
+</script>

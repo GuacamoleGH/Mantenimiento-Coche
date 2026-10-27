@@ -1,0 +1,279 @@
+﻿@using CarCareTracker.Helper
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@{
+    bool emailServerIsSetup = true;
+    var mailConfig = config.GetMailConfig();
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+    if (mailConfig is null || string.IsNullOrWhiteSpace(mailConfig.EmailServer))
+    {
+        emailServerIsSetup = false;
+    }
+}
+@section Nav {
+    <div class="container-fluid lubelogger-navbar-container frosted hideOnPrint">
+        <div class="row mt-2">
+            <div class="d-flex lubelogger-navbar">
+                <div class="me-2" style="cursor:pointer;" onclick="returnToGarage()">
+                    <img src="@config.GetSmallLogoUrl()" class="lubelogger-logo" />
+                </div>
+                <span class="text-truncate lead">@translator.Translate(userLanguage, "Admin Panel")</span>
+            </div>
+        </div>
+        <hr />
+    </div>
+}
+@model AdminViewModel
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <div class="col-2 d-flex align-items-center">
+                    <span class="lead">@translator.Translate(userLanguage, "Users")</span>
+                </div>
+                <div class="col-10 d-flex align-items-center justify-content-end">
+                    <button onclick="showTokenModal()" class="btn btn-primary btn-md mt-1 mb-1">
+                        <i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Manage Tokens")
+                    </button>
+                </div>
+            </div>
+            <hr />
+            <table class="table table-hover">
+                <thead class="sticky-top sticky-top-nav">
+                    <tr class="d-flex">
+                        <th scope="col" class="col-4">@translator.Translate(userLanguage, "Username")</th>
+                        <th scope="col" class="col-4">@translator.Translate(userLanguage, "Email")</th>
+                        <th scope="col" class="col-2">@translator.Translate(userLanguage, "Is Admin")</th>
+                        <th scope="col" class="col-2">@translator.Translate(userLanguage, "Delete")</th>
+                    </tr>
+                </thead>
+                <tbody id="userTable">
+                    @await Html.PartialAsync("_Users", Model.Users)
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade" data-bs-focus="false" id="tokenModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex align-items-center">
+                        <h5 class="modal-title">@translator.Translate(userLanguage, "Tokens")</h5>
+                    </div>
+                    <div class="d-flex align-items-center ms-auto">
+                        <div class="btn-group">
+                            <button onclick="generateNewToken()" class="btn btn-primary btn-md mt-1 mb-1">
+                                <i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Generate")
+                            </button>
+                            <button class="btn btn-outline-primary btn-md mt-1 mb-1" @(emailServerIsSetup ? "" : "disabled") onclick="toggleAutoNotify(event)">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="enableAutoNotify" @(emailServerIsSetup ? "checked" : "disabled")>
+                                    <label class="form-check-label" for="enableAutoNotify">@translator.Translate(userLanguage, "Notify")</label>
+                                </div>
+                            </button>
+                        </div>
+                        <button class="btn btn-close btn-md mt-1 mb-1 ms-2" onclick="hideTokenModal()" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <thead class="sticky-top">
+                            <tr class="d-flex">
+                                <th scope="col" class="col-4">@translator.Translate(userLanguage, "Token")</th>
+                                <th scope="col" class="col-6">@translator.Translate(userLanguage, "Issued To")</th>
+                                <th scope="col" class="col-2">@translator.Translate(userLanguage, "Delete")</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tokenTable">
+                            @await Html.PartialAsync("_Tokens", Model.Tokens)
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" data-bs-focus="false" id="householdModal" tabindex="-1" role="dialog" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" id="householdModalContent">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function showTokenModal() {
+        $("#tokenModal").modal('show');
+    }
+    function hideTokenModal() {
+        $("#tokenModal").modal('hide');
+    }
+    function reloadTokenTable() {
+        $.get('/Admin/GetTokenPartialView', function (data) {
+            $("#tokenTable").html(data);
+        });
+    }
+    function reloadUserTable() {
+        $.get('/Admin/GetUserPartialView', function (data) {
+            $("#userTable").html(data);
+        });
+    }
+    function updateUserAdmin(userId, sender) {
+        var isChecked = $(sender).is(":checked");
+        $.post('/Admin/UpdateUserAdminStatus', { userId: userId, isAdmin: isChecked }, function (data) {
+            if (data) {
+                reloadUserTable();
+            } else {
+                errorToast(genericErrorMessage());
+            }
+        });
+    }
+    function toggleAutoNotify(e) {
+        if (!$("#enableAutoNotify").attr("disabled")) {
+            if ($(e.target).hasClass('btn')) {
+                $("#enableAutoNotify").trigger('click');
+            }
+        }
+    }
+    function deleteToken(tokenId) {
+        $.post(`/Admin/DeleteToken?tokenId=${tokenId}`, function (data) {
+            if (data) {
+                reloadTokenTable();
+            } else {
+                errorToast(genericErrorMessage());
+            }
+        });
+    }
+    function deleteUser(userId) {
+        event.stopPropagation();
+        confirmDelete("Deleted Users cannot be restored.",(result) => {
+            if (result.isConfirmed) {
+                $.post(`/Admin/DeleteUser?userId=${userId}`, function (data) {
+                    if (data) {
+                        reloadUserTable();
+                    } else {
+                        errorToast(genericErrorMessage());
+                    }
+                });
+            }
+        });
+    }
+    function generateNewToken() {
+        Swal.fire({
+            title: 'Generate Token',
+            html: `
+                                <input type="text" id="inputEmail" class="swal2-input" placeholder="Email Address" onkeydown="handleSwalEnter(event)">
+                                `,
+            confirmButtonText: 'Generate',
+            focusConfirm: false,
+            preConfirm: () => {
+                const emailAddress = $("#inputEmail").val();
+                if (!emailAddress) {
+                    Swal.showValidationMessage(`Please enter an email address`)
+                }
+                return { emailAddress }
+            },
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                var autoNotify = $("#enableAutoNotify").is(":checked");
+                $.get('/Admin/GenerateNewToken', { emailAddress: result.value.emailAddress, autoNotify: autoNotify }, function (data) {
+                    if (data.success) {
+                        reloadTokenTable();
+                    } else {
+                        errorToast(data.message)
+                    }
+                });
+            }
+        });
+    }
+    function loadUserHousehold(userId){
+        $.get(`/Admin/GetUserHouseholdModal?userId=${userId}`, function(data){
+            $('#householdModalContent').html(data);
+            $('#householdModal').modal('show');
+        })
+    }
+    function hideHouseholdModal(){
+        $('#householdModal').modal('hide');
+    }
+    function adminRemoveUserFromHousehold(parentUserId, childUserId){
+        $.post('/Admin/RemoveUserFromHousehold', {parentUserId: parentUserId, childUserId: childUserId}, function(data){
+            if (data) {
+            successToast('User Removed');
+            loadUserHousehold(parentUserId);
+        } else {
+            errorToast(genericErrorMessage())
+        }
+        });
+    }
+    function adminUpdateUserHousehold(parentUserId, childUserId, e){
+        let selectedRole = $(e).val();
+        let permissions = [];
+        switch (selectedRole){
+            case 'editor':
+            permissions.push('Edit');
+            break;
+            case 'manager':
+            permissions.push('Edit');
+            permissions.push('Delete');
+            break;
+        }
+        $.post('/Admin/ModifyUserHouseholdPermissions', {parentUserId: parentUserId, childUserId: childUserId, permissions: permissions}, function(data){
+            if (data) {
+            successToast('Household Updated');
+            loadUserHousehold(parentUserId);
+        } else {
+            errorToast(genericErrorMessage())
+        }
+        })
+    }
+    function adminAddUserToHousehold(parentUserId){
+         Swal.fire({
+        title: 'Add User',
+        html: `
+                            <input type="text" id="inputUserName" class="swal2-input" placeholder="Username" onkeydown="handleSwalEnter(event)">
+                            `,
+        confirmButtonText: 'Add',
+        focusConfirm: false,
+        preConfirm: () => {
+            const userName = $("#inputUserName").val();
+            if (!userName) {
+                Swal.showValidationMessage(`Please enter a username`);
+            }
+            return { userName }
+        },
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            $.post('/Admin/AddUserToHousehold', { parentUserId: parentUserId, username: result.value.userName }, function (data) {
+                if (data.success) {
+                    loadUserHousehold(parentUserId);
+                    successToast('User Added');
+                } else {
+                    errorToast(data.message);
+                }
+            });
+        }
+    });
+    }
+    function adminRevokeUserPassword(userId){
+        $.post('/Admin/RevokeUserPassword', {userId: userId}, function(data){
+        if (data.success) {
+            successToast(data.message);
+            loadUserHousehold(userId);
+        } else {
+            errorToast(data.message);
+        }
+        });
+    }
+    function adminResetUserPassword(userId){
+        $.post('/Admin/ResetUserPassword', {userId: userId}, function(data){
+        if (data.success) {
+            successToast(data.message);
+            loadUserHousehold(userId);
+        } else {
+            errorToast(data.message);
+        }
+        });
+    }
+</script>

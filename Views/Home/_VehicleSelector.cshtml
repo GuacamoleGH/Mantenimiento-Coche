@@ -1,0 +1,33 @@
+﻿@inject IConfigHelper config
+@inject ITranslationHelper translator
+@using CarCareTracker.Helper
+@model List<Vehicle>
+
+@{
+    var userLanguage = config.GetUserConfig(User).UserLanguage;
+}
+
+@if (Model.Any())
+{
+    <div id="vehicleSelector">
+        <ul class="list-group">
+            @foreach (Vehicle vehicle in Model)
+            {
+                <li class="list-group-item text-start">
+                    <input class="form-check-input" type="checkbox" value="@vehicle.Id" id="vehicleCheck_@vehicle.Id">
+                    @if(vehicle.Id != default)
+                    {
+                        <label class="form-check-label stretched-link" for="vehicleCheck_@vehicle.Id">@($"{vehicle.Year} {vehicle.Make} {vehicle.Model} ({StaticHelper.GetVehicleIdentifier(vehicle)})")</label>
+                    } 
+                    else
+                    {
+                        <label class="form-check-label stretched-link" for="vehicleCheck_@vehicle.Id">@($"{vehicle.Make}")</label>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+} else
+{
+    <div id="vehicleSelector"><span class="lead">@translator.Translate(userLanguage, "No Vehicles Available")</span></div>
+}

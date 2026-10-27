@@ -1,0 +1,97 @@
+﻿@using CarCareTracker.Helper
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+@model ImportMode
+<div class="modal-header">
+    <h5 class="modal-title">@translator.Translate(userLanguage, "Import Data from CSV")</h5>
+    <button type="button" class="btn-close" onclick="hideBulkImportModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form>
+        <div class="form-group">
+            <div class="form-group">
+                <div class="col-12">
+                    <div class="alert alert-warning" role="alert">
+                        @translator.Translate(userLanguage, "In order for this utility to function properly, your CSV file MUST be formatted exactly like the provided sample. Dates must be supplied in a string. Numbers must be supplied as numbers without currency formatting.")
+                    </div>
+                    <div class="alert alert-danger" role="alert">
+                        @translator.Translate(userLanguage, "Failure to format the data correctly can cause data corruption. Please make sure you make a copy of the local database before proceeding.")
+                    </div>
+                    <btn class="btn btn-link" onclick="downloadCsvSample()">@translator.Translate(userLanguage, "Download Sample")</btn>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label for="csvFileUploader">@translator.Translate(userLanguage, "Upload CSV File")</label>
+                    <input onChange="uploadFileAsync(this, setUploadedFile)" type="file" multiple accept=".csv" class="form-control-file" id="csvFileUploader">
+                </div>
+            </div>
+            <div class="row mt-2 importValidationErrorContainer" style="display:none;">
+                <div class="col-12 importValidationError bg-secondary-subtle border rounded">
+
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" onclick="hideBulkImportModal()">@translator.Translate(userLanguage, "Cancel")</button>
+    <button type="button" onclick="importFromCsv()" class="btn btn-primary">@translator.Translate(userLanguage, "Import")</button>
+</div>
+<script>
+    var uploadedFile = "";
+    function downloadCsvSample(){
+        let mode = "@Model";
+        window.open(`/Vehicle/GenerateCsvSample?mode=${mode}&vehicleId=${GetVehicleId().vehicleId}`);
+    }
+    function importFromCsv() {
+        var vehicleId = GetVehicleId().vehicleId;
+        var mode = "@Model";
+        sloader.show();
+        $.post('/Vehicle/ImportToVehicleIdFromCsv', { vehicleId: vehicleId, mode: mode, fileName: uploadedFile }, function (data) {
+            sloader.hide();
+            if (data.success) {
+                successToast(data.message);
+                hideBulkImportModal();
+                if (mode == "GasRecord") {
+                    getVehicleGasRecords(vehicleId);
+                } else if (mode == "ServiceRecord") {
+                    getVehicleServiceRecords(vehicleId);
+                } else if (mode == "RepairRecord") {
+                    getVehicleCollisionRecords(vehicleId);
+                } else if (mode == "TaxRecord") {
+                    getVehicleTaxRecords(vehicleId);
+                } else if (mode == "UpgradeRecord") {
+                    getVehicleUpgradeRecords(vehicleId);
+                } else if (mode == "SupplyRecord") {
+                    getVehicleSupplyRecords(vehicleId);
+                } else if (mode == "PlanRecord") {
+                    getVehiclePlanRecords(vehicleId);
+                } else if (mode == "OdometerRecord") {
+                    getVehicleOdometerRecords(vehicleId);
+                } else if (mode == "EquipmentRecord"){
+                    getVehicleEquipmentRecords(vehicleId);
+                }
+            } else {
+                errorToast(data.message);
+                if (data.additionalData != undefined && data.additionalData.length > 0){
+                    $('.importValidationErrorContainer').show();
+                    $('.importValidationError').html("");
+                    data.additionalData.map(x => {
+                        if (x.success){
+                            let importResult = $(`<div class='p-2 text-success'>${x.message}</div>`);
+                            $('.importValidationError').append(importResult);
+                        } else {
+                            let importResult = $(`<div class='p-2 text-danger'>${x.message}</div>`);
+                            $('.importValidationError').append(importResult);
+                        }
+                    });
+                }
+            }
+        });
+    }
+</script>

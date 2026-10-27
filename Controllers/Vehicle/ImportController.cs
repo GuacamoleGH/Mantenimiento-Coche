@@ -1,0 +1,1170 @@
+﻿using CarCareTracker.Filter;
+using CarCareTracker.Helper;
+using CarCareTracker.MapProfile;
+using CarCareTracker.Models;
+using CsvHelper;
+using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+
+namespace CarCareTracker.Controllers
+{
+    public partial class VehicleController
+    {
+        [HttpGet]
+        public IActionResult GetBulkImportModalPartialView(ImportMode mode)
+        {
+            return PartialView("_BulkDataImporter", mode);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GenerateCsvSample(ImportMode mode, int vehicleId)
+        {
+            string uploadDirectory = "temp/";
+            string uploadPath = Path.Combine(_webEnv.ContentRootPath, "data", uploadDirectory);
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+            var fileNameToExport = $"temp/{Guid.NewGuid()}.csv";
+            var fullExportFilePath = _fileHelper.GetFullFilePath(fileNameToExport, false);
+            switch (mode)
+            {
+                case ImportMode.ServiceRecord:
+                case ImportMode.RepairRecord:
+                case ImportMode.UpgradeRecord:
+                    {
+                        var exportData = new List<GenericRecordExportModel> { new GenericRecordExportModel
+                        {
+                            Date = DateTime.Now.ToShortDateString(),
+                            Description = "Test",
+                            Cost = 123.45M.ToString("C"),
+                            Notes = "Test Note",
+                            Odometer = 12345.ToString(),
+                            Tags = "test1 test2"
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WriteGenericRecordExportModel(csv, exportData);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                case ImportMode.GasRecord:
+                    {
+                        bool writeElectric = false;
+                        if (vehicleId != default)
+                        {
+                            var vehicleData = _dataAccess.GetVehicleById(vehicleId);
+                            writeElectric = vehicleData.IsElectric;
+                        }
+                        var exportData = new List<GasRecordExportModel> { new GasRecordExportModel
+                        {
+                            Date = DateTime.Now.ToShortDateString(),
+                            Odometer = 12345.ToString(),
+                            FuelConsumed = 12.34M.ToString(),
+                            Cost = 45.67M.ToString("C"),
+                            IsFillToFull = true.ToString(),
+                            MissedFuelUp = false.ToString(),
+                            StartingSoc = "20",
+                            EndingSoc = "80",
+                            Notes = "Test Note",
+                            Tags = "test1 test2"
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WriteGasRecordExportModel(csv, exportData, writeElectric);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                case ImportMode.OdometerRecord:
+                    {
+                        var exportData = new List<OdometerRecordExportModel> {  new OdometerRecordExportModel
+                        {
+                            Date = DateTime.Now.ToShortDateString(),
+                            InitialOdometer = 12345.ToString(),
+                            Odometer = 12345.ToString(),
+                            Notes = "Test Note",
+                            Tags = "test1 test2"
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WriteOdometerRecordExportModel(csv, exportData);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                case ImportMode.TaxRecord:
+                    {
+                        var exportData = new List<TaxRecordExportModel> {  new TaxRecordExportModel
+                        {
+                            Date = DateTime.Now.ToShortDateString(),
+                            Description = "Test",
+                            Cost = 123.45M.ToString("C"),
+                            Notes = "Test Note",
+                            Tags = "test1 test2"
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WriteTaxRecordExportModel(csv, exportData);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                case ImportMode.SupplyRecord:
+                    {
+                        var exportData = new List<SupplyRecordExportModel> { new SupplyRecordExportModel
+                        {
+                            Date = DateTime.Now.ToShortDateString(),
+                            PartNumber = "TEST-123456",
+                            PartSupplier = "Test Supplier",
+                            PartQuantity = 1.5M.ToString(),
+                            Description = "Test",
+                            Cost = 123.45M.ToString("C"),
+                            Notes = "Test Note",
+                            Tags = "test1 test2"
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WriteSupplyRecordExportModel(csv, exportData);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                case ImportMode.PlanRecord:
+                    {
+                        var exportData = new List<PlanRecordExportModel> {  new PlanRecordExportModel
+                        {
+                            DateCreated = DateTime.Now.ToString(),
+                            DateModified = DateTime.Now.ToString(),
+                            Description = "Test",
+                            Type = ImportMode.RepairRecord.ToString(),
+                            Priority = PlanPriority.Normal.ToString(),
+                            Progress = PlanProgress.Testing.ToString(),
+                            Cost = 123.45M.ToString("C"),
+                            Notes = "Test Note"
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WritePlanRecordExportModel(csv, exportData);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                case ImportMode.EquipmentRecord:
+                    {
+                        var exportData = new List<EquipmentRecordExportModel> { new EquipmentRecordExportModel
+                        {
+                            Description = "Test",
+                            Notes = "Test Note",
+                            Tags = "test1 test2",
+                            IsEquipped = true.ToString()
+                        } };
+                        using (var writer = new StreamWriter(fullExportFilePath))
+                        {
+                            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                            {
+                                //custom writer
+                                StaticHelper.WriteEquipmentRecordExportModel(csv, exportData);
+                            }
+                            writer.Dispose();
+                        }
+                    }
+                    break;
+                default:
+                    return Json(OperationResponse.Failed("No parameters"));
+            }
+            try
+            {
+                var fileBytes = await _fileHelper.GetFileBytesAsync(fullExportFilePath, true);
+                if (fileBytes.Length > 0)
+                {
+                    return File(fileBytes, "text/csv", $"{mode.ToString().ToLower()}sample.csv");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("An error has occurred while generating CSV sample: file has zero bytes"));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return Json(OperationResponse.Failed($"An error has occurred while generating CSV sample: {ex.Message}"));
+            }
+        }
+        public IActionResult GetCSVExportParameters()
+        {
+            return PartialView("_CSVExportParameters");
+        }
+        [TypeFilter(typeof(CollaboratorFilter), Arguments = new object[] { false, true, HouseholdPermission.View })]
+        [HttpPost]
+        public IActionResult ExportFromVehicleToCsv(int vehicleId, ImportMode mode, CSVExportParameter exportParameters)
+        {
+            if (vehicleId == default && mode != ImportMode.SupplyRecord)
+            {
+                return Json(false);
+            }
+            string uploadDirectory = "temp/";
+            string uploadPath = Path.Combine(_webEnv.ContentRootPath, "data", uploadDirectory);
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+            var fileNameToExport = $"temp/{Guid.NewGuid()}.csv";
+            var fullExportFilePath = _fileHelper.GetFullFilePath(fileNameToExport, false);
+            if (mode == ImportMode.ServiceRecord)
+            {
+                var vehicleRecords = _serviceRecordDataAccess.GetServiceRecordsByVehicleId(vehicleId);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        vehicleRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        vehicleRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        vehicleRecords.RemoveAll(x => x.Date.Date > endDate || x.Date.Date < startDate);
+                    }
+                }
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new GenericRecordExportModel
+                    {
+                        Date = x.Date.ToShortDateString(),
+                        Description = x.Description,
+                        Cost = x.Cost.ToString("C"),
+                        Notes = x.Notes,
+                        Odometer = x.Mileage.ToString(),
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            //custom writer
+                            StaticHelper.WriteGenericRecordExportModel(csv, exportData);
+                        }
+                        writer.Dispose();
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.RepairRecord)
+            {
+                var vehicleRecords = _collisionRecordDataAccess.GetCollisionRecordsByVehicleId(vehicleId);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        vehicleRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        vehicleRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        vehicleRecords.RemoveAll(x => x.Date.Date > endDate || x.Date.Date < startDate);
+                    }
+                }
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new GenericRecordExportModel
+                    {
+                        Date = x.Date.ToShortDateString(),
+                        Description = x.Description,
+                        Cost = x.Cost.ToString("C"),
+                        Notes = x.Notes,
+                        Odometer = x.Mileage.ToString(),
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteGenericRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.UpgradeRecord)
+            {
+                var vehicleRecords = _upgradeRecordDataAccess.GetUpgradeRecordsByVehicleId(vehicleId);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        vehicleRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        vehicleRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        vehicleRecords.RemoveAll(x => x.Date.Date > endDate || x.Date.Date < startDate);
+                    }
+                }
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new GenericRecordExportModel
+                    {
+                        Date = x.Date.ToShortDateString(),
+                        Description = x.Description,
+                        Cost = x.Cost.ToString("C"),
+                        Notes = x.Notes,
+                        Odometer = x.Mileage.ToString(),
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteGenericRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.OdometerRecord)
+            {
+                var vehicleRecords = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(vehicleId);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        vehicleRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        vehicleRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        vehicleRecords.RemoveAll(x => x.Date.Date > endDate || x.Date.Date < startDate);
+                    }
+                }
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new OdometerRecordExportModel
+                    {
+                        Date = x.Date.ToShortDateString(),
+                        Notes = x.Notes,
+                        InitialOdometer = x.InitialMileage.ToString(),
+                        Odometer = x.Mileage.ToString(),
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteOdometerRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.SupplyRecord)
+            {
+                var vehicleRecords = _supplyRecordDataAccess.GetSupplyRecordsByVehicleId(vehicleId);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        vehicleRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        vehicleRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        vehicleRecords.RemoveAll(x => x.Date.Date > endDate || x.Date.Date < startDate);
+                    }
+                }
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new SupplyRecordExportModel
+                    {
+                        Date = x.Date.ToShortDateString(),
+                        Description = x.Description,
+                        Cost = x.Cost.ToString("C"),
+                        PartNumber = x.PartNumber,
+                        PartQuantity = x.Quantity.ToString(),
+                        PartSupplier = x.PartSupplier,
+                        Notes = x.Notes,
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteSupplyRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.TaxRecord)
+            {
+                var vehicleRecords = _taxRecordDataAccess.GetTaxRecordsByVehicleId(vehicleId);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        vehicleRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        vehicleRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        vehicleRecords.RemoveAll(x => x.Date.Date > endDate || x.Date.Date < startDate);
+                    }
+                }
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new TaxRecordExportModel
+                    {
+                        Date = x.Date.ToShortDateString(),
+                        Description = x.Description,
+                        Cost = x.Cost.ToString("C"),
+                        Notes = x.Notes,
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteTaxRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.PlanRecord)
+            {
+                var vehicleRecords = _planRecordDataAccess.GetPlanRecordsByVehicleId(vehicleId);
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new PlanRecordExportModel
+                    {
+                        DateCreated = x.DateCreated.ToString("G"),
+                        DateModified = x.DateModified.ToString("G"),
+                        Description = x.Description,
+                        Cost = x.Cost.ToString("C"),
+                        Type = x.ImportMode.ToString(),
+                        Priority = x.Priority.ToString(),
+                        Progress = x.Progress.ToString(),
+                        Notes = x.Notes,
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WritePlanRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.EquipmentRecord)
+            {
+                var vehicleRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(vehicleId);
+                if (vehicleRecords.Any())
+                {
+                    var exportData = vehicleRecords.Select(x => new EquipmentRecordExportModel
+                    {
+                        Description = x.Description,
+                        Tags = string.Join(" ", x.Tags),
+                        Notes = x.Notes,
+                        IsEquipped = x.IsEquipped.ToString(),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteEquipmentRecordExportModel(csv, exportData);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            else if (mode == ImportMode.GasRecord)
+            {
+                var vehicleRecords = _gasRecordDataAccess.GetGasRecordsByVehicleId(vehicleId);
+                var vehicleData = _dataAccess.GetVehicleById(vehicleId);
+                bool useMPG = _config.GetUserConfig(User).UseMPG;
+                bool useUKMPG = !vehicleData.IsElectric && _config.GetUserConfig(User).UseUKMPG; //do not apply UK conversion on electric vehicles.
+                var convertedRecords = _gasHelper.GetGasRecordViewModels(vehicleRecords, useMPG, useUKMPG, vehicleData.IsElectric);
+                //filter by tags
+                if (exportParameters.Tags.Any())
+                {
+                    if (exportParameters.TagFilter == TagFilter.Exclude)
+                    {
+                        convertedRecords.RemoveAll(x => x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                    else if (exportParameters.TagFilter == TagFilter.IncludeOnly)
+                    {
+                        convertedRecords.RemoveAll(x => !x.Tags.Any(y => exportParameters.Tags.Contains(y)));
+                    }
+                }
+                //filter by date range.
+                if (exportParameters.FilterByDateRange && !string.IsNullOrWhiteSpace(exportParameters.StartDate) && !string.IsNullOrWhiteSpace(exportParameters.EndDate))
+                {
+                    var startDate = DateTime.Parse(exportParameters.StartDate).Date;
+                    var endDate = DateTime.Parse(exportParameters.EndDate).Date;
+                    //validate date range
+                    if (endDate >= startDate) //allow for same day.
+                    {
+                        //remove all records with dates after the end date and dates before the start date.
+                        convertedRecords.RemoveAll(x => DateTime.Parse(x.Date).Date > endDate || DateTime.Parse(x.Date).Date < startDate);
+                    }
+                }
+                if (convertedRecords.Any())
+                {
+                    var exportData = convertedRecords.Select(x => new GasRecordExportModel
+                    {
+                        Date = x.Date.ToString(),
+                        Cost = x.Cost.ToString(),
+                        FuelConsumed = x.Gallons.ToString(),
+                        FuelEconomy = x.MilesPerGallon.ToString(),
+                        Odometer = x.Mileage.ToString(),
+                        IsFillToFull = x.IsFillToFull.ToString(),
+                        MissedFuelUp = x.MissedFuelUp.ToString(),
+                        StartingSoc = x.StartingSoc.ToString(),
+                        EndingSoc = x.EndingSoc.ToString(),
+                        Notes = x.Notes,
+                        Tags = string.Join(" ", x.Tags),
+                        ExtraFields = x.ExtraFields
+                    });
+                    using (var writer = new StreamWriter(fullExportFilePath))
+                    {
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            StaticHelper.WriteGasRecordExportModel(csv, exportData, vehicleData.IsElectric);
+                        }
+                    }
+                    return Json($"/{fileNameToExport}");
+                }
+                else
+                {
+                    return Json(OperationResponse.Failed("No Records"));
+                }
+            }
+            return Json(OperationResponse.Failed(StaticHelper.GenericErrorMessage));
+        }
+        [TypeFilter(typeof(CollaboratorFilter), Arguments = new object[] { false, true, HouseholdPermission.Edit })]
+        [HttpPost]
+        public IActionResult ImportToVehicleIdFromCsv(int vehicleId, ImportMode mode, string fileName)
+        {
+            List<OperationResponse> results = new List<OperationResponse>();
+            bool initialValidation = true;
+            if (vehicleId == default && mode != ImportMode.SupplyRecord)
+            {
+                initialValidation = false;
+                results.Add(OperationResponse.Failed($"Invalid Vehicle Id"));
+            }
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                initialValidation = false;
+                results.Add(OperationResponse.Failed($"Invalid CSV: File Name Invalid"));
+            }
+            var fullFileName = _fileHelper.GetFullFilePath(fileName);
+            if (string.IsNullOrWhiteSpace(fullFileName))
+            {
+                initialValidation = false;
+                results.Add(OperationResponse.Failed($"Invalid CSV: File Not Found"));
+            }
+            if (!initialValidation)
+            {
+                return Json(OperationResponse.Failed("CSV Import Failed", results));
+            }
+            List<ImportModel> importModels = new List<ImportModel>();
+            using (var reader = new StreamReader(fullFileName))
+            {
+                try
+                {
+                    var config = new CsvConfiguration(CultureInfo.InvariantCulture);
+                    config.MissingFieldFound = null;
+                    config.HeaderValidated = null;
+                    config.PrepareHeaderForMatch = args => { return args.Header.Trim().ToLower(); };
+                    using (var csv = new CsvReader(reader, config))
+                    {
+                        csv.Context.RegisterClassMap<ImportMapper>();
+                        importModels = csv.GetRecords<ImportModel>().ToList();
+                    }
+                    results.Add(OperationResponse.Succeed("Valid CSV"));
+                }
+                catch (Exception ex)
+                {
+                    results.Add(OperationResponse.Failed($"Invalid CSV: {ex.Message}"));
+                }
+            }
+            if (importModels.Any())
+            {
+                results.Add(OperationResponse.Succeed($"Record Count: {importModels.Count()}"));
+                var requiredExtraFields = _extraFieldDataAccess.GetExtraFieldsById((int)mode).ExtraFields.Where(x => x.IsRequired).Select(y => y.Name);
+                DateTime GetParsedDateFromModel(ImportModel importModel)
+                {
+                    var parsedDate = DateTime.Now.Date;
+                    if (!string.IsNullOrWhiteSpace(importModel.Date))
+                    {
+                        parsedDate = DateTime.Parse(importModel.Date);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(importModel.Day) && !string.IsNullOrWhiteSpace(importModel.Month) && !string.IsNullOrWhiteSpace(importModel.Year))
+                    {
+                        parsedDate = new DateTime(int.Parse(importModel.Year), int.Parse(importModel.Month), int.Parse(importModel.Day));
+                    }
+                    return parsedDate;
+                }
+                //convert to target record type
+                switch (mode)
+                {
+                    case ImportMode.GasRecord:
+                        {
+                            var convertedRecords = new List<GasRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new GasRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Gallons = decimal.Parse(importModel.FuelConsumed, NumberStyles.Any),
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    if (string.IsNullOrWhiteSpace(importModel.Cost) && !string.IsNullOrWhiteSpace(importModel.Price))
+                                    {
+                                        //cost was not given but price is.
+                                        //fuelly sometimes exports CSVs without total cost.
+                                        var parsedPrice = decimal.Parse(importModel.Price, NumberStyles.Any);
+                                        convertedRecord.Cost = convertedRecord.Gallons * parsedPrice;
+                                    }
+                                    else
+                                    {
+                                        convertedRecord.Cost = decimal.Parse(importModel.Cost, NumberStyles.Any);
+                                    }
+                                    if (string.IsNullOrWhiteSpace(importModel.IsFillToFull) && !string.IsNullOrWhiteSpace(importModel.PartialFuelUp))
+                                    {
+                                        var parsedBool = importModel.PartialFuelUp.Trim() == "1";
+                                        convertedRecord.IsFillToFull = !parsedBool;
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(importModel.IsFillToFull))
+                                    {
+                                        var possibleFillToFullValues = new List<string> { "1", "true", "full" };
+                                        var parsedBool = possibleFillToFullValues.Contains(importModel.IsFillToFull.Trim().ToLower());
+                                        convertedRecord.IsFillToFull = parsedBool;
+                                    }
+                                    if (!string.IsNullOrWhiteSpace(importModel.MissedFuelUp))
+                                    {
+                                        var possibleMissedFuelUpValues = new List<string> { "1", "true" };
+                                        var parsedBool = possibleMissedFuelUpValues.Contains(importModel.MissedFuelUp.Trim().ToLower());
+                                        convertedRecord.MissedFuelUp = parsedBool;
+                                    }
+                                    if (!string.IsNullOrWhiteSpace(importModel.StartingSoc))
+                                    {
+                                        convertedRecord.StartingSoc = int.Parse(importModel.StartingSoc);
+                                    }
+                                    if (!string.IsNullOrWhiteSpace(importModel.EndingSoc))
+                                    {
+                                        convertedRecord.EndingSoc = int.Parse(importModel.EndingSoc);
+                                    }
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    //insert record into db, check to make sure fuelconsumed is not zero so we don't get a divide by zero error.
+                                    if (convertedRecord.Gallons > 0)
+                                    {
+                                        _gasRecordDataAccess.SaveGasRecordToVehicle(convertedRecord);
+                                        if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
+                                        {
+                                            _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
+                                            {
+                                                Date = convertedRecord.Date,
+                                                VehicleId = convertedRecord.VehicleId,
+                                                Mileage = convertedRecord.Mileage,
+                                                Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.GasRecord, true))}: {convertedRecord.Notes}",
+                                                Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.GasRecord, convertedRecord.Id, $"Gas Record - {convertedRecord.Mileage.ToString()}")
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                        break;
+                    case ImportMode.ServiceRecord:
+                        {
+                            var convertedRecords = new List<ServiceRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new ServiceRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Service Record on {parsedDate.ToShortDateString()}" : importModel.Description,
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _serviceRecordDataAccess.SaveServiceRecordToVehicle(convertedRecord);
+                                    if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
+                                    {
+                                        _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
+                                        {
+                                            Date = convertedRecord.Date,
+                                            VehicleId = convertedRecord.VehicleId,
+                                            Mileage = convertedRecord.Mileage,
+                                            Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.ServiceRecord, true))}: {convertedRecord.Notes}",
+                                            Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.ServiceRecord, convertedRecord.Id, convertedRecord.Description)
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.RepairRecord:
+                        {
+                            var convertedRecords = new List<CollisionRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new CollisionRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Repair Record on {parsedDate.ToShortDateString()}" : importModel.Description,
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _collisionRecordDataAccess.SaveCollisionRecordToVehicle(convertedRecord);
+                                    if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
+                                    {
+                                        _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
+                                        {
+                                            Date = convertedRecord.Date,
+                                            VehicleId = convertedRecord.VehicleId,
+                                            Mileage = convertedRecord.Mileage,
+                                            Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.RepairRecord, true))}: {convertedRecord.Notes}",
+                                            Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.RepairRecord, convertedRecord.Id, convertedRecord.Description)
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.UpgradeRecord:
+                        {
+                            var convertedRecords = new List<UpgradeRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new UpgradeRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Upgrade Record on {parsedDate.ToShortDateString()}" : importModel.Description,
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _upgradeRecordDataAccess.SaveUpgradeRecordToVehicle(convertedRecord);
+                                    if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
+                                    {
+                                        _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
+                                        {
+                                            Date = convertedRecord.Date,
+                                            VehicleId = convertedRecord.VehicleId,
+                                            Mileage = convertedRecord.Mileage,
+                                            Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.UpgradeRecord, true))}: {convertedRecord.Notes}",
+                                            Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.UpgradeRecord, convertedRecord.Id, convertedRecord.Description)
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.OdometerRecord:
+                        {
+                            var convertedRecords = new List<OdometerRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new OdometerRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        InitialMileage = string.IsNullOrWhiteSpace(importModel.InitialOdometer) ? 0 : decimal.ToInt32(decimal.Parse(importModel.InitialOdometer, NumberStyles.Any)),
+                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _odometerRecordDataAccess.SaveOdometerRecordToVehicle(convertedRecord);
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.PlanRecord:
+                        {
+                            var convertedRecords = new List<PlanRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var progressIsEnum = Enum.TryParse(importModel.Progress, out PlanProgress parsedProgress);
+                                    var typeIsEnum = Enum.TryParse(importModel.Type, out ImportMode parsedType);
+                                    var priorityIsEnum = Enum.TryParse(importModel.Priority, out PlanPriority parsedPriority);
+                                    var convertedRecord = new PlanRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        DateCreated = DateTime.Parse(importModel.DateCreated),
+                                        DateModified = DateTime.Parse(importModel.DateModified),
+                                        Progress = parsedProgress,
+                                        ImportMode = parsedType,
+                                        Priority = parsedPriority,
+                                        Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Plan Record on {importModel.DateCreated}" : importModel.Description,
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _planRecordDataAccess.SavePlanRecordToVehicle(convertedRecord);
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.SupplyRecord:
+                        {
+                            var convertedRecords = new List<SupplyRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new SupplyRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        PartNumber = importModel.PartNumber,
+                                        PartSupplier = importModel.PartSupplier,
+                                        Quantity = decimal.Parse(importModel.PartQuantity, NumberStyles.Any),
+                                        Description = importModel.Description,
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+                                        Notes = importModel.Notes,
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _supplyRecordDataAccess.SaveSupplyRecordToVehicle(convertedRecord);
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.TaxRecord:
+                        {
+                            var convertedRecords = new List<TaxRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var parsedDate = GetParsedDateFromModel(importModel);
+                                    var convertedRecord = new TaxRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Date = parsedDate,
+                                        Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Tax Record on {parsedDate.ToShortDateString()}" : importModel.Description,
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _taxRecordDataAccess.SaveTaxRecordToVehicle(convertedRecord);
+                                }
+                            }
+                        }
+                        break;
+                    case ImportMode.EquipmentRecord:
+                        {
+                            var convertedRecords = new List<EquipmentRecord>();
+                            try
+                            {
+                                convertedRecords = importModels.Select(importModel =>
+                                {
+                                    var convertedRecord = new EquipmentRecord()
+                                    {
+                                        VehicleId = vehicleId,
+                                        Description = importModel.Description,
+                                        Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        IsEquipped = bool.Parse(importModel.IsEquipped),
+                                        ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
+                                    };
+                                    return convertedRecord;
+                                }).ToList();
+                            }
+                            catch (Exception ex)
+                            {
+                                results.Add(OperationResponse.Failed($"Conversion Failed: {ex.Message}"));
+                                convertedRecords.Clear();
+                            }
+                            if (convertedRecords.Any())
+                            {
+                                foreach (var convertedRecord in convertedRecords)
+                                {
+                                    _equipmentRecordDataAccess.SaveEquipmentRecordToVehicle(convertedRecord);
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                results.Add(OperationResponse.Failed($"No Records"));
+            }
+            bool importSucceeded = results.All(x => x.Success);
+            if (importSucceeded)
+            {
+                return Json(OperationResponse.Succeed($"{importModels.Count} Records Imported"));
+            }
+            else
+            {
+                return Json(OperationResponse.Failed("CSV Import Failed", results));
+            }
+        }
+    }
+}

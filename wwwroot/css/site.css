@@ -1,0 +1,943 @@
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+.card {
+    border-radius: 4px;
+    box-shadow: 0 6px 10px rgba(0,0,0,.08), 0 0 6px rgba(0,0,0,.05);
+    transition: .3s transform cubic-bezier(.155,1.105,.295,1.12),.3s box-shadow,.3s -webkit-transform cubic-bezier(.155,1.105,.295,1.12);
+    cursor: pointer;
+}
+
+
+    .card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+    }
+
+.vehicleDetailTabContainer {
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.reportTabContainer {
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.vehicleDetailTabContainer.fixed {
+    height: 65vh;
+}
+
+.swimlane {
+    height: 100%;
+}
+.swimlane-container {
+    height: 100%;
+    padding-bottom: 0.25rem;
+}
+
+.showOnPrint {
+    display: none;
+}
+
+@media print {
+    .hideOnPrint {
+        display: none;
+    }
+
+    .showOnPrint {
+        display: block !important;
+    }
+
+    .vehicleDetailTabContainer {
+        background-color: #fff !important;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 0;
+        font-size: 14px;
+        line-height: 18px;
+        color: #000 !important;
+        overflow: visible;
+        z-index: 1030;
+    }
+
+    .stickerPrintContainer {
+        background-color: #fff !important;
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 0;
+        font-size: 14px;
+        line-height: 18px;
+        color: #000 !important;
+        overflow: visible;
+        z-index: 1030;
+    }
+
+    .reminderSticker {
+        width: 98%;
+        aspect-ratio: 1/1;
+        border-style: dashed;
+        border-width: 2px;
+        page-break-after: always;
+    }
+
+    .recordSticker {
+        page-break-after: always;
+    }
+
+    .stickerNoteContainer {
+        max-height: 100vh;
+        max-width: 100vw;
+    }
+
+    body {
+        background-color: #fff !important;
+    }
+
+    table {
+        background-color: #fff !important;
+    }
+
+    ul {
+        border: 0px !important;
+        background-color: #fff !important;
+    }
+
+    li {
+        color: #000 !important;
+        border: 0px !important;
+        background-color: #fff !important;
+    }
+
+    td {
+        color: #000 !important;
+        border: hidden;
+        background-color: #fff !important;
+    }
+
+    th {
+        color: #000 !important;
+        background-color: #fff !important;
+    }
+
+    tr {
+        border: hidden;
+    }
+}
+
+.chartContainer {
+    min-height: 30vh;
+    overflow: auto;
+    padding: 0.25rem;
+}
+
+.vehicleNoteContainer {
+    height: 40vh;
+}
+
+.display-7 {
+    font-size: calc(1.325rem + 0.9vw);
+    font-weight: 300;
+    line-height: 1.2;
+}
+
+@media (min-width: 1200px) {
+    .display-7 {
+        font-size: 2rem;
+    }
+}
+
+.reportsCheckBoxContainer {
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+}
+
+.bell-shake {
+    animation: bellshake .5s;
+    backface-visibility: hidden;
+    transform-origin: top center;
+}
+
+.tablerow-shake {
+    animation: tablerowshake 1.2s cubic-bezier(.36, .07, .19, .97) both;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+}
+
+@keyframes tablerowshake {
+
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+
+    20%, 80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%, 50%, 70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%, 60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
+
+@keyframes bellshake {
+    0% {
+        transform: rotate(0);
+    }
+
+    15% {
+        transform: rotate(5deg);
+    }
+
+    30% {
+        transform: rotate(-5deg);
+    }
+
+    45% {
+        transform: rotate(4deg);
+    }
+
+    60% {
+        transform: rotate(-4deg);
+    }
+
+    75% {
+        transform: rotate(2deg);
+    }
+
+    85% {
+        transform: rotate(-2deg);
+    }
+
+    92% {
+        transform: rotate(1deg);
+    }
+
+    100% {
+        transform: rotate(0);
+    }
+}
+
+@keyframes slidefromright {
+    0% {
+        transform: translate3d(100%, 0, 0);
+    }
+
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.btn-check:checked + .dropdown-item, :not(.btn-check) + .dropdown-item:active {
+    color: #fff;
+    background-color: #0d6efd;
+}
+
+.lubelogger-navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1021;
+}
+
+.lubelogger-navbar {
+    align-items: center;
+}
+
+.lubelogger-tab {
+    border: none;
+}
+
+    .lubelogger-tab .nav-link {
+        border: none;
+    }
+
+        .lubelogger-tab .nav-link.active {
+            background-color: transparent;
+        }
+
+/*Media Queries*/
+@media (max-width: 575px) {
+    .lubelogger-tab {
+        display: none;
+    }
+
+    .lubelogger-navbar {
+        justify-content: space-between;
+    }
+
+    .lubelogger-navbar-button {
+        display: flex;
+        align-items: center;
+    }
+
+        .lubelogger-navbar-button > button {
+            padding: 0;
+            font-size: 2rem;
+        }
+
+    .lubelogger-menu-icon {
+        display: inline-block;
+        width: 1.5em;
+        height: 1.5em;
+    }
+
+    .lubelogger-mobile-nav {
+        background-color: var(--bs-body-bg);
+        height: 100dvh;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        margin: 0;
+        display: none;
+        z-index: 2000;
+        overflow-y: auto;
+    }
+
+    .lubelogger-mobile-nav-show {
+        display: block;
+    }
+
+    .lubelogger-mobile-nav.lubelogger-mobile-nav-show {
+        animation: slidefromright .25s;
+    }
+
+    .lubelogger-mobile-nav > ul > li > .nav-link.active {
+        color: #6ea8fe;
+    }
+
+    .lubelogger-record-add {
+        display: none;
+    }
+
+    .vehicleTabPane {
+        padding-top: 0.25rem;
+    }
+    #reportControls{
+        display:none;
+    }
+    .swimlane-container {
+        padding-top: 0.25rem;
+    }
+    .swimlane-header {
+        display:none;
+    }
+    .ll-responsive-table thead {
+        display: none;
+    }
+
+    .ll-responsive-table tbody tr {
+        flex-direction: column;
+        border-radius: var(--bs-border-radius) !important;
+        border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+        margin-bottom: 0.5rem;
+        margin-top: 0.5rem;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, .08), 0 0 6px rgba(0, 0, 0, .05);
+    }
+    .ll-responsive-table tbody tr:hover {
+        color: var(--bs-emphasis-color);
+        background-color: rgba(var(--bs-emphasis-color-rgb), 0.075) !important;
+    }
+        .ll-responsive-table tbody tr.table-active {
+            color: var(--bs-emphasis-color);
+            background-color: rgba(var(--bs-emphasis-color-rgb), 0.1);
+        }
+    .ll-responsive-table tbody td {
+        width: initial;
+        border-bottom-width: 0px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        white-space: normal;
+        word-break: break-all;
+    }
+    .ll-responsive-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+    }
+}
+
+@media(min-width: 576px) {
+    .lubelogger-mobile-nav-show {
+        display: none;
+    }
+
+    .lubelogger-mobile-nav {
+        display: none;
+    }
+
+    .lubelogger-navbar-button {
+        display: none;
+    }
+
+    .lubelogger-record-nav {
+        display: none;
+    }
+    .swimlane-mobile-nav {
+        display: none;
+    }
+}
+
+.dropdown-menu.show {
+    z-index: 1030;
+}
+
+.table-context-menu {
+    z-index: 1030;
+    box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24);
+    position: absolute;
+}
+
+    .table-context-menu > li > .dropdown-item:hover {
+        background-color: rgba(var(--bs-primary-rgb)) !important;
+        color: #fff !important;
+    }
+
+html[data-bs-theme="dark"] .table-context-menu {
+    background-color: rgba(33, 37, 41, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+html[data-bs-theme="light"] .table-context-menu {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.garage-context-menu {
+    z-index: 1030;
+    box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24);
+    position: absolute;
+}
+
+    .garage-context-menu > li > .dropdown-item:hover {
+        background-color: rgba(var(--bs-primary-rgb)) !important;
+        color: #fff !important;
+    }
+
+html[data-bs-theme="dark"] .garage-context-menu {
+    background-color: rgba(33, 37, 41, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+html[data-bs-theme="light"] .garage-context-menu {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+input[type="file"] {
+    max-width: 100%;
+}
+
+.uploadedFileName {
+    max-width: 75%;
+}
+
+.taskCard {
+    max-height: 20vh;
+    padding: 0.5rem;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 0 6px 10px rgba(0,0,0,.08), 0 0 6px rgba(0,0,0,.05);
+    transition: .3s transform cubic-bezier(.155,1.105,.295,1.12),.3s box-shadow,.3s -webkit-transform cubic-bezier(.155,1.105,.295,1.12);
+    cursor: pointer;
+    background-color: var(--bs-secondary-bg-subtle);
+    color: var(--bs-secondary-text-emphasis);
+}
+
+    .taskCard.nodrag {
+        cursor: not-allowed;
+    }
+
+.taskCard-title {
+    font-size: 1.5rem;
+    font-weight: 300;
+    max-height: 10vh;
+}
+
+.override-hide {
+    display: none !important;
+}
+
+.reminderCalendarViewContent .datepicker, .reminderCalendarViewContent .datepicker-inline, .reminderCalendarViewContent .datepicker-days, .reminderCalendarViewContent .table-condensed {
+    width: 100%;
+    height: 100%;
+    table-layout: fixed;
+    cursor: default;
+}
+
+.reminder-exist {
+    overflow: auto;
+    vertical-align: top;
+}
+
+    .reminder-exist p {
+        margin: 0;
+    }
+
+.reminderCalendarViewContent .datepicker table tr td.day {
+    cursor: default;
+}
+
+    .reminderCalendarViewContent .datepicker table tr td.day:hover {
+        cursor: default;
+    }
+
+.reminder-calendar-item {
+    cursor: pointer;
+}
+
+.zero-y-padding {
+    padding-top: 0rem;
+    padding-bottom: 0rem;
+}
+
+.vehicle-sold-banner {
+    width: 100%;
+    position: absolute;
+    z-index: 10;
+    padding: 0.25rem;
+}
+
+.copyable {
+    cursor: pointer;
+}
+
+.accordion-button.skinny {
+    padding: 0.438rem 0rem !important;
+    background-color: inherit !important;
+}
+
+.planner-indicator {
+    font-size: 1em;
+    padding: 0.2em;
+}
+
+html[data-bs-theme="dark"] .btn-adaptive {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #212529;
+    --bs-btn-border-color: #212529;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #424649;
+    --bs-btn-hover-border-color: #373b3e;
+    --bs-btn-focus-shadow-rgb: 66, 70, 73;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #4d5154;
+    --bs-btn-active-border-color: #373b3e;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #212529;
+    --bs-btn-disabled-border-color: #212529;
+}
+
+html[data-bs-theme="light"] .btn-adaptive {
+    --bs-btn-color: #000;
+    --bs-btn-bg: #f8f9fa;
+    --bs-btn-border-color: #f8f9fa;
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: #d3d4d5;
+    --bs-btn-hover-border-color: #c6c7c8;
+    --bs-btn-focus-shadow-rgb: 211, 212, 213;
+    --bs-btn-active-color: #000;
+    --bs-btn-active-bg: #c6c7c8;
+    --bs-btn-active-border-color: #babbbc;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #000;
+    --bs-btn-disabled-bg: #f8f9fa;
+    --bs-btn-disabled-border-color: #f8f9fa;
+}
+
+html[data-bs-theme="dark"] .api-method:hover {
+    background-color: #373b3e;
+}
+
+html[data-bs-theme="light"] .api-method:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.resizable-nav-link {
+    padding: 0.5rem;
+}
+
+@media(max-width: 1400px) {
+    .resizable-nav-link {
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
+@media(max-width: 1200px) {
+    .resizable-nav-link {
+        padding-left: 0.2rem;
+        padding-right: 0.2rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
+@media(max-width: 992px) {
+    .resizable-nav-link {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
+@media(max-width: 768px) {
+    .resizable-nav-link {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
+.password-visible-button {
+    padding: 0rem;
+}
+
+.lubelogger-logo {
+    height: 48px;
+    min-width: 48px;
+    max-width: 204px;
+    object-fit: scale-down;
+    pointer-events: none;
+}
+
+.lubelogger-logo-sticker {
+    height: 6rem;
+    width: auto;
+    object-fit: scale-down;
+    pointer-events: none;
+}
+
+::-ms-reveal {
+    display: none;
+}
+
+.lubelogger-report-banner {
+    border-top: thin solid black;
+    text-align: center;
+}
+
+.attachment-badge-xs {
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+    font-size: 0.6em;
+    font-weight: 500;
+    top: 15%
+}
+
+.lubelogger-vehicle-logo {
+    height: 48px;
+    width: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+    .lubelogger-vehicle-logo.sold {
+        filter: grayscale(100%);
+    }
+
+.lubelogger-uploader {
+    border: 1px dashed rgb(73,80,87);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    position: relative;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+    .lubelogger-uploader:hover {
+        background-color: var(--bs-secondary-bg) !important;
+        color: var(--bs-secondary-color) !important;
+        border-style: solid;
+    }
+
+.lubelogger-link-uploader {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+    .lubelogger-link-uploader > .btn {
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+.lubelogger-uploader.solid {
+    background-color: var(--bs-secondary-bg) !important;
+    color: var(--bs-secondary-color) !important;
+    border-style: solid;
+}
+
+.setup-wizard-container {
+    position: relative;
+    box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24);
+    height: calc(100dvh - 48px - 3.5rem);
+}
+
+.setup-wizard-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 15px;
+}
+
+html[data-bs-theme="dark"] .frosted {
+    background-color: rgba(33, 37, 41, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+html[data-bs-theme="light"] .frosted {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.lubelogger-body-container {
+    padding-top: calc(48px + 2.5rem);
+    min-height: 100dvh;
+}
+
+.no-top-pad {
+    margin-top: calc(-48px - 2.5rem);
+}
+
+.sticky-top-nav {
+    top: calc(48px + 2.5rem);
+}
+
+.garage-item.garage-active .card {
+    border-color: #6ea8fe;
+}
+
+.inspection-value {
+    padding: 0.35em 0.65em;
+    text-align: center;
+    vertical-align: baseline;
+    white-space: normal;
+    word-break: break-all;
+    display: flex;
+    flex-wrap: wrap;
+    border-radius: 0.375rem;
+}
+
+    .inspection-value.inspection-value-selected {
+        border: 1px solid;
+    }
+
+        .inspection-value.inspection-value-selected.inspection-value-fail {
+            border-color: #dc3545;
+        }
+
+.swal2-popup.swal2-modal {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-modal-color) !important;
+}
+
+.swal2-validation-message {
+    color: var(--bs-modal-color) !important;
+}
+
+html[data-bs-theme="dark"] .swal2-validation-message {
+    background-color: #2d2d2e !important;
+}
+
+.api-chevron {
+    transition: all 0.35s;
+}
+
+.collapsed .api-chevron {
+    transform: rotate(180deg);
+    transition: all 0.35s;
+}
+
+.nav-item-more .dropdown-menu.show {
+    display: flex;
+    flex-direction: column;
+}
+
+.settingsToolTip {
+    color: var(--bs-link-color);
+}
+
+.vehicleTabPane {
+    height: calc(100dvh - 48px - 2.5rem);
+}
+
+.lubelogger-record-nav .nav-no-copy {
+    display: none;
+}
+.lubelogger-record-nav {
+    border-top: 1px solid;
+    border-top-color: var(--bs-border-color);
+}
+.store-detail-row{
+    overflow:hidden;
+}
+
+.supply-store-row:has(input:checked) {
+    background-color: var(--bs-primary-bg-subtle);
+    border-color: var(--bs-primary-border-subtle) !important;
+}
+
+.badge.garage-metric-badge {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.report-collaborator {
+    background-color: var(--bs-secondary-bg-subtle);
+    color: var(--bs-secondary-text-emphasis);
+    padding: .5rem;
+}
+.swimlane-dropzone.dragover {
+    background-color: var(--bs-primary-bg-subtle);
+    border-color: var(--bs-primary-border-subtle) !important;
+}
+.swimlane-header {
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+}
+.kiosk-card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+    border-color: var(--bs-primary-border-subtle) !important;
+}
+.kiosk-card:hover .kiosk-card-remove{
+    display:initial;
+}
+.kiosk-card-remove{
+    display:none;
+}
+.kiosk-card-expanded .hideOnExpand {
+    display:none !important;
+}
+.showOnExpand{
+    display:none;
+}
+.kiosk-card-expanded .showOnExpand{
+    display: initial;
+}
+.kiosk-card-container:has(.kiosk-card-expanded){
+    width: 100% !important;
+}
+.kiosk-reminder-card {
+    background-color: var(--bs-secondary-bg-subtle);
+    color: var(--bs-secondary-text-emphasis);
+}
+[data-type="fieldOptionContainer"] {
+    background-color: var(--bs-secondary-bg-subtle);
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+[data-type="fieldOptionContainer"]:has([data-field="fail"]):has(input[type="checkbox"]):not(:has(input[type="checkbox"]:checked)) {
+    background-color: var(--bs-danger-bg-subtle);
+}
+[data-type="fieldOptionContainer"]:has([data-field="fail"]):has(input[type="radio"]:checked) {
+    background-color: var(--bs-danger-bg-subtle);
+}
+.qr-container svg{
+    width: 100%;
+    height: 100%;
+}
+.qr-container{
+    aspect-ratio: 1/1;
+}
+.break-all{
+    overflow-wrap: anywhere;
+}
+
+.dual-range {
+    position: relative;
+    height: 2.25rem;
+    width: 100%;
+}
+
+.dual-range::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #dee2e6;
+    border-radius: 2px;
+    transform: translateY(-50%);
+}
+
+.dual-range-highlight {
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    background: #0d6efd;
+    border-radius: 2px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.dual-range input[type="range"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2.25rem;
+    margin: 0;
+    background: transparent;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.dual-range input[type="range"]::-webkit-slider-thumb {
+    pointer-events: auto;
+}
+
+.dual-range input[type="range"]::-moz-range-thumb {
+    pointer-events: auto;
+}
+
+.dual-range input[type="range"]::-webkit-slider-runnable-track {
+    background: transparent;
+}
+
+.dual-range input[type="range"]::-moz-range-track {
+    background: transparent;
+}
+.dual-range input[type="range"].dual-range-top {
+    z-index: 3;
+}
