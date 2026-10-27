@@ -33,6 +33,14 @@ namespace CarCareTracker.Helper
             //transform input text into key.
             string translationKey = text.Replace(" ", "_");
             var translationFilePath = userLanguage == "en_US" ? _fileHelper.GetFullFilePath($"/defaults/en_US.json") : _fileHelper.GetFullFilePath($"/translations/{userLanguage}.json", false);
+            if (!File.Exists(translationFilePath))
+            {
+                var defaultLangFile = _fileHelper.GetFullFilePath($"/defaults/{userLanguage}.json");
+                if (File.Exists(defaultLangFile))
+                {
+                    translationFilePath = defaultLangFile;
+                }
+            }
             var dictionary = _cache.GetOrCreate<Dictionary<string, string>>($"lang_{userLanguage}", entry =>
             {
                 entry.SlidingExpiration = TimeSpan.FromHours(1);

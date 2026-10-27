@@ -43,7 +43,7 @@ namespace CarCareTracker.Helper
         public List<string> GetLanguages()
         {
             var languagePath = Path.Combine(_webEnv.ContentRootPath, "data", "translations");
-            var defaultList = new List<string>() { "en_US" };
+            var defaultList = new List<string>() { "es_ES", "en_US" };
             if (Directory.Exists(languagePath))
             {
                 var listOfLanguages = Directory.GetFiles(languagePath);

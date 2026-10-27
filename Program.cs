@@ -31,6 +31,12 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["LUBELOGGER_LOCALE_OVERRIDE
     CultureInfo.DefaultThreadCurrentCulture = overrideCulture;
     CultureInfo.DefaultThreadCurrentUICulture = overrideCulture;
 }
+else
+{
+    var esCulture = new CultureInfo("es-ES");
+    CultureInfo.DefaultThreadCurrentCulture = esCulture;
+    CultureInfo.DefaultThreadCurrentUICulture = esCulture;
+}
 
 //Print Messages
 StaticHelper.InitMessage(builder.Configuration);

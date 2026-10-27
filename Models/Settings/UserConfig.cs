@@ -20,8 +20,8 @@
         public bool EnableExtraFieldColumns { get; set; }
         public bool HideSoldVehicles { get; set; }
         public bool AutomaticDecimalFormat { get; set; }
-        public string PreferredGasUnit { get; set; } = string.Empty;
-        public string PreferredGasMileageUnit { get; set; } = string.Empty;
+        public string PreferredGasUnit { get; set; } = "L";
+        public string PreferredGasMileageUnit { get; set; } = "l/100km";
         public bool UseUnitForFuelCost { get; set; }
         public bool ShowCalendar { get; set; }
         public bool ShowVehicleThumbnail { get; set; }
@@ -33,7 +33,7 @@
         public List<UserColumnPreference> UserColumnPreferences { get; set; } = new List<UserColumnPreference>();
         public string UserNameHash { get; set; } = string.Empty;
         public string UserPasswordHash { get; set; } = string.Empty;
-        public string UserLanguage { get; set; } = "en_US";
+        public string UserLanguage { get; set; } = "es_ES";
         public string UserTheme { get; set; } = string.Empty;
         public List<ImportMode> VisibleTabs { get; set; } = new List<ImportMode>() { 
             ImportMode.Dashboard,
