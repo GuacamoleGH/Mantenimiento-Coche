@@ -1133,3 +1133,225 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     letter-spacing: 0.03em;
     color: var(--bs-secondary-color);
 }
+
+
+/* ========================================================
+   MODO OSCURO PREMIUM Y REFINAMIENTO DE INTERFAZ
+   ======================================================== */
+[data-bs-theme="dark"] {
+    --bs-body-bg: #0b0f19;
+    --bs-body-color: #f1f5f9;
+    --bs-body-bg-rgb: 11, 15, 25;
+    --bs-secondary-bg: #141b2d;
+    --bs-tertiary-bg: #1e293b;
+    --bs-border-color: #26334d;
+    --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
+    --bs-card-bg: #131926;
+    --bs-primary: #3b82f6;
+    --bs-primary-rgb: 59, 130, 246;
+}
+
+[data-bs-theme="dark"] body {
+    background: radial-gradient(circle at 50% 0%, #151d30 0%, #0b0f19 75%) no-repeat fixed;
+    color: #f1f5f9;
+}
+
+/* Tarjetas en Modo Oscuro */
+[data-bs-theme="dark"] .card {
+    background-color: #131926;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
+}
+
+[data-bs-theme="dark"] .card:hover {
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.8), 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+/* Garaje: Tarjeta de Vehículo */
+.garage-vehicle-card {
+    border-radius: 16px;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.garage-image-wrapper {
+    height: 165px;
+    position: relative;
+    overflow: hidden;
+    background: #0f1420;
+}
+
+.garage-image-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 40%, rgba(11, 15, 25, 0.85) 100%);
+    pointer-events: none;
+}
+
+.garage-vehicle-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.garage-vehicle-card:hover .garage-vehicle-img {
+    transform: scale(1.05);
+}
+
+/* Placa de Matrícula Europea */
+.garage-plate-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff !important;
+    color: #111111 !important;
+    border: 1.5px solid #111111;
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    font-family: "Consolas", "Courier New", monospace;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.garage-plate-badge .plate-eu-strip {
+    background: #003399;
+    color: #ffcc00;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 1px 4px;
+    margin-right: 6px;
+    border-radius: 2px;
+}
+
+/* Chip de Métricas Flotante */
+.garage-metric-chip {
+    background: rgba(11, 15, 25, 0.85) !important;
+    color: #f1f5f9 !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-weight: 600;
+    font-size: 0.78rem;
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Pestañas de Navegación */
+.lubelogger-tab {
+    gap: 6px;
+}
+
+.lubelogger-tab .nav-link {
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 0.45rem 0.85rem;
+    color: #94a3b8;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.lubelogger-tab .nav-link:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.lubelogger-tab .nav-link.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+}
+
+/* Barra Superior Translúcida (Navbar) */
+.lubelogger-navbar-container.frosted {
+    background-color: rgba(11, 15, 25, 0.82) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Cockpit Ficha de Vehículo */
+.cockpit-box {
+    background: #131926;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.cockpit-card {
+    background: #182030 !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 12px !important;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.cockpit-card:hover {
+    border-color: rgba(59, 130, 246, 0.35) !important;
+    transform: translateY(-2px);
+}
+
+/* Indicador con pulso luminoso para ITV */
+.status-indicator-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.status-dot-success {
+    background-color: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+.status-dot-warning {
+    background-color: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+}
+
+.status-dot-danger {
+    background-color: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
+
+/* Botones de acción 1-Click */
+.btn-action-cockpit {
+    border-radius: 20px;
+    font-weight: 600;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action-cockpit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Buscador redondeado con estilo flotante */
+.search-pill-group {
+    background: #131926;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: border-color 0.2s ease;
+}
+
+.search-pill-group:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.search-pill-group input {
+    background: transparent !important;
+    color: #f1f5f9 !important;
+    border: none !important;
+}

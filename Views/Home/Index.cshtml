@@ -66,6 +66,11 @@
                     <li class="nav-item ms-auto" role="presentation">
                         <button class="nav-link resizable-nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-tab-pane" type="button" role="tab"><i class="bi bi-gear"></i><span class="ms-2">@translator.Translate(userLanguage, "Settings")</span></button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link resizable-nav-link" type="button" onclick="toggleTheme()" title="Cambiar tema">
+                            <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
+                        </button>
+                    </li>
                     @if (User.IsInRole("CookieAuth") || User.IsInRole("APIAuth"))
                     {
                         <li class="nav-item dropdown nav-item-persist" role="presentation">

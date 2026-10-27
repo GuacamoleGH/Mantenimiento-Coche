@@ -2,7 +2,7 @@
 {
     public class UserConfig
     {
-        public bool UseDarkMode { get; set; }
+        public bool UseDarkMode { get; set; } = true;
         public bool UseSystemColorMode { get; set; }
         public bool EnableCsvImports { get; set; }
         public bool UseMPG { get; set; }

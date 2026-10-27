@@ -29,6 +29,26 @@
     }
 }
 <html lang="es" data-bs-theme="@(useDarkMode ? "dark" : "light")">
+<script>
+    (function() {
+        var savedTheme = localStorage.getItem('theme_preference');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    })();
+    function toggleTheme() {
+        var current = document.documentElement.getAttribute('data-bs-theme');
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-bs-theme', next);
+        localStorage.setItem('theme_preference', next);
+        var icon = document.getElementById('themeToggleIcon');
+        if (icon) {
+            icon.className = next === 'dark' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill text-warning';
+        }
+    }
+</script>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
