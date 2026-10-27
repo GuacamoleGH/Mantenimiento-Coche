@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @{
@@ -6,19 +6,57 @@
     var userLanguage = userConfig.UserLanguage;
 }
 @model ReportHeader
-<div class="col-md-3 col-12 mt-2 text-center text-truncate">
-    <span class="lead">@Model.MaxOdometer.ToString("N0")</span><br />
-    <span class="text-secondary">@translator.Translate(userLanguage, "Last Reported Odometer Reading")</span>
-</div>
-<div class="col-md-3 col-12 mt-2 text-center text-truncate">
-    <span class="lead">@Model.DistanceTraveled.ToString("N0")</span><br />
-    <span class="text-secondary">@translator.Translate(userLanguage, "Distance Traveled")</span>
-</div>
-<div class="col-md-3 col-12 mt-2 text-center text-truncate">
-    <span class="lead">@StaticHelper.HideZeroCost(Model.TotalCost.ToString("C2"), true)</span><br />
-    <span class="text-secondary">@translator.Translate(userLanguage, "Total Cost")</span>
-</div>
-<div class="col-md-3 col-12 mt-2 text-center text-truncate">
-    <span class="lead">@Model.AverageMPG</span><br />
-    <span class="text-secondary">@translator.Translate(userLanguage, "Average Fuel Economy")</span>
+
+<div class="row g-3 w-100 m-0">
+    <!-- Odómetro Actual -->
+    <div class="col-6 col-xl-3 px-1">
+        <div class="kpi-stat-card d-flex align-items-center gap-3">
+            <div class="kpi-icon kpi-icon-odo">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <div class="kpi-body min-w-0">
+                <div class="kpi-label">Odómetro registrado</div>
+                <div class="kpi-value">@Model.MaxOdometer.ToString("N0") <span class="kpi-unit">km</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distancia Recorrida -->
+    <div class="col-6 col-xl-3 px-1">
+        <div class="kpi-stat-card d-flex align-items-center gap-3">
+            <div class="kpi-icon kpi-icon-dist">
+                <i class="bi bi-signpost-2"></i>
+            </div>
+            <div class="kpi-body min-w-0">
+                <div class="kpi-label">Distancia recorrida</div>
+                <div class="kpi-value">@Model.DistanceTraveled.ToString("N0") <span class="kpi-unit">km</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coste Total -->
+    <div class="col-6 col-xl-3 px-1">
+        <div class="kpi-stat-card d-flex align-items-center gap-3">
+            <div class="kpi-icon kpi-icon-cost">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="kpi-body min-w-0">
+                <div class="kpi-label">Coste total acumulado</div>
+                <div class="kpi-value">@StaticHelper.HideZeroCost(Model.TotalCost.ToString("C2"), true)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumo Medio -->
+    <div class="col-6 col-xl-3 px-1">
+        <div class="kpi-stat-card d-flex align-items-center gap-3">
+            <div class="kpi-icon kpi-icon-fuel">
+                <i class="bi bi-fuel-pump"></i>
+            </div>
+            <div class="kpi-body min-w-0">
+                <div class="kpi-label">Consumo medio</div>
+                <div class="kpi-value">@Model.AverageMPG</div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @{
@@ -6,26 +6,41 @@
     var userLanguage = userConfig.UserLanguage;
 }
 @model VehicleCollaboratorViewModel
-<div class="d-flex justify-content-between align-items-center">
-    <span class="lead text-truncate">@translator.Translate(userLanguage, "Collaborators")</span>
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="dashboard-card-title"><i class="bi bi-people-fill text-info me-1"></i>@translator.Translate(userLanguage, "Collaborators")</span>
     @if (Model.CanModifyCollaborators)
     {
-        <button onclick="addCollaborator()" class="btn btn-primary btn-sm"><i class="bi bi-person-add"></i></button>
+        <button onclick="addCollaborator()" class="btn btn-sm btn-outline-info rounded-pill px-2 py-0 extra-small" title="Añadir colaborador">
+            <i class="bi bi-person-plus-fill me-1"></i>Añadir
+        </button>
     }
 </div>
-<hr />
-<div class="d-flex flex-column gap-2">
-    @foreach (UserCollaborator user in Model.Collaborators)
-    {
-        <div class="d-flex justify-content-between align-items-center report-collaborator border rounded">
-            <span class="text-truncate">@user.UserName</span>
-            @if (User.Identity.Name != user.UserName && Model.CanModifyCollaborators)
-            {
-                <button onclick="deleteCollaborator(@user.UserVehicle.UserId, @user.UserVehicle.VehicleId)" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
-            }
-        </div>
-    }
-</div>
+@if (!Model.Collaborators.Any())
+{
+    <div class="d-flex flex-column align-items-center justify-content-center text-center py-4 text-secondary flex-grow-1">
+        <i class="bi bi-person-x opacity-50 display-6 mb-2"></i>
+        <div class="small fw-semibold text-light mb-1">Sin colaboradores</div>
+        <div class="extra-small text-secondary" style="max-width: 200px;">Invita a otros usuarios para compartir el acceso de lectura o edición de este coche.</div>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-column gap-2 flex-grow-1 mt-1">
+        @foreach (UserCollaborator user in Model.Collaborators)
+        {
+            <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <i class="bi bi-person-circle text-info"></i>
+                    <span class="text-light small text-truncate">@user.UserName</span>
+                </div>
+                @if (User.Identity.Name != user.UserName && Model.CanModifyCollaborators)
+                {
+                    <button onclick="deleteCollaborator(@user.UserVehicle.UserId, @user.UserVehicle.VehicleId)" class="btn btn-link btn-sm text-danger p-0" title="Eliminar"><i class="bi bi-trash"></i></button>
+                }
+            </div>
+        }
+    </div>
+}
 <script>
     function deleteCollaborator(userId, vehicleId) {
         $.post('/Vehicle/DeleteCollaboratorFromVehicle', {userId: userId, vehicleId: vehicleId}, function(data){
@@ -50,19 +65,18 @@
                 if (!userName) {
                     Swal.showValidationMessage(`Please enter a username`);
                 }
-                return { userName }
+                return { userName: userName }
             },
         }).then(function (result) {
             if (result.isConfirmed) {
-                var vehicleId = GetVehicleId().vehicleId;
-                $.post('/Vehicle/AddCollaboratorsToVehicle', { username: result.value.userName, vehicleId: vehicleId }, function (data) {
-                    if (data.success) {
-                        successToast(data.message);
+                $.post('/Vehicle/AddCollaboratorToVehicle', {userId: 0, userName: result.value.userName, vehicleId: GetVehicleId().vehicleId}, function(data){
+                    if (data) {
+                        successToast('Collaborator Added');
                         refreshCollaborators();
                     } else {
-                        errorToast(data.message)
+                        errorToast(genericErrorMessage());
                     }
-                });
+                })
             }
         });
     }

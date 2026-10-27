@@ -99,7 +99,11 @@
     </script>
 } else
 {
-    <div class="text-center">
-        <h4>@translator.Translate(userLanguage,"No data found, insert/select some data to see visualizations here.")</h4>
+    <div class="dashboard-empty-state d-flex flex-column align-items-center justify-content-center text-center p-4">
+        <div class="empty-icon-box mb-2">
+            <i class="bi bi-bar-chart-line text-secondary opacity-50 display-6"></i>
+        </div>
+        <div class="fw-semibold text-light mb-1 small">Sin historial mensual</div>
+        <div class="text-secondary extra-small" style="max-width: 260px;">Selecciona o introduce registros para visualizar la evolución de gastos y kilometraje.</div>
     </div>
 }
