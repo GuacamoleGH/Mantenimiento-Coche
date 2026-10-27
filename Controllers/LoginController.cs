@@ -622,6 +622,223 @@ namespace CarCareTracker.Controllers
             }
             return Json(false);
         }
+        [HttpGet]
+        public IActionResult GoogleLogin()
+        {
+            var googleConfig = _config.GetGoogleAuthConfig();
+            if (string.IsNullOrWhiteSpace(googleConfig.ClientId))
+            {
+                return Content("<script>alert('El inicio de sesión con Google requiere configurar GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET.'); window.location.href='/Login';</script>", "text/html; charset=utf-8");
+            }
+            var state = Guid.NewGuid().ToString("N");
+            Response.Cookies.Append("OIDC_STATE", state, new CookieOptions { Expires = DateTimeOffset.Now.AddMinutes(10), HttpOnly = true, SameSite = SameSiteMode.Lax });
+
+            var redirectUri = $"{GetBaseUrl()}/Login/GoogleCallback";
+            var authUrl = $"https://accounts.google.com/o/oauth2/v2/auth?client_id={Uri.EscapeDataString(googleConfig.ClientId)}&response_type=code&scope=openid%20email%20profile&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
+            return Redirect(authUrl);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GoogleCallback(string code, string state = "")
+        {
+            try
+            {
+                var storedState = Request.Cookies["OIDC_STATE"];
+                if (!string.IsNullOrEmpty(storedState))
+                {
+                    Response.Cookies.Delete("OIDC_STATE");
+                }
+                if (string.IsNullOrEmpty(code) || (!string.IsNullOrEmpty(storedState) && storedState != state))
+                {
+                    return RedirectToAction("Index");
+                }
+
+                var googleConfig = _config.GetGoogleAuthConfig();
+                var redirectUri = $"{GetBaseUrl()}/Login/GoogleCallback";
+                var httpClient = _httpClientFactory.CreateClient();
+
+                var tokenParams = new Dictionary<string, string>
+                {
+                    { "code", code },
+                    { "client_id", googleConfig.ClientId },
+                    { "client_secret", googleConfig.ClientSecret },
+                    { "redirect_uri", redirectUri },
+                    { "grant_type", "authorization_code" }
+                };
+
+                var tokenResponse = await httpClient.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(tokenParams));
+                if (!tokenResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Error retrieving token from Google OAuth");
+                    return RedirectToAction("Index");
+                }
+
+                var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
+                using var tokenDoc = JsonDocument.Parse(tokenJson);
+                var accessToken = tokenDoc.RootElement.GetProperty("access_token").GetString();
+
+                // Get User Info
+                var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://openidconnect.googleapis.com/v1/userinfo");
+                userInfoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
+                if (!userInfoResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Error retrieving user info from Google OAuth");
+                    return RedirectToAction("Index");
+                }
+
+                var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
+                using var userDoc = JsonDocument.Parse(userInfoJson);
+                var email = userDoc.RootElement.GetProperty("email").GetString();
+                var name = userDoc.RootElement.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : email?.Split('@')[0];
+
+                return ProcessSocialLogin(email, name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GoogleCallback");
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult DiscordLogin()
+        {
+            var discordConfig = _config.GetDiscordAuthConfig();
+            if (string.IsNullOrWhiteSpace(discordConfig.ClientId))
+            {
+                return Content("<script>alert('El inicio de sesión con Discord requiere configurar DISCORD_CLIENT_ID y DISCORD_CLIENT_SECRET.'); window.location.href='/Login';</script>", "text/html; charset=utf-8");
+            }
+            var state = Guid.NewGuid().ToString("N");
+            Response.Cookies.Append("OIDC_STATE", state, new CookieOptions { Expires = DateTimeOffset.Now.AddMinutes(10), HttpOnly = true, SameSite = SameSiteMode.Lax });
+
+            var redirectUri = $"{GetBaseUrl()}/Login/DiscordCallback";
+            var authUrl = $"https://discord.com/api/oauth2/authorize?client_id={Uri.EscapeDataString(discordConfig.ClientId)}&response_type=code&scope=identify%20email&redirect_uri={Uri.EscapeDataString(redirectUri)}&state={state}";
+            return Redirect(authUrl);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DiscordCallback(string code, string state = "")
+        {
+            try
+            {
+                var storedState = Request.Cookies["OIDC_STATE"];
+                if (!string.IsNullOrEmpty(storedState))
+                {
+                    Response.Cookies.Delete("OIDC_STATE");
+                }
+                if (string.IsNullOrEmpty(code) || (!string.IsNullOrEmpty(storedState) && storedState != state))
+                {
+                    return RedirectToAction("Index");
+                }
+
+                var discordConfig = _config.GetDiscordAuthConfig();
+                var redirectUri = $"{GetBaseUrl()}/Login/DiscordCallback";
+                var httpClient = _httpClientFactory.CreateClient();
+
+                var tokenParams = new Dictionary<string, string>
+                {
+                    { "code", code },
+                    { "client_id", discordConfig.ClientId },
+                    { "client_secret", discordConfig.ClientSecret },
+                    { "redirect_uri", redirectUri },
+                    { "grant_type", "authorization_code" }
+                };
+
+                var tokenResponse = await httpClient.PostAsync("https://discord.com/api/oauth2/token", new FormUrlEncodedContent(tokenParams));
+                if (!tokenResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Error retrieving token from Discord OAuth");
+                    return RedirectToAction("Index");
+                }
+
+                var tokenJson = await tokenResponse.Content.ReadAsStringAsync();
+                using var tokenDoc = JsonDocument.Parse(tokenJson);
+                var accessToken = tokenDoc.RootElement.GetProperty("access_token").GetString();
+
+                // Get User Info from Discord
+                var userInfoRequest = new HttpRequestMessage(HttpMethod.Get, "https://discord.com/api/users/@me");
+                userInfoRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                var userInfoResponse = await httpClient.SendAsync(userInfoRequest);
+                if (!userInfoResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Error retrieving user info from Discord OAuth");
+                    return RedirectToAction("Index");
+                }
+
+                var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
+                using var userDoc = JsonDocument.Parse(userInfoJson);
+                var email = userDoc.RootElement.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                var username = userDoc.RootElement.TryGetProperty("username", out var userProp) ? userProp.GetString() : null;
+
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    email = $"{username}@discord.local";
+                }
+
+                return ProcessSocialLogin(email, username ?? email.Split('@')[0]);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in DiscordCallback");
+                return RedirectToAction("Index");
+            }
+        }
+
+        private IActionResult ProcessSocialLogin(string? email, string? displayName)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var userData = _loginLogic.ValidateOpenIDUser(new LoginModel() { EmailAddress = email });
+            if (userData.Id == default)
+            {
+                var uniqueUsername = string.IsNullOrWhiteSpace(displayName) ? email.Split('@')[0] : displayName;
+                var existingUser = _loginLogic.GetAllUsers().FirstOrDefault(x => x.UserName.Equals(uniqueUsername, StringComparison.OrdinalIgnoreCase));
+                if (existingUser != null)
+                {
+                    uniqueUsername = $"{uniqueUsername}_{Guid.NewGuid().ToString("N").Substring(0, 4)}";
+                }
+
+                _loginLogic.RegisterOpenIdUser(new LoginModel
+                {
+                    UserName = uniqueUsername,
+                    EmailAddress = email,
+                    Token = _loginLogic.GenerateOIDCUserToken(email)
+                });
+
+                userData = _loginLogic.ValidateOpenIDUser(new LoginModel() { EmailAddress = email });
+            }
+
+            if (userData.Id != default)
+            {
+                AuthCookie authCookie = new AuthCookie
+                {
+                    UserData = userData,
+                    ExpiresOn = DateTime.Now.AddDays(7)
+                };
+                var serializedCookie = JsonSerializer.Serialize(authCookie);
+                var encryptedCookie = _dataProtector.Protect(serializedCookie);
+                Response.Cookies.Append(StaticHelper.LoginCookieName, encryptedCookie, new CookieOptions { Expires = new DateTimeOffset(authCookie.ExpiresOn) });
+                return Redirect("/Home");
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        private string GetBaseUrl()
+        {
+            var serverUrl = _config.GetServerDomain();
+            if (!string.IsNullOrWhiteSpace(serverUrl))
+            {
+                return serverUrl.TrimEnd('/');
+            }
+            return $"{Request.Scheme}://{Request.Host}";
+        }
+
+
         [Authorize]
         [HttpPost]
         public IActionResult LogOut()

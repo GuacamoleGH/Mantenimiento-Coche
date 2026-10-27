@@ -120,7 +120,7 @@ namespace CarCareTracker.Controllers
         {
             return PartialView("_VehicleModal", new Vehicle() { ExtraFields = _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.VehicleRecord).ExtraFields });
         }
-        [TypeFilter(typeof(CollaboratorFilter))]
+        [TypeFilter(typeof(CollaboratorFilter), Arguments = new object[] { false, false, HouseholdPermission.Edit })]
         [HttpGet]
         public IActionResult GetEditVehiclePartialViewById(int vehicleId)
         {

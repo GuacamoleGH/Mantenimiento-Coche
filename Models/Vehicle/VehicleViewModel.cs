@@ -1,4 +1,4 @@
-﻿namespace CarCareTracker.Models
+namespace CarCareTracker.Models
 {
     public class VehicleViewModel
     {
@@ -23,5 +23,6 @@
         public decimal CostPerMile { get; set; }
         public decimal TotalCost { get; set; }
         public string DistanceUnit { get; set; } = string.Empty;
+        public bool CanEdit { get; set; } = true;
     }
 }

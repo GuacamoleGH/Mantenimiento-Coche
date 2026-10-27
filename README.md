@@ -23,8 +23,8 @@ El diseño y los primeros módulos se optimizan para un **Mazda3 (2010, Generaci
 - [x] **Ficha Técnica y Cockpit:** Panel de acceso rápido a consumibles, especificaciones de motor y estado legal sin rebuscar entre pestañas.
 - [x] **Alertas de ITV y Seguro:** Tarjetas visuales dedicadas con cuenta atrás en días para no descuidar revisiones obligatorias.
 - [x] **Rediseño Visual Moderno (UI/UX):** Garaje estilizado con matrículas europeas, tarjetas con elevación suave, pestañas de navegación estilo píldora y vista optimizada para móvil.
-- [ ] **Permisos de Garaje Compartido:** Todos los usuarios registrados pueden consultar los vehículos de la comunidad/familia (modo lectura), pero solo el propietario puede modificar o borrar sus registros.
-- [ ] **Autenticación Ampliada:** Inicio de sesión local seguro + soporte para inicio de sesión social mediante **Google** y **Discord** (OAuth2/OIDC).
+- [x] **Permisos de Garaje Compartido:** Todos los usuarios registrados pueden consultar los vehículos de la comunidad/familia (modo lectura con distintivo visual), pero solo el propietario del coche (o el administrador) puede modificar o borrar sus registros.
+- [x] **Autenticación Ampliada:** Inicio de sesión local con usuario/contraseña + botones directos para **Google** y **Discord** (OAuth2/OIDC).
 - [ ] **Persistencia Flexible:**
   - **Local:** LiteDB embebida (cero dependencias externas en desarrollo).
   - **Servidor:** PostgreSQL nativo con contenedor Docker y script de copias de seguridad.

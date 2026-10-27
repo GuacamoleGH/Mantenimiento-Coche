@@ -9,6 +9,8 @@ namespace CarCareTracker.Helper
     public interface IConfigHelper
     {
         OpenIDConfig GetOpenIDConfig();
+        SocialAuthConfig GetGoogleAuthConfig();
+        SocialAuthConfig GetDiscordAuthConfig();
         ReminderUrgencyConfig GetReminderUrgencyConfig();
         MailConfig GetMailConfig();
         bool GetAutomatedEventsEnabled();
@@ -139,6 +141,32 @@ namespace CarCareTracker.Helper
         {
             OpenIDConfig openIdConfig = _config.GetSection("OpenIDConfig").Get<OpenIDConfig>() ?? new OpenIDConfig();
             return openIdConfig;
+        }
+        public SocialAuthConfig GetGoogleAuthConfig()
+        {
+            SocialAuthConfig googleConfig = _config.GetSection("GoogleAuth").Get<SocialAuthConfig>() ?? new SocialAuthConfig();
+            var envClientId = CheckString("GOOGLE_CLIENT_ID");
+            var envClientSecret = CheckString("GOOGLE_CLIENT_SECRET");
+            if (!string.IsNullOrWhiteSpace(envClientId)) googleConfig.ClientId = envClientId;
+            if (!string.IsNullOrWhiteSpace(envClientSecret)) googleConfig.ClientSecret = envClientSecret;
+            if (!string.IsNullOrWhiteSpace(googleConfig.ClientId) && !string.IsNullOrWhiteSpace(googleConfig.ClientSecret))
+            {
+                googleConfig.Enabled = true;
+            }
+            return googleConfig;
+        }
+        public SocialAuthConfig GetDiscordAuthConfig()
+        {
+            SocialAuthConfig discordConfig = _config.GetSection("DiscordAuth").Get<SocialAuthConfig>() ?? new SocialAuthConfig();
+            var envClientId = CheckString("DISCORD_CLIENT_ID");
+            var envClientSecret = CheckString("DISCORD_CLIENT_SECRET");
+            if (!string.IsNullOrWhiteSpace(envClientId)) discordConfig.ClientId = envClientId;
+            if (!string.IsNullOrWhiteSpace(envClientSecret)) discordConfig.ClientSecret = envClientSecret;
+            if (!string.IsNullOrWhiteSpace(discordConfig.ClientId) && !string.IsNullOrWhiteSpace(discordConfig.ClientSecret))
+            {
+                discordConfig.Enabled = true;
+            }
+            return discordConfig;
         }
         public ReminderUrgencyConfig GetReminderUrgencyConfig()
         {

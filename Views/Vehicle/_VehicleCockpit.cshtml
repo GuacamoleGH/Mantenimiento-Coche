@@ -1,11 +1,19 @@
 @using CarCareTracker.Helper
+@using CarCareTracker.Logic
 @using System.Globalization
+@using System.Security.Claims
 @inject IConfigHelper config
 @inject ITranslationHelper translator
+@inject IUserLogic userLogic
 @model Vehicle
 @{
     var userConfig = config.GetUserConfig(User);
     var userLanguage = userConfig.UserLanguage;
+
+    var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    int currentUserId = -1;
+    if (!string.IsNullOrEmpty(currentUserIdClaim)) int.TryParse(currentUserIdClaim, out currentUserId);
+    bool canEdit = User.IsInRole(nameof(UserData.IsRootUser)) || userLogic.UserCanDirectlyEditVehicle(currentUserId, Model.Id);
 
     // --- Cálculo de estado de ITV ---
     int? itvDaysLeft = null;
@@ -87,37 +95,56 @@
 }
 
 <div class="container-fluid px-3 pt-2 pb-3 mb-3 bg-body-tertiary border rounded-3 shadow-sm hideOnPrint">
+    @if (!canEdit)
+    {
+        <div class="alert alert-info py-2 px-3 mb-2 d-flex align-items-center gap-2 rounded-3 small">
+            <i class="bi bi-info-circle-fill fs-5"></i>
+            <div>Estás consultando este vehículo en modo <strong>solo lectura</strong> (pertenece a otro usuario).</div>
+        </div>
+    }
     <div class="row align-items-center g-3">
         <!-- Fila Superior: Datos Principales del Coche y Acciones Rápidas -->
         <div class="col-12 col-lg-7 d-flex align-items-center flex-wrap gap-2">
             <span class="fs-4 fw-bold">@($"{Model.Year} {Model.Make} {Model.Model}")</span>
             @if (!string.IsNullOrWhiteSpace(Model.LicensePlate))
             {
-                <span class="badge bg-dark text-light border px-2 py-1 fs-6 font-monospace">@Model.LicensePlate</span>
+                <span class="garage-plate-badge">
+                    <span class="plate-eu-strip">E</span>
+                    <span class="plate-number font-monospace">@Model.LicensePlate</span>
+                </span>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Vin))
             {
                 <span class="badge bg-body-secondary text-body border px-2 py-1 font-monospace" style="cursor:pointer;" onclick="navigator.clipboard.writeText('@Model.Vin'); successToast('@translator.Translate(userLanguage, "Copy_VIN")');" title="Clic para copiar VIN">
-                    <i class="bi bi-upc-scan me-1"></i>VIN: @Model.Vin <i class="bi bi-copy ms-1 small"></i>
+                    <i class="bi bi-clipboard me-1 text-secondary"></i>VIN: @Model.Vin
                 </span>
             }
         </div>
 
-        <!-- Botones de Acción Rápida (1-Click Actions) -->
-        <div class="col-12 col-lg-5 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
-            <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="showAddGasRecordModal()">
-                <i class="bi bi-fuel-pump-fill me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
-            </button>
-            <button type="button" class="btn btn-sm btn-primary shadow-sm" onclick="showAddServiceRecordModal()">
-                <i class="bi bi-tools me-1"></i>@translator.Translate(userLanguage, "Add_Service")
-            </button>
-            <button type="button" class="btn btn-sm btn-info text-dark shadow-sm" onclick="showAddOdometerRecordModal()">
-                <i class="bi bi-speedometer2 me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" onclick="showAddCollisionRecordModal()">
-                <i class="bi bi-exclamation-triangle-fill me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
-            </button>
-        </div>
+        @if (canEdit)
+        {
+            <!-- Botones de Acción Rápida (1-Click Actions) -->
+            <div class="col-12 col-lg-5 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
+                <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="showAddGasRecordModal()">
+                    <i class="bi bi-fuel-pump-fill me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
+                </button>
+                <button type="button" class="btn btn-sm btn-primary shadow-sm" onclick="showAddServiceRecordModal()">
+                    <i class="bi bi-tools me-1"></i>@translator.Translate(userLanguage, "Add_Service")
+                </button>
+                <button type="button" class="btn btn-sm btn-info text-dark shadow-sm" onclick="showAddOdometerRecordModal()">
+                    <i class="bi bi-speedometer2 me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger shadow-sm" onclick="showAddCollisionRecordModal()">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="col-12 col-lg-5 text-lg-end d-flex align-items-center justify-content-lg-end">
+                <span class="badge bg-secondary-subtle text-secondary-emphasis border px-3 py-2 rounded-pill"><i class="bi bi-eye me-1"></i>Modo lectura (vehículo compartido)</span>
+            </div>
+        }
     </div>
 
     <hr class="my-2 opacity-50" />
@@ -157,9 +184,12 @@
             <div class="p-2 bg-body rounded border h-100">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="fw-semibold small"><i class="bi bi-gear-wide-connected text-success me-1"></i>@translator.Translate(userLanguage, "Technical_Specs")</span>
-                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-body-secondary" onclick="editVehicle(@Model.Id)">
-                        <i class="bi bi-pencil-square me-1"></i>Editar datos
-                    </button>
+                    @if (canEdit)
+                    {
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small text-body-secondary" onclick="editVehicle(@Model.Id)">
+                            <i class="bi bi-pencil-square me-1"></i>Editar datos
+                        </button>
+                    }
                 </div>
                 <div class="row g-2 small text-body-secondary">
                     <div class="col-6 col-sm-3">

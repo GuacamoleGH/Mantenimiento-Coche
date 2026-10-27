@@ -85,6 +85,12 @@ services:
       POSTGRES_CONNECTION: "Host=postgres:5432;Username=lubelogger;Password=TU_CONTRASENA_SEGURA;Database=lubelogger;"
       EnableAuth: "true"
       DisableRegistration: "true"
+      # Configuración de Inicio de Sesión Social (Opcional)
+      GOOGLE_CLIENT_ID: "tu-google-client-id.apps.googleusercontent.com"
+      GOOGLE_CLIENT_SECRET: "tu-google-client-secret"
+      DISCORD_CLIENT_ID: "tu-discord-client-id"
+      DISCORD_CLIENT_SECRET: "tu-discord-client-secret"
+      LUBELOGGER_DOMAIN: "https://garage.midominio.com"
     volumes:
       - appdata:/App/data
       - appkeys:/root/.aspnet/DataProtection-Keys

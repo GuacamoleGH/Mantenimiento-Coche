@@ -122,54 +122,35 @@ namespace CarCareTracker.Logic
         }
         public List<Vehicle> FilterUserVehicles(List<Vehicle> results, int userId)
         {
-            //user is root user.
-            if (userId == -1)
-            {
-                return results;
-            }
-            List<int> userIds = new List<int> { userId };
-            List<int> vehicleIds = new List<int>();
-            var userHouseholds = _userHouseholdData.GetUserHouseholdByChildUserId(userId);
-            if (userHouseholds.Any())
-            {
-                //add parent's user ids
-                userIds.AddRange(userHouseholds.Select(x => x.Id.ParentUserId));
-            }
-            foreach(int userIdToCheck in userIds)
-            {
-                var accessibleVehicles = _userAccess.GetUserAccessByUserId(userIdToCheck);
-                if (accessibleVehicles.Any())
-                {
-                    vehicleIds.AddRange(accessibleVehicles.Select(x => x.Id.VehicleId));
-                }
-            }
-            if (vehicleIds.Any())
-            {
-                return results.Where(x => vehicleIds.Contains(x.Id)).ToList();
-            }
-            else
-            {
-                return new List<Vehicle>();
-            }
+            // Garaje compartido: todos los usuarios autenticados pueden ver la flota completa
+            return results;
         }
         public bool UserCanEditVehicle(int userId, int vehicleId, HouseholdPermission permission)
         {
-            //check if user is full collaborator or root user
+            // Root user tiene acceso total
+            if (userId == -1)
+            {
+                return true;
+            }
+            // En modo garaje compartido, cualquier usuario autenticado tiene permiso de visualización (View)
+            if (permission == HouseholdPermission.View)
+            {
+                return true;
+            }
+            // Para editar/guardar/eliminar, verificar si es el dueño directo del vehículo
             if (UserCanDirectlyEditVehicle(userId, vehicleId))
             {
                 return true;
             }
-            //user is not a full collaborator, check households
+            // Comprobar households para permisos delegados de edición
             List<int> userIds = new List<int>();
             var userHouseholds = _userHouseholdData.GetUserHouseholdByChildUserId(userId);
             foreach (UserHousehold userHousehold in userHouseholds)
             {
-                //check if the direct parents have access to the vehicle
                 var userAccess = _userAccess.GetUserAccessByVehicleAndUserId(userHousehold.Id.ParentUserId, vehicleId);
                 if (userAccess != null && userAccess.Id.UserId == userHousehold.Id.ParentUserId && userAccess.Id.VehicleId == vehicleId)
                 {
-                    //every member in a household has permission to view vehicles
-                    if (permission == HouseholdPermission.View || userHousehold.Permissions.Contains(permission))
+                    if (userHousehold.Permissions.Contains(permission))
                     {
                         return true;
                     }
