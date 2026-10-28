@@ -176,6 +176,24 @@
                                     <span class="small fw-semibold ms-1">@User.Identity.Name</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-2">
+                                    @if (User.IsInRole(nameof(UserData.IsAdmin)))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item py-2" href="/Admin"><i class="bi bi-people me-2"></i>@translator.Translate(userLanguage, "Admin Panel")</a>
+                                        </li>
+                                    }
+                                    @if (User.IsInRole(nameof(UserData.IsRootUser)))
+                                    {
+                                        <li>
+                                            <button class="dropdown-item py-2" onclick="showRootAccountInformationModal()"><i class="bi bi-person-gear me-2"></i>@translator.Translate(userLanguage, "Profile")</button>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <button class="dropdown-item py-2" onclick="showAccountInformationModal()"><i class="bi bi-person-gear me-2"></i>@translator.Translate(userLanguage, "Profile")</button>
+                                        </li>
+                                    }
                                     <li>
                                         <button class="dropdown-item py-2" onclick="returnToGarage()">
                                             <i class="bi bi-car-front me-2 text-primary"></i>@translator.Translate(userLanguage, "Garage")

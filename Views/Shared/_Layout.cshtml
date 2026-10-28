@@ -199,6 +199,12 @@
             @RenderBody()
         </main>
     </div>
+        <div class="modal fade" id="accountInformationModal" tabindex="-1" role="dialog" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" id="accountInformationModalContent">
+            </div>
+        </div>
+    </div>
     @await RenderSectionAsync("Footer", required: false)
 </body>
 </html>
