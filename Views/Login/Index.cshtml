@@ -15,19 +15,19 @@
 @section Scripts {
     <script src="~/js/login.js?v=@StaticHelper.VersionNumber"></script>
 }
-<div class="auth-wrapper">
-    <div class="card auth-card">
+<div class="no-top-pad container d-flex align-items-center justify-content-center" style="min-height: 100dvh; padding-top: 2rem; padding-bottom: 2rem;">
+    <div class="card login-card shadow border-0 p-4 p-sm-5">
         <!-- Logo y Cabecera -->
         <div class="text-center mb-4">
             <img src="@config.GetLogoUrl()" class="lubelogger-logo mb-2" style="max-height: 52px; width: auto;" />
-            <h4 class="fw-bold mb-1 text-light">Mantenimiento Coche</h4>
-            <div class="small text-secondary">Inicia sesión para gestionar tus vehículos</div>
+            <h4 class="fw-bold mb-1">Mantenimiento Coche</h4>
+            <small class="text-secondary">Inicia sesión para gestionar tus vehículos</small>
         </div>
 
         <!-- Formulario Local -->
         <div class="mb-3">
             <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Usuario o correo</label>
-            <div class="auth-input-group input-group">
+            <div class="login-input-group input-group d-flex align-items-center">
                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                 <input type="text" id="inputUserName" class="form-control" placeholder="usuario o email" autocomplete="username">
             </div>
@@ -38,7 +38,7 @@
                 <label for="inputUserPassword" class="form-label small fw-semibold text-secondary mb-0">Contraseña</label>
                 <a href="/Login/ForgotPassword" class="small text-decoration-none text-primary fw-semibold">¿Contraseña olvidada?</a>
             </div>
-            <div class="auth-input-group input-group">
+            <div class="login-input-group input-group d-flex align-items-center">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="inputUserPassword" onkeyup="callBackOnEnter(event, performLogin)" class="form-control" placeholder="••••••••" autocomplete="current-password">
                 <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility(this)" tabindex="-1" title="Mostrar/ocultar contraseña">
@@ -53,7 +53,7 @@
         </div>
 
         <div class="d-grid mb-3">
-            <button type="button" class="btn btn-auth-submit" onclick="performLogin()">
+            <button type="button" class="btn btn-primary py-2 fw-semibold shadow-sm" onclick="performLogin()">
                 <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
             </button>
         </div>
@@ -61,27 +61,27 @@
         <!-- Divisor Social -->
         <div class="d-flex align-items-center my-3">
             <hr class="flex-grow-1 my-0 opacity-25">
-            <span class="px-3 text-secondary extra-small user-select-none text-uppercase fw-semibold">o accede con</span>
+            <span class="px-2 text-secondary small user-select-none text-uppercase fw-semibold" style="font-size: 0.75rem;">o accede con</span>
             <hr class="flex-grow-1 my-0 opacity-25">
         </div>
 
         <!-- Botones de Inicio de Sesión Social -->
         <div class="d-grid gap-2">
             <!-- Google -->
-            <a href="/Login/GoogleLogin" class="btn btn-auth-social btn-auth-google d-flex align-items-center justify-content-center gap-2 text-decoration-none">
+            <a href="/Login/GoogleLogin" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 py-2 text-decoration-none" style="border-color: var(--bs-border-color);">
                 <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
                     <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
                     <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
                     <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
                 </svg>
-                <span>Google</span>
+                <span class="fw-semibold">Google</span>
             </a>
 
             <!-- Discord -->
-            <a href="/Login/DiscordLogin" class="btn btn-auth-social btn-auth-discord d-flex align-items-center justify-content-center gap-2 text-decoration-none">
+            <a href="/Login/DiscordLogin" class="btn text-white d-flex align-items-center justify-content-center gap-2 py-2 text-decoration-none" style="background-color: #5865F2;">
                 <i class="bi bi-discord fs-5"></i>
-                <span>Discord</span>
+                <span class="fw-semibold">Discord</span>
             </a>
 
             @if (!string.IsNullOrWhiteSpace(openIdConfigName))
@@ -108,3 +108,26 @@
         }
     </div>
 </div>
+<script>
+    var returnUrl = "@Model";
+    function getReturnUrl() {
+        return { url: decodeHTMLEntities('@Model') };
+    }
+    checkPersistLoginState();
+
+    function togglePasswordVisibility(elem) {
+        var group = $(elem).closest('.input-group, .login-input-group');
+        var passwordField = group.find('input');
+        if (!passwordField.length) {
+            passwordField = $(elem).parent().siblings("input");
+        }
+        var passwordButton = $(elem).find('.bi');
+        if (passwordField.attr("type") === "password") {
+            passwordField.attr("type", "text");
+            passwordButton.removeClass('bi-eye').addClass('bi-eye-slash');
+        } else {
+            passwordField.attr("type", "password");
+            passwordButton.removeClass('bi-eye-slash').addClass('bi-eye');
+        }
+    }
+</script>
