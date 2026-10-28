@@ -2656,3 +2656,102 @@ button[onclick="performLogOut()"] i {
     border-color: #D97706 !important;
     color: #FFFFFF !important;
 }
+
+/* ========================================================
+   INDICADORES VIBRANTES Y LEGIBLES PARA COCKPIT (ITV Y SEGURO)
+   ======================================================== */
+.cockpit-card .cockpit-val-success {
+    color: #34D399 !important;
+    text-shadow: 0 0 12px rgba(52, 211, 153, 0.28);
+}
+.cockpit-card .icon-watermark-success {
+    color: #34D399 !important;
+    opacity: 0.85 !important;
+    filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.35));
+}
+.cockpit-card .badge.bg-success {
+    background-color: rgba(16, 185, 129, 0.22) !important;
+    color: #34D399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.5) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.25) !important;
+}
+
+.cockpit-card .cockpit-val-warning {
+    color: #FBBF24 !important;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+}
+.cockpit-card .icon-watermark-warning {
+    color: #FBBF24 !important;
+    opacity: 0.85 !important;
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.3));
+}
+.cockpit-card .badge.bg-warning {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #FCD34D !important;
+    border: 1px solid rgba(252, 211, 77, 0.5) !important;
+    font-weight: 700 !important;
+}
+
+.cockpit-card .cockpit-val-danger {
+    color: #F87171 !important;
+    text-shadow: 0 0 12px rgba(248, 113, 113, 0.25);
+}
+.cockpit-card .icon-watermark-danger {
+    color: #F87171 !important;
+    opacity: 0.85 !important;
+    filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.3));
+}
+.cockpit-card .badge.bg-danger {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #FCA5A5 !important;
+    border: 1px solid rgba(252, 165, 165, 0.5) !important;
+    font-weight: 700 !important;
+}
+
+.cockpit-card .cockpit-val-info {
+    color: #38BDF8 !important;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+.cockpit-card .icon-watermark-info {
+    color: #38BDF8 !important;
+    opacity: 0.85 !important;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.cockpit-card .badge.bg-info {
+    background-color: rgba(14, 165, 233, 0.2) !important;
+    color: #7DD3FC !important;
+    border: 1px solid rgba(125, 211, 252, 0.5) !important;
+    font-weight: 700 !important;
+}
+
+/* Modo Claro Adaptativo */
+[data-bs-theme="light"] .cockpit-card .cockpit-val-success {
+    color: #15803D !important;
+    text-shadow: none !important;
+}
+[data-bs-theme="light"] .cockpit-card .icon-watermark-success {
+    color: #16A34A !important;
+    opacity: 0.65 !important;
+    filter: none !important;
+}
+[data-bs-theme="light"] .cockpit-card .badge.bg-success {
+    background-color: #DCFCE7 !important;
+    color: #15803D !important;
+    border: 1px solid #86EFAC !important;
+    box-shadow: none !important;
+}
+[data-bs-theme="light"] .cockpit-card .cockpit-val-info {
+    color: #0369A1 !important;
+    text-shadow: none !important;
+}
+[data-bs-theme="light"] .cockpit-card .icon-watermark-info {
+    color: #0284C7 !important;
+    opacity: 0.65 !important;
+    filter: none !important;
+}
+[data-bs-theme="light"] .cockpit-card .badge.bg-info {
+    background-color: #E0F2FE !important;
+    color: #0369A1 !important;
+    border: 1px solid #BAE6FD !important;
+}
