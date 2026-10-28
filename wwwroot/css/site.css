@@ -1856,37 +1856,66 @@ a:hover {
     box-shadow: 0 0 0 0.2rem rgba(251, 196, 30, 0.25) !important;
 }
 
-/* Botones de Inicio de Sesión Social (Google y Discord) */
+/* Botones de Inicio de Sesión Social */
 .btn-auth-social {
-    border-radius: 8px;
-    font-size: 0.92rem;
-    font-weight: 600;
-    padding: 0.6rem 1rem;
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
-}
-
-.btn-auth-google {
     background-color: #252E3F !important;
     border: 1px solid #30394A !important;
-    color: #F1F5F9 !important;
+    border-radius: 8px !important;
+    color: #A0AABD !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    height: 44px !important;
+    padding: 0 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.65rem !important;
+    text-decoration: none !important;
+    transform: none !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.btn-auth-social .social-icon {
+    width: 18px !important;
+    height: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    filter: grayscale(100%) opacity(0.65);
+    color: #A0AABD !important;
+    flex-shrink: 0 !important;
+    transform: none !important;
+    transition: filter 0.2s ease, color 0.2s ease !important;
+}
+
+.btn-auth-social .social-icon svg {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    transform: none !important;
 }
 
 .btn-auth-google:hover {
     background-color: #30394A !important;
     border-color: #4A5568 !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    transform: none !important;
 }
-
-.btn-auth-discord {
-    background-color: #5865F2 !important;
-    border: 1px solid #5865F2 !important;
-    color: #ffffff !important;
+.btn-auth-google:hover .social-icon {
+    filter: grayscale(0%) opacity(1) !important;
+    transform: none !important;
 }
 
 .btn-auth-discord:hover {
-    background-color: #4752C4 !important;
-    border-color: #4752C4 !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 14px rgba(88, 101, 242, 0.45) !important;
+    background-color: #30394A !important;
+    border-color: #5865F2 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35) !important;
+    transform: none !important;
+}
+.btn-auth-discord:hover .social-icon {
+    filter: grayscale(0%) opacity(1) !important;
+    color: #5865F2 !important;
+    transform: none !important;
 }
