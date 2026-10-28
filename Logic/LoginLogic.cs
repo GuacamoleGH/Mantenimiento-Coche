@@ -80,43 +80,53 @@ namespace CarCareTracker.Logic
             var existingUser = _userData.GetUserRecordById(userId);
             if (existingUser.Id == default)
             {
-                return OperationResponse.Failed("Invalid user");
+                return OperationResponse.Failed("Usuario no encontrado");
             }
-            //validate user token
-            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
-            if (existingToken.Id == default || existingToken.EmailAddress != existingUser.EmailAddress)
+
+            var mailConfig = _configHelper.GetMailConfig();
+            bool isSmtpConfigured = !string.IsNullOrWhiteSpace(mailConfig.EmailServer);
+
+            // Solo validar token si el servidor tiene SMTP configurado
+            if (isSmtpConfigured)
             {
-                return OperationResponse.Failed("Invalid Token");
+                var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
+                if (existingToken.Id == default || existingToken.EmailAddress != existingUser.EmailAddress)
+                {
+                    return OperationResponse.Failed("Token inválido");
+                }
+                _tokenData.DeleteToken(existingToken.Id);
             }
+
             if (!string.IsNullOrWhiteSpace(credentials.UserName) && existingUser.UserName != credentials.UserName)
             {
-                //check if new username is already taken.
                 var existingUserWithUserName = _userData.GetUserRecordByUserName(credentials.UserName);
-                if (existingUserWithUserName.Id != default)
+                if (existingUserWithUserName.Id != default && existingUserWithUserName.Id != existingUser.Id)
                 {
-                    return OperationResponse.Failed("Username already taken");
+                    return OperationResponse.Failed("El nombre de usuario ya está en uso");
                 }
                 existingUser.UserName = credentials.UserName;
             }
             if (!string.IsNullOrWhiteSpace(credentials.EmailAddress) && existingUser.EmailAddress != credentials.EmailAddress)
             {
-                //check if email address already exists
                 var existingUserWithEmailAddress = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
-                if (existingUserWithEmailAddress.Id != default)
+                if (existingUserWithEmailAddress.Id != default && existingUserWithEmailAddress.Id != existingUser.Id)
                 {
-                    return OperationResponse.Failed("A user with that email already exists");
+                    return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico");
                 }
                 existingUser.EmailAddress = credentials.EmailAddress;
             }
-            if (!string.IsNullOrWhiteSpace(existingUser.Password) && !string.IsNullOrWhiteSpace(credentials.Password))
+            if (!string.IsNullOrWhiteSpace(credentials.Password))
             {
-                //update password only for non OIDC users
+                var passValidation = StaticHelper.ValidatePasswordComplexity(credentials.Password);
+                if (!passValidation.Success)
+                {
+                    return passValidation;
+                }
                 existingUser.Password = StaticHelper.GetHash(credentials.Password);
             }
-            //delete token
-            _tokenData.DeleteToken(existingToken.Id);
+
             var result = _userData.SaveUserRecord(existingUser);
-            return OperationResponse.Conditional(result, "User Updated", string.Empty);
+            return OperationResponse.Conditional(result, "Perfil actualizado con éxito", "Error al actualizar");
         }
         public OperationResponse RegisterOpenIdUser(LoginModel credentials)
         {
@@ -378,11 +388,7 @@ namespace CarCareTracker.Logic
         public bool GetUserCanResetPassword(int userId)
         {
             var result = _userData.GetUserRecordById(userId);
-            if (result.Id == default)
-            {
-                return false;
-            }
-            return !string.IsNullOrWhiteSpace(result.Password);
+            return result.Id != default;
         }
         public OperationResponse RevokeUserPassword(int userId)
         {

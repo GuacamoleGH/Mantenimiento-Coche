@@ -842,30 +842,32 @@ function validateAndSaveUserAccount() {
     } else {
         $('#inputEmail').removeClass("is-invalid");
     }
-    if ($('#inputToken').val().trim() == '') {
-        $('#inputToken').addClass("is-invalid");
+    var tokenInput = $('#inputToken');
+    if (tokenInput.length && tokenInput.is(':visible') && tokenInput.val().trim() == '') {
+        tokenInput.addClass("is-invalid");
         hasError = true;
-    } else {
-        $('#inputToken').removeClass("is-invalid");
+    } else if (tokenInput.length) {
+        tokenInput.removeClass("is-invalid");
     }
     if (hasError) {
-        errorToast("Please check the form data");
+        errorToast("Por favor, revisa los datos del formulario.");
         return;
     }
     var userAccountInfo = {
         userName: $('#inputUsername').val(),
         password: $('#inputPassword').val(),
         emailAddress: $('#inputEmail').val(),
-        token: $('#inputToken').val()
-    }
+        token: tokenInput.length ? tokenInput.val() : ''
+    };
     $.post('/Home/UpdateUserAccount', { userAccount: userAccountInfo }, function (data) {
         if (data.success) {
-            //hide modal
             hideAccountInformationModal();
-            successToast('Profile Updated');
-            performLogOut();
+            successToast(data.message || 'Perfil actualizado');
+            if ($('#inputPassword').val().trim() != '') {
+                setTimeout(performLogOut, 1500);
+            }
         } else {
-            errorToast(data.message);
+            errorToast(data.message || 'Error al actualizar');
         }
     });
 }

@@ -255,8 +255,15 @@ namespace CarCareTracker.Controllers
         {
             var emailAddress = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
             var userName = User?.Identity?.Name ?? string.Empty;
-            bool userCanResetPassword = _loginLogic.GetUserCanResetPassword(GetUserID());
-            return PartialView("_AccountModal", new UserDataViewModel() { EmailAddress = emailAddress, UserName = userName, CanResetPassword = userCanResetPassword });
+            var mailConfig = _config.GetMailConfig();
+            bool isSmtpConfigured = !string.IsNullOrWhiteSpace(mailConfig.EmailServer);
+            return PartialView("_AccountModal", new UserDataViewModel()
+            {
+                EmailAddress = emailAddress,
+                UserName = userName,
+                CanResetPassword = true,
+                IsSmtpConfigured = isSmtpConfigured
+            });
         }
         [HttpGet]
         public IActionResult GetHouseholdModal()
