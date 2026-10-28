@@ -39,10 +39,11 @@
     <div class="container-fluid lubelogger-navbar-container frosted hideOnPrint">
         <div class="row">
             <div class="d-flex align-items-center lubelogger-navbar py-1">
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-3 py-1 me-3 d-flex align-items-center gap-1 border-0 bg-dark bg-opacity-50 text-light" onclick="returnToGarage()" title="Volver al Garaje">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-3 py-1 me-2 d-flex align-items-center gap-1 border-0 bg-dark bg-opacity-50 text-light" onclick="returnToGarage()" title="Volver al Garaje">
                     <i class="bi bi-arrow-left"></i>
                     <span class="small fw-semibold">Garaje</span>
                 </button>
+                <div class="vr mx-2 opacity-25 text-secondary d-none d-md-block" style="height: 22px; align-self: center;"></div>
                 <ul class="nav nav-tabs lubelogger-tab flex-grow-1 align-items-center" id="vehicleTab" role="tablist">
                     <!-- 1. Panel General -->
                     <li class="nav-item" role="presentation">
@@ -110,7 +111,7 @@
                     <!-- 4. Ficha y Equipamiento -->
                     <li class="nav-item dropdown" role="presentation">
                         <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" id="group-details-tab">
-                            <i class="bi bi-card-text text-secondary"></i>
+                            <i class="bi bi-card-text text-warning"></i>
                             <span class="ms-1">Ficha y Notas</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
@@ -141,12 +142,12 @@
                         <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
                             <li>
                                 <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-currency-dollar text-warning"></i><span>@translator.Translate(userLanguage, "Taxes")</span>
+                                    <i class="bi bi-currency-dollar text-success"></i><span>@translator.Translate(userLanguage, "Taxes")</span>
                                 </button>
                             </li>
                             <li>
                                 <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.SupplyRecord)" id="supply-tab" data-bs-toggle="tab" data-bs-target="#supply-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-shop text-primary"></i><span>@translator.Translate(userLanguage, "Supplies")</span>
+                                    <i class="bi bi-shop text-success"></i><span>@translator.Translate(userLanguage, "Supplies")</span>
                                 </button>
                             </li>
                         </ul>

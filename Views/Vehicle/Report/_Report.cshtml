@@ -14,9 +14,9 @@
     }
 </script>
 <div class="d-flex flex-column vehicleTabPane">
-    <div class="container-fluid reportTabContainer flex-grow-1 px-3">
+    <div class="reportTabContainer flex-grow-1">
         <!-- Fila Superior de Métricas KPI -->
-        <div class="row hideOnPrint mb-3" id="reportHeaderContent">
+        <div class="hideOnPrint mb-3" id="reportHeaderContent">
             @await Html.PartialAsync("Report/_ReportHeader", Model.ReportHeaderForVehicle)
         </div>
 
@@ -125,6 +125,13 @@
                                     <div class="extra-small text-muted">Facturas, recibos y fotos</div>
                                 </div>
                             </button>
+                            <button onclick="exportVehicleData('All')" class="btn btn-report-action btn-report-csv">
+                                <i class="bi bi-filetype-csv me-2 fs-5 text-success"></i>
+                                <div class="text-start">
+                                    <div class="fw-semibold small">Exportar Datos (CSV)</div>
+                                    <div class="extra-small text-muted">Descargar registros completos</div>
+                                </div>
+                            </button>
                             <button onclick="showGlobalSearch()" class="btn btn-report-action btn-report-search">
                                 <i class="bi bi-search me-2 fs-5 text-warning"></i>
                                 <div class="text-start">
@@ -152,6 +159,19 @@
                                     </div>
                                 </button>
                             }
+                        </div>
+                    </div>
+                    <div class="user-edit-only mt-3 pt-3 border-top border-secondary border-opacity-25">
+                        <div class="extra-small text-muted text-uppercase fw-semibold mb-2" style="letter-spacing: 0.05em;">Acceso Rápido</div>
+                        <div class="d-grid gap-2">
+                            <button onclick="showAddGasRecordModal()" class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center gap-2 py-2 rounded-3">
+                                <i class="bi bi-fuel-pump-fill"></i>
+                                <span class="small fw-semibold">Registrar Repostaje</span>
+                            </button>
+                            <button onclick="showAddServiceRecordModal()" class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center gap-2 py-2 rounded-3">
+                                <i class="bi bi-tools"></i>
+                                <span class="small fw-semibold">Registrar Servicio</span>
+                            </button>
                         </div>
                     </div>
                 </div>

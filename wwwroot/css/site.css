@@ -1115,8 +1115,12 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 .garage-add-card:hover .garage-add-icon-circle {
     background-color: var(--bs-primary);
-    color: #ffffff;
+    color: #111622 !important;
     transform: scale(1.1);
+}
+
+.garage-add-card:hover .garage-add-icon-circle i {
+    color: #111622 !important;
 }
 
 .search-pill-group .form-control {
@@ -1309,8 +1313,14 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     background-color: rgba(11, 15, 25, 0.90) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+[data-bs-theme="light"] .lubelogger-navbar-container.frosted {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* Cockpit Ficha de Vehículo */
@@ -2119,7 +2129,8 @@ a:hover {
 /* Vistas de vehículos en modo solo lectura (coche ajeno / público) */
 .user-read-only .lubelogger-record-add,
 .user-read-only .record-dropdown,
-.user-read-only .context-menu-active-multiple {
+.user-read-only .context-menu-active-multiple,
+.user-read-only .user-edit-only {
     display: none !important;
 }
 .user-read-only .table tr {
