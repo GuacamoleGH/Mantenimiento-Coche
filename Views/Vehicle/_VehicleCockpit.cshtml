@@ -131,16 +131,16 @@
         {
             <!-- Botones de Acción Rápida (1-Click) -->
             <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-action-cockpit btn-cockpit-fuel" onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
+                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
                     <i class="bi bi-fuel-pump-fill me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit btn-cockpit-service" onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
+                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
                     <i class="bi bi-tools me-1"></i>@translator.Translate(userLanguage, "Add_Service")
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit btn-cockpit-odo" onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
+                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
                     <i class="bi bi-speedometer2 me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit btn-cockpit-repair" onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
+                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
                     <i class="bi bi-exclamation-triangle-fill me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
                 </button>
             </div>
@@ -157,7 +157,7 @@
     <div class="row g-3">
         <!-- Tarjeta de ITV -->
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between @itvBorderClass">
+            <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-semibold small text-light">
                         @if (!string.IsNullOrEmpty(itvDotClass)) { <span class="status-indicator-dot @itvDotClass"></span> }
@@ -174,7 +174,7 @@
 
         <!-- Tarjeta de Seguro -->
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between @insBorderClass">
+            <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-semibold small text-light">
                         @if (!string.IsNullOrEmpty(insDotClass)) { <span class="status-indicator-dot @insDotClass"></span> }
@@ -205,38 +205,26 @@
                 </div>
                 <div class="spec-grid">
                     <div class="spec-item">
-                        <div class="spec-icon spec-icon-motor">
-                            <i class="bi bi-cpu"></i>
-                        </div>
                         <div class="spec-info">
-                            <div class="spec-label">Motor</div>
+                            <div class="spec-label"><i class="bi bi-cpu me-1"></i>Motor</div>
                             <div class="spec-value">@(string.IsNullOrWhiteSpace(Model.EngineCode) ? "---" : Model.EngineCode)</div>
                         </div>
                     </div>
                     <div class="spec-item">
-                        <div class="spec-icon spec-icon-aceite">
-                            <i class="bi bi-droplet-half"></i>
-                        </div>
                         <div class="spec-info">
-                            <div class="spec-label">Aceite</div>
+                            <div class="spec-label"><i class="bi bi-droplet-half me-1"></i>Aceite</div>
                             <div class="spec-value">@(string.IsNullOrWhiteSpace(Model.EngineOil) ? "---" : Model.EngineOil)</div>
                         </div>
                     </div>
                     <div class="spec-item">
-                        <div class="spec-icon spec-icon-bujias">
-                            <i class="bi bi-lightning-charge"></i>
-                        </div>
                         <div class="spec-info">
-                            <div class="spec-label">Bujías</div>
+                            <div class="spec-label"><i class="bi bi-lightning-charge me-1"></i>Bujías</div>
                             <div class="spec-value">@(string.IsNullOrWhiteSpace(Model.SparkPlugs) ? "---" : Model.SparkPlugs)</div>
                         </div>
                     </div>
                     <div class="spec-item">
-                        <div class="spec-icon spec-icon-ruedas">
-                            <i class="bi bi-disc"></i>
-                        </div>
                         <div class="spec-info">
-                            <div class="spec-label">Neumáticos</div>
+                            <div class="spec-label"><i class="bi bi-disc me-1"></i>Neumáticos</div>
                             <div class="spec-value">@(string.IsNullOrWhiteSpace(Model.TyreSizes) ? "---" : Model.TyreSizes)</div>
                         </div>
                     </div>

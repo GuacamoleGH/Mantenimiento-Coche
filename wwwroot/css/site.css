@@ -1274,7 +1274,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 .lubelogger-tab .nav-link {
-    border-radius: 10px;
+    border-radius: 6px;
     font-size: 0.88rem;
     font-weight: 500;
     padding: 0.45rem 0.85rem;
@@ -1359,16 +1359,31 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 /* Botones de acción 1-Click */
 .btn-action-cockpit {
-    border-radius: 20px;
+    background: #191F2C !important;
+    border: 1px solid #30394A !important;
+    color: #F1F5F9 !important;
+    border-radius: 6px !important;
     font-weight: 600;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.84rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-action-cockpit i {
+    color: #94A3B8;
+    transition: color 0.15s ease;
 }
 
 .btn-action-cockpit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: #252E3F !important;
+    border-color: #475569 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.btn-action-cockpit:hover i {
+    color: #FBC41E;
 }
 
 /* Buscador redondeado con estilo flotante */
@@ -1406,7 +1421,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     gap: 0.75rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    border-radius: 6px;
     padding: 0.55rem 0.85rem;
     min-height: 48px;
     transition: background 0.15s ease, border-color 0.15s ease;
@@ -1458,50 +1473,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     word-break: break-word;
 }
 
-/* Cockpit Action Buttons */
-.btn-cockpit-fuel {
-    background: rgba(34, 197, 94, 0.15) !important;
-    color: #4ade80 !important;
-    border: 1px solid rgba(34, 197, 94, 0.3) !important;
-}
-.btn-cockpit-fuel:hover {
-    background: #22c55e !important;
-    color: #ffffff !important;
-    border-color: #22c55e !important;
-}
 
-.btn-cockpit-service {
-    background: rgba(59, 130, 246, 0.15) !important;
-    color: #60a5fa !important;
-    border: 1px solid rgba(59, 130, 246, 0.3) !important;
-}
-.btn-cockpit-service:hover {
-    background: #3b82f6 !important;
-    color: #ffffff !important;
-    border-color: #3b82f6 !important;
-}
-
-.btn-cockpit-odo {
-    background: rgba(6, 182, 212, 0.15) !important;
-    color: #22d3ee !important;
-    border: 1px solid rgba(6, 182, 212, 0.3) !important;
-}
-.btn-cockpit-odo:hover {
-    background: #06b6d4 !important;
-    color: #111722 !important;
-    border-color: #06b6d4 !important;
-}
-
-.btn-cockpit-repair {
-    background: rgba(239, 68, 68, 0.15) !important;
-    color: #f87171 !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
-}
-.btn-cockpit-repair:hover {
-    background: #ef4444 !important;
-    color: #ffffff !important;
-    border-color: #ef4444 !important;
-}
 
 /* Nav Item More Minimalist */
 .nav-item-more .dropdown-menu {
@@ -1632,7 +1604,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     align-items: center;
     width: 100%;
     padding: 0.65rem 0.85rem;
-    border-radius: 10px;
+    border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(255, 255, 255, 0.03);
     color: #f8fafc;
