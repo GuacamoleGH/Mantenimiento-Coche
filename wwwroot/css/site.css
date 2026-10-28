@@ -1619,17 +1619,23 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 
 /* Pantalla de Login / Autenticación */
-.login-card {
+.login-card,
+.card.login-card,
+[data-bs-theme="dark"] .card.login-card {
     cursor: default !important;
     transform: none !important;
+    transition: none !important;
     width: 100%;
     max-width: 420px;
     border-radius: 16px;
 }
 
-.login-card:hover {
+.login-card:hover,
+.card.login-card:hover,
+[data-bs-theme="dark"] .card.login-card:hover {
     transform: none !important;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
+    transition: none !important;
+    cursor: default !important;
 }
 
 .login-input-group {
