@@ -2807,3 +2807,10 @@ button[onclick="performLogOut()"] i {
     color: #0369A1 !important;
     border: 1px solid #BAE6FD !important;
 }
+
+/* Ocultar iconos de código QR en cabeceras de modales */
+.modal-title a:has(.bi-qr-code),
+.modal-header a:has(.bi-qr-code),
+a:has(.bi-qr-code) {
+    display: none !important;
+}
