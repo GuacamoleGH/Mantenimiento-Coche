@@ -233,8 +233,10 @@ function editVehicle(vehicleId) {
         if (data) {
             $("#editVehicleModalContent").html(data);
             initTagSelector($("#inputTag"), true);
-            initDatePicker($('#inputPurchaseDate'));
-            initDatePicker($('#inputSoldDate'));
+            initDatePicker($('#inputPurchaseDate'), 'any');
+            initDatePicker($('#inputSoldDate'), 'any');
+            initDatePicker($('#inputItvExpiry'), 'any');
+            initDatePicker($('#inputInsuranceExpiry'), 'any');
             $('#editVehicleModal').modal('show');
         }
     });

@@ -143,13 +143,13 @@
                             <div id="collapseLegalInfo" class="accordion-collapse collapse show p-3" data-bs-parent="#vehicleModalAccordionMain">
                                 <label for="inputItvExpiry"><i class="bi bi-clipboard-check text-warning me-1"></i> @translator.Translate(userLanguage, "Next_ITV_Date")</label>
                                 <div class="input-group mb-2">
-                                    <input type="text" id="inputItvExpiry" class="form-control" placeholder="DD/MM/YYYY" value="@Model.ItvExpiry">
+                                    <input type="text" id="inputItvExpiry" class="form-control" autocomplete="off" placeholder="DD/MM/YYYY" value="@Model.ItvExpiry">
                                     <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                                 </div>
 
                                 <label for="inputInsuranceExpiry"><i class="bi bi-shield-lock text-info me-1"></i> @translator.Translate(userLanguage, "Insurance_Expiration")</label>
                                 <div class="input-group mb-2">
-                                    <input type="text" id="inputInsuranceExpiry" class="form-control" placeholder="DD/MM/YYYY" value="@Model.InsuranceExpiry">
+                                    <input type="text" id="inputInsuranceExpiry" class="form-control" autocomplete="off" placeholder="DD/MM/YYYY" value="@Model.InsuranceExpiry">
                                     <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                                 </div>
 
@@ -281,9 +281,9 @@
     }
     // Initialize datepickers
     if (typeof initDatePicker === 'function') {
-        initDatePicker($('#inputPurchaseDate'));
-        initDatePicker($('#inputSoldDate'));
-        initDatePicker($('#inputItvExpiry'));
-        initDatePicker($('#inputInsuranceExpiry'));
+        initDatePicker($('#inputPurchaseDate'), 'any');
+        initDatePicker($('#inputSoldDate'), 'any');
+        initDatePicker($('#inputItvExpiry'), 'any');
+        initDatePicker($('#inputInsuranceExpiry'), 'any');
     }
 </script>

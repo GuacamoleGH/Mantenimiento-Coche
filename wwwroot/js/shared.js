@@ -452,22 +452,29 @@ function initExtraFieldDatePicker(fieldName) {
         });
     }
 }
-function initDatePicker(input, futureOnly) {
-    if (futureOnly) {
-        input.datepicker({
-            startDate: "+0d",
-            format: getShortDatePattern().pattern,
-            autoclose: true,
-            weekStart: getGlobalConfig().firstDayOfWeek
-        });
+function initDatePicker(input, mode) {
+    var datepickerOptions = {
+        format: getShortDatePattern().pattern,
+        autoclose: true,
+        todayHighlight: true,
+        weekStart: getGlobalConfig().firstDayOfWeek,
+        language: 'es',
+        forceParse: false,
+        enableOnReadonly: true
+    };
+
+    if (mode === true || mode === 'future') {
+        datepickerOptions.startDate = "+0d";
+    } else if (mode === 'past') {
+        datepickerOptions.endDate = "+0d";
+    } else if (mode === 'any' || mode === false || mode === 'none') {
+        // Permite cualquier fecha sin restricción de tope pasado o futuro
     } else {
-        input.datepicker({
-            endDate: "+0d",
-            format: getShortDatePattern().pattern,
-            autoclose: true,
-            weekStart: getGlobalConfig().firstDayOfWeek
-        });
+        // Históricos por defecto
+        datepickerOptions.endDate = "+0d";
     }
+
+    input.datepicker(datepickerOptions);
 }
 function initTagSelector(input, noDataList) {
     if (noDataList) {

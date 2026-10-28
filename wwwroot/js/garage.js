@@ -4,8 +4,10 @@
         if (data) {
             $("#addVehicleModalContent").html(data);
             initTagSelector($("#inputTag"));
-            initDatePicker($('#inputPurchaseDate'));
-            initDatePicker($('#inputSoldDate'));
+            initDatePicker($('#inputPurchaseDate'), 'any');
+            initDatePicker($('#inputSoldDate'), 'any');
+            initDatePicker($('#inputItvExpiry'), 'any');
+            initDatePicker($('#inputInsuranceExpiry'), 'any');
             $('#addVehicleModal').modal('show');
         }
     })
