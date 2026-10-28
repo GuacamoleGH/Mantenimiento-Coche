@@ -1309,6 +1309,15 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     gap: 6px;
 }
 
+/* Prevenir que Bootstrap Tab fuerce la apertura del menú desplegable al activar una pestaña */
+.lubelogger-tab .dropdown-menu.show {
+    display: none;
+}
+.lubelogger-tab .dropdown-toggle.show + .dropdown-menu.show,
+.lubelogger-tab .dropdown:has(.dropdown-toggle.show) > .dropdown-menu.show {
+    display: block !important;
+}
+
 .lubelogger-tab .nav-link {
     border-radius: 6px;
     font-size: 0.88rem;

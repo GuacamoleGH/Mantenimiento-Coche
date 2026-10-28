@@ -1816,21 +1816,22 @@ function waitForElement(element, callBack, callBackParameter) {
         callBack: callBack,
         callBackParameter: callBackParameter
     });
-    checkExist = setInterval(function () {
-        console.log(`Elems to check: ${elemsToCheck.length}`);
-        let elemsToRemove = [];
-        elemsToCheck.map(x => {
-            if ($(`${x.element}`).length) {
-                callBack(x.callBackParameter);
-                elemsToRemove.push(x);
+    if (!checkExist) {
+        checkExist = setInterval(function () {
+            let elemsToRemove = [];
+            elemsToCheck.forEach(x => {
+                if ($(`${x.element}`).length) {
+                    x.callBack(x.callBackParameter);
+                    elemsToRemove.push(x);
+                }
+            });
+            elemsToCheck = elemsToCheck.filter(x => !elemsToRemove.includes(x));
+            if (elemsToCheck.length == 0) {
+                clearInterval(checkExist);
+                checkExist = null;
             }
-        });
-        elemsToCheck = elemsToCheck.filter(x => !elemsToRemove.find(y => y.element == x.element && y.callBack == x.callBack));
-        console.log(`Elems remaining: ${elemsToCheck.length}`);
-        if (elemsToCheck.length == 0) {
-            clearInterval(checkExist);
-        }
-    }, 100); // check every 100ms
+        }, 100); // check every 100ms
+    }
 }
 function bindModalInputChanges(modalName) {
     //bind text inputs

@@ -1,11 +1,15 @@
 ﻿$(function () {
     //bind functions on page load
     var vehicleId = GetVehicleId().vehicleId;
-    //bind tabs
+    //bind tabs y prevenir que los dropdowns se queden abiertos
     $('.lubelogger-tab .dropdown-item').on('click', function () {
         let parentDropdown = $(this).closest('.dropdown');
         parentDropdown.find('.dropdown-menu').removeClass('show');
         parentDropdown.find('.dropdown-toggle').removeClass('show').attr('aria-expanded', 'false');
+    });
+    $(document).on('show.bs.tab shown.bs.tab', '.lubelogger-tab [data-bs-toggle="tab"]', function () {
+        $('.lubelogger-tab .dropdown-menu').removeClass('show');
+        $('.lubelogger-tab .dropdown-toggle').removeClass('show').attr('aria-expanded', 'false');
     });
     $('button[data-bs-toggle="tab"]').on('show.bs.tab', function (e) {
         switch (e.target.id) {
@@ -914,6 +918,9 @@ function setLastOdometer(mileageInputId) {
 }
 
 function quickAddRecord(recordType) {
+    // Asegurar que los dropdowns de pestañas estén cerrados
+    $('.lubelogger-tab .dropdown-menu').removeClass('show');
+    $('.lubelogger-tab .dropdown-toggle').removeClass('show').attr('aria-expanded', 'false');
     switch (recordType) {
         case "GasRecord":
             $('#gas-tab').tab('show');
