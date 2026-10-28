@@ -46,6 +46,12 @@
         }
         $(`.lubelogger-tab #${e.target.id}`).addClass('active');
         $(`.lubelogger-mobile-nav #${e.target.id}`).addClass('active');
+        // Sincronizar resaltado de categoría padre en dropdowns
+        $('.lubelogger-tab .nav-item.dropdown > .nav-link').removeClass('active');
+        let parentDropdown = $(e.target).closest('.dropdown');
+        if (parentDropdown.length) {
+            parentDropdown.find('> .nav-link').addClass('active');
+        }
         if (e.relatedTarget != null) {
             switch (e.relatedTarget.id) { //clear out previous tabs with grids in them to help with performance
                 case "servicerecord-tab":

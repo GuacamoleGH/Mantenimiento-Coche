@@ -1995,3 +1995,37 @@ a:hover {
     border-radius: 1rem;
     padding: 1.25rem;
 }
+
+/* Dropdown de pestañas de navegación - Opción 1 */
+.lubelogger-tab .dropdown-menu {
+    background-color: #191F2C !important;
+    border: 1px solid #30394A !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+    padding: 0.4rem !important;
+    min-width: 210px;
+}
+.lubelogger-tab .dropdown-item {
+    color: #F1F5F9 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    transition: all 0.15s ease-in-out;
+}
+.lubelogger-tab .dropdown-item:hover {
+    background-color: rgba(251, 196, 30, 0.15) !important;
+    color: #FBC41E !important;
+}
+.lubelogger-tab .dropdown-item:hover i {
+    color: #FBC41E !important;
+}
+.lubelogger-tab .dropdown-item.active,
+.lubelogger-tab .dropdown-item:active {
+    background-color: #FBC41E !important;
+    color: #111722 !important;
+    font-weight: 700 !important;
+}
+.lubelogger-tab .dropdown-item.active i,
+.lubelogger-tab .dropdown-item:active i {
+    color: #111722 !important;
+}
