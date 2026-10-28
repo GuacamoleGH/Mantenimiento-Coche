@@ -1152,7 +1152,8 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 [data-bs-theme="dark"] body {
-    background: radial-gradient(circle at 50% 0%, #151d30 0%, #0b0f19 75%) no-repeat fixed;
+    background: var(--bs-body-bg) !important;
+    background-color: var(--bs-body-bg) !important;
     color: #f1f5f9;
 }
 
@@ -1628,6 +1629,8 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     width: 100%;
     max-width: 420px;
     border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
 }
 
 .login-card:hover,
