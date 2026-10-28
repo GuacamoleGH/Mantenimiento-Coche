@@ -2237,3 +2237,33 @@ a:hover {
     color: #FBC41E !important;
     cursor: pointer !important;
 }
+
+/* ==========================================================================
+   Efecto de Difuminado de Fondo (Backdrop Blur) y Centrado de Modales
+   ========================================================================== */
+.modal-backdrop.show {
+    backdrop-filter: blur(10px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(160%) !important;
+    background-color: rgba(10, 15, 25, 0.72) !important;
+}
+
+.modal.show {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+}
+
+#accountInformationModal .modal-dialog {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: calc(100dvh - 3.5rem) !important;
+    margin: auto !important;
+}
+
+#accountInformationModal .modal-content {
+    background-color: #191F2C !important;
+    border: 1px solid #30394A !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(251, 196, 30, 0.15) !important;
+    overflow: hidden;
+}
