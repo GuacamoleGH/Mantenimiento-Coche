@@ -157,32 +157,44 @@ namespace CarCareTracker.Logic
                 return OperationResponse.Failed("Something went wrong, please try again later.");
             }
         }
-        //handles user registration
+        //handles user registration - registro libre sin token obligatorio y con validación de contraseña
         public OperationResponse RegisterNewUser(LoginModel credentials)
         {
-            //validate their token.
-            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
-            if (existingToken.Id == default || existingToken.EmailAddress != credentials.EmailAddress)
+            if (_configHelper.GetServerDisabledRegistration())
             {
-                return OperationResponse.Failed("Invalid Token");
+                return OperationResponse.Failed("El registro está desactivado en este servidor.");
             }
-            //token is valid, check if username and password is acceptable and that username is unique.
             if (string.IsNullOrWhiteSpace(credentials.EmailAddress) || string.IsNullOrWhiteSpace(credentials.UserName) || string.IsNullOrWhiteSpace(credentials.Password))
             {
-                return OperationResponse.Failed("Neither username nor password can be blank");
+                return OperationResponse.Failed("Ninguno de los campos puede estar en blanco.");
             }
+
+            var complexityCheck = StaticHelper.ValidatePasswordComplexity(credentials.Password);
+            if (!complexityCheck.Success)
+            {
+                return complexityCheck;
+            }
+
             var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
             if (existingUser.Id != default)
             {
-                return OperationResponse.Failed("Username already taken");
+                return OperationResponse.Failed("El nombre de usuario ya está en uso.");
             }
             var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
             if (existingUserWithEmail.Id != default)
             {
-                return OperationResponse.Failed("A user with that email already exists");
+                return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
             }
-            //username is unique then we delete the token and create the user.
-            _tokenData.DeleteToken(existingToken.Id);
+
+            if (!string.IsNullOrWhiteSpace(credentials.Token))
+            {
+                var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
+                if (existingToken.Id != default)
+                {
+                    _tokenData.DeleteToken(existingToken.Id);
+                }
+            }
+
             var newUser = new UserData()
             {
                 UserName = credentials.UserName,
@@ -192,11 +204,11 @@ namespace CarCareTracker.Logic
             var result = _userData.SaveUserRecord(newUser);
             if (result)
             {
-                return OperationResponse.Succeed("You will be redirected to the login page briefly.");
+                return OperationResponse.Succeed("Cuenta creada correctamente. Redirigiendo al login...");
             }
             else
             {
-                return OperationResponse.Failed();
+                return OperationResponse.Failed("Error al guardar el usuario.");
             }
         }
         public async Task<OperationResponse> SendRegistrationToken(LoginModel credentials)
@@ -237,6 +249,11 @@ namespace CarCareTracker.Logic
             if (string.IsNullOrWhiteSpace(credentials.Password))
             {
                 return OperationResponse.Failed("New Password cannot be blank");
+            }
+            var complexityCheck = StaticHelper.ValidatePasswordComplexity(credentials.Password);
+            if (!complexityCheck.Success)
+            {
+                return complexityCheck;
             }
             //if token is valid.
             var existingUser = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);

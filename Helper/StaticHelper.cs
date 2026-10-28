@@ -1035,6 +1035,30 @@ namespace CarCareTracker.Helper
 
             return Sb.ToString();
         }
+        public static OperationResponse ValidatePasswordComplexity(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            {
+                return OperationResponse.Failed("La contraseña debe tener al menos 8 caracteres.");
+            }
+            if (!password.Any(char.IsUpper))
+            {
+                return OperationResponse.Failed("La contraseña debe incluir al menos una letra mayúscula (A-Z).");
+            }
+            if (!password.Any(char.IsLower))
+            {
+                return OperationResponse.Failed("La contraseña debe incluir al menos una letra minúscula (a-z).");
+            }
+            if (!password.Any(char.IsDigit))
+            {
+                return OperationResponse.Failed("La contraseña debe incluir al menos un número (0-9).");
+            }
+            if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+            {
+                return OperationResponse.Failed("La contraseña debe incluir al menos un carácter especial (ej. !@#$%...).");
+            }
+            return OperationResponse.Succeed("Contraseña válida.");
+        }
         public static string TrimDecimal(decimal input, int maxDecimalPlace = 3, string format = "N")
         {
             //determine number of decimal places

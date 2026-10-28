@@ -3,7 +3,6 @@
 @inject ITranslationHelper translator
 @{
     var userLanguage = config.GetServerLanguage();
-    var openRegistrationEnabled = config.GetServerOpenRegistration();
 }
 @model LoginModel
 @{
@@ -99,6 +98,14 @@
     .login-field-toggle:hover {
         color: #F1F5F9 !important;
     }
+
+    .password-req-box {
+        background: rgba(37, 46, 63, 0.4);
+        border: 1px solid #30394A;
+        border-radius: 8px;
+        padding: 0.65rem 0.85rem;
+        font-size: 0.78rem;
+    }
 </style>
 
 <!-- Botón flotante para activar/desactivar sonido -->
@@ -109,35 +116,18 @@
 </div>
 
 <div class="no-top-pad container d-flex align-items-center justify-content-center" style="min-height: 100dvh; padding-top: 2rem; padding-bottom: 2rem;">
-    <div class="card login-card shadow p-4 p-sm-5" style="width: 100%; max-width: 440px; border-radius: 16px; border: 1px solid #30394A !important; background-color: #191F2C !important; transform: none !important; transition: none !important; cursor: default !important;">
+    <div class="card login-card shadow p-4 p-sm-5" style="width: 100%; max-width: 460px; border-radius: 16px; border: 1px solid #30394A !important; background-color: #191F2C !important; transform: none !important; transition: none !important; cursor: default !important;">
         <div class="text-center mb-4">
             <img src="@config.GetLogoUrl()" class="lubelogger-logo mb-2" style="max-height: 52px; width: auto;" />
             <h4 class="fw-bold mb-1 text-light">Crear Cuenta</h4>
             <div class="small text-secondary">Regístrate para gestionar tus vehículos</div>
         </div>
 
-        @if (!string.IsNullOrWhiteSpace(Model.Token) || !openRegistrationEnabled)
-        {
-            <div class="mb-3">
-                <label for="inputToken" class="form-label small fw-semibold text-secondary mb-1">Token de Invitación</label>
-                <div class="login-field-box">
-                    <div class="login-field-icon"><i class="bi bi-key"></i></div>
-                    <input type="text" id="inputToken" class="login-field-input" value="@Model.Token" placeholder="Token recibido">
-                    @if (openRegistrationEnabled)
-                    {
-                        <button type="button" class="login-field-toggle" onclick="sendRegistrationToken()" title="Solicitar token">
-                            <i class="bi bi-send"></i>
-                        </button>
-                    }
-                </div>
-            </div>
-        }
-
         <div class="mb-3">
             <label for="inputEmail" class="form-label small fw-semibold text-secondary mb-1">Correo electrónico</label>
             <div class="login-field-box">
                 <div class="login-field-icon"><i class="bi bi-envelope"></i></div>
-                <input type="email" id="inputEmail" class="login-field-input" value="@Model.EmailAddress" placeholder="tu@correo.com">
+                <input type="email" id="inputEmail" class="login-field-input" value="@Model.EmailAddress" placeholder="tu@correo.com" autocomplete="email">
             </div>
         </div>
 
@@ -145,7 +135,7 @@
             <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Nombre de usuario</label>
             <div class="login-field-box">
                 <div class="login-field-icon"><i class="bi bi-person"></i></div>
-                <input type="text" id="inputUserName" class="login-field-input" placeholder="ejemplo: fernando">
+                <input type="text" id="inputUserName" class="login-field-input" placeholder="ejemplo: fernando" autocomplete="username">
             </div>
         </div>
 
@@ -153,21 +143,45 @@
             <label for="inputUserPassword" class="form-label small fw-semibold text-secondary mb-1">Contraseña</label>
             <div class="login-field-box">
                 <div class="login-field-icon"><i class="bi bi-lock"></i></div>
-                <input type="password" id="inputUserPassword" class="login-field-input" onkeyup="callBackOnEnter(event, performRegistration)" placeholder="contraseña segura">
+                <input type="password" id="inputUserPassword" oninput="checkPasswordComplexity(this.value); checkPasswordMatch();" class="login-field-input" placeholder="contraseña segura" autocomplete="new-password">
                 <button type="button" class="login-field-toggle" onclick="togglePasswordVisibility(this)" tabindex="-1" title="Mostrar/ocultar contraseña">
                     <i class="bi bi-eye"></i>
                 </button>
             </div>
+            
+            <!-- Requisitos de seguridad en tiempo real -->
+            <div class="password-req-box mt-2">
+                <div class="fw-semibold text-secondary mb-1">Requisitos de contraseña:</div>
+                <div class="d-flex flex-column gap-1">
+                    <div id="req-length" class="text-secondary"><i class="bi bi-circle me-1"></i>Mínimo 8 caracteres</div>
+                    <div id="req-upper" class="text-secondary"><i class="bi bi-circle me-1"></i>Al menos una letra mayúscula (A-Z)</div>
+                    <div id="req-lower" class="text-secondary"><i class="bi bi-circle me-1"></i>Al menos una letra minúscula (a-z)</div>
+                    <div id="req-number" class="text-secondary"><i class="bi bi-circle me-1"></i>Al menos un número (0-9)</div>
+                    <div id="req-special" class="text-secondary"><i class="bi bi-circle me-1"></i>Al menos un carácter especial (!@@#$%...)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="inputUserPasswordConfirm" class="form-label small fw-semibold text-secondary mb-1">Confirmar contraseña</label>
+            <div class="login-field-box">
+                <div class="login-field-icon"><i class="bi bi-shield-lock"></i></div>
+                <input type="password" id="inputUserPasswordConfirm" oninput="checkPasswordMatch();" onkeyup="callBackOnEnter(event, performRegistration)" class="login-field-input" placeholder="repite tu contraseña" autocomplete="new-password">
+                <button type="button" class="login-field-toggle" onclick="togglePasswordVisibility(this)" tabindex="-1" title="Mostrar/ocultar contraseña">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            <div id="req-match" style="display: none;"></div>
         </div>
 
         <div class="d-grid mb-3 mt-4">
             <button type="button" class="btn btn-primary py-2 fw-semibold shadow-sm" onclick="performRegistration()">
-                <i class="bi bi-person-check me-2"></i>Registrarse
+                <i class="bi bi-person-check me-2"></i>Crear Cuenta
             </button>
         </div>
 
         <div class="text-center pt-2">
-            <a href="/Login/Index" class="small text-decoration-none text-primary">
+            <a href="/Login/Index" class="small text-decoration-none text-primary fw-semibold">
                 <i class="bi bi-arrow-left me-1"></i>Volver a Iniciar Sesión
             </a>
         </div>

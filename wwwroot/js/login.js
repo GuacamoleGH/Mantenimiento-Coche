@@ -1,4 +1,4 @@
-﻿function performLogin() {
+function performLogin() {
     let userName = $("#inputUserName").val();
     let userPassword = $("#inputUserPassword").val();
     let isPersistent = $("#inputPersistent").is(":checked");
@@ -24,20 +24,94 @@ function checkPersistLoginState() {
         $('#inputPersistent').prop('checked', JSON.parse(storedPersistLogin));
     }
 }
+function checkPasswordComplexity(pwd) {
+    var hasLength = pwd.length >= 8;
+    var hasUpper = /[A-Z]/.test(pwd);
+    var hasLower = /[a-z]/.test(pwd);
+    var hasNumber = /[0-9]/.test(pwd);
+    var hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+    updateRequirementIndicator('req-length', hasLength);
+    updateRequirementIndicator('req-upper', hasUpper);
+    updateRequirementIndicator('req-lower', hasLower);
+    updateRequirementIndicator('req-number', hasNumber);
+    updateRequirementIndicator('req-special', hasSpecial);
+
+    return hasLength && hasUpper && hasLower && hasNumber && hasSpecial;
+}
+
+function updateRequirementIndicator(id, valid) {
+    var elem = document.getElementById(id);
+    if (!elem) return;
+    var icon = elem.querySelector('i');
+    if (valid) {
+        elem.classList.remove('text-secondary');
+        elem.classList.add('text-success');
+        if (icon) icon.className = 'bi bi-check-circle-fill me-1';
+    } else {
+        elem.classList.remove('text-success');
+        elem.classList.add('text-secondary');
+        if (icon) icon.className = 'bi bi-circle me-1';
+    }
+}
+
+function checkPasswordMatch() {
+    var pwd = $("#inputUserPassword").val() || '';
+    var confirm = $("#inputUserPasswordConfirm").val() || '';
+    var matchElem = document.getElementById('req-match');
+    if (!matchElem) return;
+    if (confirm.length === 0) {
+        matchElem.style.display = 'none';
+        return;
+    }
+    matchElem.style.display = 'block';
+    var icon = matchElem.querySelector('i');
+    if (pwd === confirm) {
+        matchElem.className = 'small text-success mt-1';
+        matchElem.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Las contraseñas coinciden';
+    } else {
+        matchElem.className = 'small text-danger mt-1';
+        matchElem.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Las contraseñas no coinciden';
+    }
+}
+
 function performRegistration() {
-    let token = $("#inputToken").val();
-    let userName = $("#inputUserName").val();
-    let userPassword = $("#inputUserPassword").val();
-    let userEmail = $("#inputEmail").val();
-    $.post('/Login/Register', { userName: userName, password: userPassword, token: token, emailAddress: userEmail }, function (data) {
+    let userName = $("#inputUserName").val()?.trim() || '';
+    let userEmail = $("#inputEmail").val()?.trim() || '';
+    let userPassword = $("#inputUserPassword").val() || '';
+    let userPasswordConfirm = $("#inputUserPasswordConfirm").val() || '';
+
+    if (!userEmail) {
+        errorToast("Por favor, introduce tu correo electrónico.");
+        return;
+    }
+    if (!userName) {
+        errorToast("Por favor, introduce un nombre de usuario.");
+        return;
+    }
+    if (!userPassword) {
+        errorToast("Por favor, introduce una contraseña.");
+        return;
+    }
+    if (!checkPasswordComplexity(userPassword)) {
+        errorToast("La contraseña debe cumplir todos los requisitos de seguridad.");
+        return;
+    }
+    if (userPasswordConfirm && userPassword !== userPasswordConfirm) {
+        errorToast("Las contraseñas no coinciden.");
+        return;
+    }
+
+    $.post('/Login/Register', { userName: userName, password: userPassword, emailAddress: userEmail }, function (data) {
         if (data.success) {
             successToast(data.message);
-            setTimeout(function () { window.location.href = '/Login/Index' }, 500);
+            setTimeout(function () { window.location.href = '/Login/Index' }, 800);
         } else {
             errorToast(data.message);
         }
     });
 }
+
 function requestPasswordReset() {
     let userName = $("#inputUserName").val();
     $.post('/Login/RequestResetPassword', { userName: userName }, function (data) {
@@ -53,52 +127,43 @@ function performPasswordReset() {
     let token = $("#inputToken").val();
     let userPassword = $("#inputUserPassword").val();
     let userEmail = $("#inputEmail").val();
-    $.post('/Login/PerformPasswordReset', { password: userPassword, token: token, emailAddress: userEmail }, function (data) {
+
+    if (!checkPasswordComplexity(userPassword)) {
+        errorToast("La nueva contraseña debe cumplir los requisitos de seguridad.");
+        return;
+    }
+
+    $.post('/Login/ResetPassword', { token: token, password: userPassword, emailAddress: userEmail }, function (data) {
         if (data.success) {
             successToast(data.message);
             setTimeout(function () { window.location.href = '/Login/Index' }, 500);
         } else {
             errorToast(data.message);
         }
-    });
-}
-
-function remoteLogin() {
-    let currentParams = new URLSearchParams(window.location.search);
-    let redirectUrl = currentParams.get('redirectURLBase64');
-    if (redirectUrl == null) {
-        redirectUrl = '';
-    }
-    $.get(`/Login/GetRemoteLoginLink?redirectURLBase64=${redirectUrl}`, { redirectURLBase64: redirectUrl }, function (data) {
-        if (data) {
-            window.location.href = data;
-        }
     })
 }
 function sendRegistrationToken() {
-    Swal.fire({
-        title: 'Please Provide an Email Address',
-        html: `
-                            <input type="text" id="inputTokenEmail" class="swal2-input" placeholder="Email Address" onkeydown="handleSwalEnter(event)">
-                            `,
-        confirmButtonText: 'Send',
-        focusConfirm: false,
-        preConfirm: () => {
-            const tokenEmail = $("#inputTokenEmail").val();
-            if (!tokenEmail || tokenEmail.trim() == '') {
-                Swal.showValidationMessage(`Please enter a valid email address`);
-            }
-            return { tokenEmail }
-        },
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            $.post('/Login/SendRegistrationToken', { emailAddress: result.value.tokenEmail }, function (data) {
-                if (data.success) {
-                    successToast(data.message);
-                } else {
-                    errorToast(data.message);
-                }
-            });
+    let userEmail = $("#inputEmail").val();
+    $.post('/Login/SendRegistrationToken', { emailAddress: userEmail }, function (data) {
+        if (data.success) {
+            successToast(data.message);
+        } else {
+            errorToast(data.message);
+        }
+    })
+}
+function remoteLogin() {
+    window.location.href = '/Login/RemoteLogin';
+}
+function performOpenIdRegistration() {
+    let userName = $("#inputUserName").val();
+    let userEmail = $("#inputEmail").val();
+    $.post('/Login/RegisterOpenIdUser', { userName: userName, emailAddress: userEmail }, function (data) {
+        if (data.success) {
+            successToast(data.message);
+            setTimeout(function () { window.location.href = '/Home' }, 500);
+        } else {
+            errorToast(data.message);
         }
     });
 }
