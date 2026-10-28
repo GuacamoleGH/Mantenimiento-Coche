@@ -2358,3 +2358,11 @@ function hideActiveModal() {
         activeModal.modal('hide');
     }
 }
+function performLogOut() {
+    $.post('/Login/LogOut', function (data) {
+        if (data) {
+            resetEventHub();
+            window.location.href = data;
+        }
+    });
+}

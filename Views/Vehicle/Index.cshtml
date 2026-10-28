@@ -92,10 +92,32 @@
                         </ul>
                     </li>
 
-                    <li class="nav-item ms-auto" role="presentation" style="order: 99">
+                    <li class="nav-item ms-auto d-flex align-items-center gap-1" role="presentation" style="order: 99">
                         <button class="nav-link resizable-nav-link" type="button" onclick="toggleTheme()" title="Cambiar tema">
                             <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
                         </button>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="dropdown">
+                                <button class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" type="button" aria-expanded="false" id="userMenuBtn">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span class="small fw-semibold ms-1">@User.Identity.Name</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-2">
+                                    <li>
+                                        <button class="dropdown-item py-2" onclick="returnToGarage()">
+                                            <i class="bi bi-car-front me-2 text-primary"></i>@translator.Translate(userLanguage, "Garage")
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider opacity-25"></li>
+                                    <li>
+                                        <button class="dropdown-item py-2 text-danger" onclick="performLogOut()">
+                                            <i class="bi bi-box-arrow-right me-2"></i>@translator.Translate(userLanguage, "Logout")
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
                     </li>
                 </ul>
                 <div class="lubelogger-navbar-button">
