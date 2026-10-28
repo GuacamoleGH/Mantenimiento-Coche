@@ -1,31 +1,30 @@
 @using CarCareTracker.Helper
+@using System.Text.Json
 @inject IConfigHelper config
-@model List<ReminderRecordViewModel>
+@inject ITranslationHelper translator
+@model CalendarViewModel
 @{
     var userConfig = config.GetUserConfig(User);
-    var sortedReminders = Model != null ? Model.OrderBy(x => x.Date).ToList() : new List<ReminderRecordViewModel>();
+    var userLanguage = userConfig.UserLanguage;
+    var sortedReminders = Model.PendingReminders != null ? Model.PendingReminders.OrderBy(x => x.Date).ToList() : new List<ReminderRecordViewModel>();
 }
 <script>
-    var eventDates = [];
-    var groupedDates = [];
-    @foreach(ReminderRecordViewModel reminderRecord in sortedReminders)
-    {
-        @:eventDates.push({ id: @reminderRecord.Id, date: decodeHTMLEntities('@StaticHelper.GetEpochFromDateTime(reminderRecord.Date)'), description: decodeHTMLEntities('@reminderRecord.Description'), urgency: decodeHTMLEntities('@reminderRecord.Urgency.ToString()') });
-    }
+    var calendarEventsList = @Html.Raw(JsonSerializer.Serialize(Model.CalendarEvents));
+    var calendarVehiclesList = @Html.Raw(JsonSerializer.Serialize(Model.Vehicles.Select(v => new { id = v.Id, name = $"{v.Year} {v.Make} {v.Model}" })));
 </script>
 
 <div class="container-fluid px-2 px-md-3 py-3">
     <div class="row g-3">
-        <!-- Columna Izquierda: Tareas Pendientes -->
-        <div class="col-12 col-lg-4">
+        <!-- Columna 1: Tareas Pendientes (Solo tareas reales del usuario) -->
+        <div class="col-12 col-lg-3 col-xl-3">
             <div class="calendar-pending-tasks d-flex flex-column h-100">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
-                    <h5 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
-                        <i class="bi bi-card-checklist text-warning fs-4"></i>
+                <div class="calendar-panel-header d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
+                        <i class="bi bi-card-checklist text-warning fs-5"></i>
                         <span>Tareas Pendientes</span>
-                    </h5>
+                    </h6>
                     <span class="badge bg-warning text-dark font-monospace fw-bold px-2 py-1">
-                        @(sortedReminders.Any() ? sortedReminders.Count.ToString() : "3")
+                        @sortedReminders.Count
                     </span>
                 </div>
 
@@ -34,21 +33,23 @@
                     {
                         @foreach (var task in sortedReminders)
                         {
-                            var badgeClass = task.Urgency == ReminderUrgency.VeryUrgent ? "bg-danger" : task.Urgency == ReminderUrgency.Urgent ? "bg-warning text-dark" : "bg-secondary";
-                            var urgencyText = task.Urgency == ReminderUrgency.VeryUrgent ? "Muy Urgente" : task.Urgency == ReminderUrgency.Urgent ? "Urgente" : "Programado";
-                            <div class="calendar-task-card cursor-pointer" onclick="showReminderRecordCalendarModal(@task.Id)" title="Clic para ver detalles">
+                            var badgeClass = task.Urgency == ReminderUrgency.VeryUrgent || task.Urgency == ReminderUrgency.PastDue ? "bg-danger" : (task.Urgency == ReminderUrgency.Urgent ? "bg-warning text-dark" : "bg-secondary");
+                            var urgencyText = task.Urgency == ReminderUrgency.VeryUrgent ? "Muy Urgente" : (task.Urgency == ReminderUrgency.PastDue ? "Vencido" : (task.Urgency == ReminderUrgency.Urgent ? "Urgente" : "Programado"));
+                            <div class="calendar-task-card cursor-pointer" onclick="showCalendarReminderModal(@task.Id)" title="Clic para ver detalles">
                                 <div class="d-flex align-items-start justify-content-between gap-2">
-                                    <div class="fw-semibold text-light mb-1">
+                                    <div class="fw-semibold text-light mb-1 small text-truncate" title="@task.Description">
                                         <i class="bi bi-clock-history text-warning me-1"></i>
                                         @task.Description
                                     </div>
-                                    <span class="badge @badgeClass font-monospace small">@urgencyText</span>
+                                    <span class="badge @badgeClass font-monospace text-nowrap" style="font-size: 0.7rem;">@urgencyText</span>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
                                     <span><i class="bi bi-calendar3 me-1"></i>@task.Date.ToShortDateString()</span>
                                     @if (task.DueDays != default)
                                     {
-                                        <span>@(task.DueDays < 0 ? $"Vencido hace {Math.Abs(task.DueDays)}d" : $"En {task.DueDays} días")</span>
+                                        <span class="@(task.DueDays < 0 ? "text-danger fw-bold" : (task.DueDays <= 3 ? "text-warning fw-bold" : ""))">
+                                            @(task.DueDays < 0 ? $"Vencido ({Math.Abs(task.DueDays)}d)" : $"En {task.DueDays} días")
+                                        </span>
                                     }
                                 </div>
                             </div>
@@ -56,79 +57,131 @@
                     }
                     else
                     {
-                        <!-- Tareas de ejemplo para una experiencia rica desde el primer momento -->
-                        <div class="calendar-task-card">
-                            <div class="d-flex align-items-start justify-content-between gap-2">
-                                <div class="fw-semibold text-light mb-1">
-                                    <i class="bi bi-droplet-half text-info me-1"></i>
-                                    Lavar y aspirar el coche
-                                </div>
-                                <span class="badge bg-info text-dark font-monospace small">Semanal</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
-                                <span><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.AddDays(2).ToShortDateString()</span>
-                                <span class="text-info">En 2 días</span>
-                            </div>
-                        </div>
-
-                        <div class="calendar-task-card">
-                            <div class="d-flex align-items-start justify-content-between gap-2">
-                                <div class="fw-semibold text-light mb-1">
-                                    <i class="bi bi-speedometer text-warning me-1"></i>
-                                    Revisión de presión de neumáticos
-                                </div>
-                                <span class="badge bg-warning text-dark font-monospace small">Pendiente</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
-                                <span><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.AddDays(5).ToShortDateString()</span>
-                                <span>En 5 días</span>
-                            </div>
-                        </div>
-
-                        <div class="calendar-task-card">
-                            <div class="d-flex align-items-start justify-content-between gap-2">
-                                <div class="fw-semibold text-light mb-1">
-                                    <i class="bi bi-tools text-danger me-1"></i>
-                                    Cambio de aceite y filtro 5W-30
-                                </div>
-                                <span class="badge bg-danger text-white font-monospace small">Mantenimiento</span>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
-                                <span><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.AddDays(20).ToShortDateString()</span>
-                                <span>En 20 días</span>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-dark border-secondary border-opacity-25 mt-3 py-2 px-3 small text-secondary">
-                            <i class="bi bi-info-circle me-1 text-warning"></i>
-                            Estas son tareas sugeridas. Al crear recordatorios en tus vehículos aparecerán aquí sincronizadas.
+                        <div class="text-center py-5 text-secondary">
+                            <i class="bi bi-check2-circle fs-1 text-success opacity-75 d-block mb-2"></i>
+                            <p class="mb-1 fw-semibold text-light">¡Todo al día!</p>
+                            <p class="small text-secondary mb-0">No hay tareas pendientes en este momento.</p>
                         </div>
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Columna Derecha: Calendario Compacto -->
-        <div class="col-12 col-lg-8">
+        <!-- Columna 2: Calendario Compacto en Español y Días Clicables -->
+        <div class="col-12 col-lg-5 col-xl-5">
             <div class="calendar-card-container d-flex flex-column h-100">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
-                    <h5 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
-                        <i class="bi bi-calendar-week text-warning fs-4"></i>
-                        <span>Calendario de Eventos</span>
-                    </h5>
+                <div class="calendar-panel-header d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar-week text-warning fs-5"></i>
+                        <span>Calendario</span>
+                    </h6>
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" onclick="goToCalendarToday()">
+                        Hoy
+                    </button>
                 </div>
                 <div class="reminderCalendarView flex-grow-1 d-flex flex-column">
-                    <div class="reminderCalendarViewContent flex-grow-1">
-                    </div>
+                    <div class="reminderCalendarViewContent flex-grow-1"></div>
+                </div>
+                <!-- Leyenda de colores -->
+                <div class="d-flex align-items-center justify-content-center gap-3 pt-2 border-top border-secondary border-opacity-25 mt-2 small text-secondary">
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="calendar-legend-dot bg-danger"></span> Urgente
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="calendar-legend-dot bg-warning"></span> Programado
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span class="calendar-legend-dot bg-success"></span> Realizado
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna 3: Ventanita Día Seleccionado / Actividades del día + Añadir -->
+        <div class="col-12 col-lg-4 col-xl-4">
+            <div class="calendar-day-details d-flex flex-column h-100">
+                <div class="calendar-panel-header d-flex align-items-center justify-content-between">
+                    <h6 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-warning fs-5"></i>
+                        <span id="calendarSelectedDayLabel">Hoy</span>
+                    </h6>
+                    <button class="btn btn-warning btn-sm text-dark fw-bold d-flex align-items-center gap-1 px-2 py-1" onclick="openAddEventModal()">
+                        <i class="bi bi-plus-lg"></i>
+                        <span>Añadir</span>
+                    </button>
+                </div>
+
+                <div class="calendar-selected-date-badge text-secondary small mb-3">
+                    <i class="bi bi-calendar-event me-1 text-warning"></i>
+                    <span id="calendarSelectedDateText" class="fw-semibold text-light"></span>
+                </div>
+
+                <div id="calendarDayEventsList" class="flex-grow-1 overflow-auto" style="max-height: 480px;">
+                    <!-- Se rellena dinámicamente mediante JS -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal para ver Recordatorio existente -->
 <div class="modal fade" data-bs-focus="false" id="reminderRecordCalendarModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content" id="reminderRecordCalendarModalContent">
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Añadir Tarea/Recordatorio rápido desde el calendario -->
+<div class="modal fade" id="addCalendarReminderModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content bg-dark text-light border border-secondary">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <i class="bi bi-plus-circle-fill text-warning"></i>
+                    <span>Añadir Recordatorio</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCalendarReminderForm">
+                    <div class="mb-3">
+                        <label for="newReminderVehicle" class="form-label small fw-semibold text-light">Vehículo</label>
+                        <select id="newReminderVehicle" class="form-select bg-dark text-light border-secondary">
+                            @foreach (var v in Model.Vehicles)
+                            {
+                                <option value="@v.Id">@v.Year @v.Make @v.Model</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newReminderDate" class="form-label small fw-semibold text-light">Fecha</label>
+                        <input type="date" id="newReminderDate" class="form-control bg-dark text-light border-secondary" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newReminderDescription" class="form-label small fw-semibold text-light">Descripción de la Tarea / Recordatorio</label>
+                        <input type="text" id="newReminderDescription" class="form-control bg-dark text-light border-secondary" placeholder="Ej: Cambio de aceite, Pasar ITV, Revisar frenos..." required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newReminderUrgency" class="form-label small fw-semibold text-light">Prioridad</label>
+                        <select id="newReminderUrgency" class="form-select bg-dark text-light border-secondary">
+                            <option value="NotUrgent">Normal / Programado</option>
+                            <option value="Urgent">Urgente</option>
+                            <option value="VeryUrgent">Muy Urgente</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newReminderNotes" class="form-label small fw-semibold text-light">Notas (opcional)</label>
+                        <textarea id="newReminderNotes" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Detalles adicionales, taller, coste estimado..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning text-dark fw-bold" onclick="saveCalendarNewReminder()">
+                    <i class="bi bi-check-lg me-1"></i>Guardar Recordatorio
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -82,8 +82,61 @@ function getVehicleCalendarEvents() {
         }
     });
 }
+// Configuración de idioma español para DatePicker
+if (typeof $ !== 'undefined' && $.fn && $.fn.datepicker) {
+    $.fn.datepicker.dates['es'] = {
+        days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+        daysShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+        daysMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"],
+        months: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+        monthsShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+        today: "Hoy",
+        monthsTitle: "Meses",
+        clear: "Borrar",
+        weekStart: 1,
+        format: "yyyy-mm-dd"
+    };
+}
+
+var currentSelectedCalendarDate = new Date();
+var calendarEventsByDate = {};
+
+function formatDateToISO(d) {
+    if (!d) return '';
+    var year = d.getFullYear();
+    var month = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function prepareCalendarEvents() {
+    calendarEventsByDate = {};
+    if (typeof calendarEventsList !== 'undefined' && Array.isArray(calendarEventsList)) {
+        calendarEventsList.forEach(function (item) {
+            var dateStr = '';
+            if (item.DateString) {
+                dateStr = item.DateString;
+            } else if (item.Date) {
+                dateStr = String(item.Date).substring(0, 10);
+            } else if (item.dateString) {
+                dateStr = item.dateString;
+            } else if (item.date) {
+                dateStr = String(item.date).substring(0, 10);
+            }
+            if (dateStr) {
+                if (!calendarEventsByDate[dateStr]) {
+                    calendarEventsByDate[dateStr] = [];
+                }
+                calendarEventsByDate[dateStr].push(item);
+            }
+        });
+    }
+}
+
 function showCalendarReminderModal(id) {
-    event.stopPropagation();
+    if (typeof event !== 'undefined' && event) {
+        event.stopPropagation();
+    }
     $.get(`/Home/ViewCalendarReminder?reminderId=${id}`, function (data) {
         if (data) {
             $("#reminderRecordCalendarModalContent").html(data);
@@ -94,49 +147,39 @@ function showCalendarReminderModal(id) {
                 }
             });
         }
-    })
+    });
 }
+
 function hideCalendarReminderModal() {
     $("#reminderRecordCalendarModal").modal('hide');
 }
-function generateReminderItem(id, urgency, description) {
-    if (description.trim() == '') {
-        return;
-    }
-    switch (urgency) {
-        case "VeryUrgent":
-            return `<p class="badge text-wrap bg-danger reminder-calendar-item mb-2" onclick='showCalendarReminderModal(${id})'>${encodeHTMLInput(description)}</p>`;
-        case "PastDue":
-            return `<p class="badge text-wrap bg-secondary reminder-calendar-item mb-2" onclick='showCalendarReminderModal(${id})'>${encodeHTMLInput(description)}</p>`;
-        case "Urgent":
-            return `<p class="badge text-wrap text-bg-warning reminder-calendar-item mb-2" onclick='showCalendarReminderModal(${id})'>${encodeHTMLInput(description)}</p>`;
-        case "NotUrgent":
-            return `<p class="badge text-wrap bg-success reminder-calendar-item mb-2" onclick='showCalendarReminderModal(${id})'>${encodeHTMLInput(description)}</p>`;
-    }
-}
+
 function markDoneCalendarReminderRecord(reminderRecordId, e) {
-    event.stopPropagation();
+    if (typeof event !== 'undefined' && event) {
+        event.stopPropagation();
+    }
     $.post(`/Vehicle/PushbackRecurringReminderRecord?reminderRecordId=${reminderRecordId}`, function (data) {
         if (data.success) {
             hideCalendarReminderModal();
-            successToast("Reminder Updated");
+            successToast("Recordatorio actualizado");
             getVehicleCalendarEvents();
         } else {
             errorToast(data.message);
         }
     });
 }
+
 function deleteCalendarReminderRecord(reminderRecordId, e) {
-    if (e != undefined) {
+    if (typeof event !== 'undefined' && event) {
         event.stopPropagation();
     }
     $("#workAroundInput").show();
-    confirmDelete("Deleted Reminders cannot be restored.", (result) => {
+    confirmDelete("Los recordatorios eliminados no se pueden recuperar.", (result) => {
         if (result.isConfirmed) {
             $.post(`/Vehicle/DeleteReminderRecordById?reminderRecordId=${reminderRecordId}`, function (data) {
                 if (data.success) {
                     hideCalendarReminderModal();
-                    successToast("Reminder Deleted");
+                    successToast("Recordatorio eliminado");
                     getVehicleCalendarEvents();
                 } else {
                     errorToast(data.message);
@@ -148,35 +191,208 @@ function deleteCalendarReminderRecord(reminderRecordId, e) {
         }
     });
 }
+
 function initCalendar() {
-    if (groupedDates.length == 0) {
-        //group dates
-        eventDates.map(x => {
-            var existingIndex = groupedDates.findIndex(y => y.date == x.date);
-            if (existingIndex == -1) {
-                groupedDates.push({ date: x.date, reminders: [`${generateReminderItem(x.id, x.urgency, x.description)}`] });
-            } else if (existingIndex > -1) {
-                groupedDates[existingIndex].reminders.push(`${generateReminderItem(x.id, x.urgency, x.description)}`);
-            }
-        });
+    // Asegurar registro del idioma español
+    if ($.fn.datepicker && !$.fn.datepicker.dates['es']) {
+        $.fn.datepicker.dates['es'] = {
+            days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+            daysShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+            daysMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá"],
+            months: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+            monthsShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+            today: "Hoy",
+            monthsTitle: "Meses",
+            clear: "Borrar",
+            weekStart: 1,
+            format: "yyyy-mm-dd"
+        };
     }
-    $(".reminderCalendarViewContent").datepicker({
-        startDate: "+0d",
-        format: getShortDatePattern().pattern,
+
+    prepareCalendarEvents();
+
+    var $container = $(".reminderCalendarViewContent");
+    $container.datepicker('destroy');
+    $container.datepicker({
+        language: "es",
+        weekStart: 1,
         todayHighlight: true,
-        weekStart: getGlobalConfig().firstDayOfWeek,
+        todayBtn: false,
         beforeShowDay: function (date) {
-            var reminderDateIndex = groupedDates.findIndex(x => (x.date == date.getTime() || x.date == (date.getTime() - date.getTimezoneOffset() * 60000))); //take into account server timezone offset
-            if (reminderDateIndex > -1) {
+            var dateStr = formatDateToISO(date);
+            var events = calendarEventsByDate[dateStr];
+            if (events && events.length > 0) {
+                var hasVeryUrgent = events.some(x => (x.Urgency === 2 || x.Urgency === 3 || x.urgency === 'VeryUrgent' || x.urgency === 'PastDue'));
+                var hasUrgent = events.some(x => (x.Urgency === 1 || x.urgency === 'Urgent'));
+                var hasPastRecord = events.some(x => (x.Type === 'Service' || x.Type === 'Repair' || x.Type === 'Upgrade' || x.type === 'Service' || x.type === 'Repair' || x.type === 'Upgrade'));
+
+                var dotClass = hasVeryUrgent ? 'bg-danger' : (hasUrgent ? 'bg-warning' : (hasPastRecord ? 'bg-success' : 'bg-info'));
                 return {
                     enabled: true,
-                    classes: 'reminder-exist',
-                    content: `<div class='text-wrap' style='height:20px;'><p>${date.getDate()}</p>${groupedDates[reminderDateIndex].reminders.join('<br>')}</div>`
-                }
+                    classes: 'calendar-has-event-day',
+                    content: `<div class="calendar-day-cell">
+                                <span class="day-num">${date.getDate()}</span>
+                                <span class="day-dot ${dotClass}" title="${events.length} evento(s)"></span>
+                              </div>`
+                };
             }
+            return {
+                enabled: true,
+                content: `<div class="calendar-day-cell"><span class="day-num">${date.getDate()}</span></div>`
+            };
+        }
+    }).on('changeDate', function (e) {
+        if (e && e.date) {
+            renderSelectedDayEvents(e.date);
+        }
+    });
+
+    // Renderizar hoy por defecto al cargar
+    renderSelectedDayEvents(new Date());
+}
+
+function renderSelectedDayEvents(date) {
+    currentSelectedCalendarDate = date;
+    var dateStr = formatDateToISO(date);
+    var todayStr = formatDateToISO(new Date());
+    var isToday = (dateStr === todayStr);
+
+    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    var formattedText = date.toLocaleDateString('es-ES', options);
+    if (formattedText) {
+        formattedText = formattedText.charAt(0).toUpperCase() + formattedText.slice(1);
+    }
+
+    $("#calendarSelectedDayLabel").text(isToday ? "Hoy" : "Día Seleccionado");
+    $("#calendarSelectedDateText").text(formattedText);
+
+    var events = calendarEventsByDate[dateStr] || [];
+    var $list = $("#calendarDayEventsList");
+    $list.empty();
+
+    if (events.length === 0) {
+        $list.html(`
+            <div class="text-center py-5 text-secondary">
+                <i class="bi bi-calendar-check fs-1 opacity-50 d-block mb-2"></i>
+                <p class="small mb-2 text-light">No hay actividades ni recordatorios para esta fecha.</p>
+                <button class="btn btn-outline-warning btn-sm" onclick="openAddEventModal()">
+                    <i class="bi bi-plus-lg me-1"></i>Añadir tarea para este día
+                </button>
+            </div>
+        `);
+        return;
+    }
+
+    events.forEach(function (ev) {
+        var evType = ev.Type || ev.type || 'Reminder';
+        var evDesc = ev.Description || ev.description || '';
+        var evNotes = ev.Notes || ev.notes || '';
+        var evVehicle = ev.VehicleName || ev.vehicleName || '';
+        var evUrgency = ev.Urgency !== undefined ? ev.Urgency : ev.urgency;
+        var evId = ev.Id || ev.id || 0;
+
+        var html = '';
+        if (evType === 'Reminder') {
+            var isUrgent = (evUrgency === 1 || evUrgency === 'Urgent');
+            var isVeryUrgent = (evUrgency === 2 || evUrgency === 3 || evUrgency === 'VeryUrgent' || evUrgency === 'PastDue');
+            var badgeClass = isVeryUrgent ? 'bg-danger' : (isUrgent ? 'bg-warning text-dark' : 'bg-secondary');
+            var urgencyLabel = isVeryUrgent ? 'Muy Urgente' : (isUrgent ? 'Urgente' : 'Programado');
+
+            html = `
+                <div class="calendar-task-card cursor-pointer mb-2" onclick="showCalendarReminderModal(${evId})" title="Ver detalles">
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                        <div class="fw-semibold text-light small">
+                            <i class="bi bi-bell-fill text-warning me-1"></i>
+                            ${escapeHtml(evDesc)}
+                        </div>
+                        <span class="badge ${badgeClass} font-monospace" style="font-size: 0.7rem;">${urgencyLabel}</span>
+                    </div>
+                    ${evVehicle ? `<div class="small text-secondary mt-1"><i class="bi bi-car-front me-1"></i>${escapeHtml(evVehicle)}</div>` : ''}
+                    ${evNotes ? `<div class="small text-muted text-truncate mt-1">${escapeHtml(evNotes)}</div>` : ''}
+                </div>
+            `;
+        } else {
+            var typeBadge = evType === 'Service' ? 'bg-success' : (evType === 'Repair' ? 'bg-info text-dark' : 'bg-primary');
+            var typeLabel = evType === 'Service' ? 'Mantenimiento' : (evType === 'Repair' ? 'Reparación' : 'Mejora');
+            var typeIcon = evType === 'Service' ? 'bi-wrench-adjustable' : (evType === 'Repair' ? 'bi-shield-shaded' : 'bi-stars');
+
+            html = `
+                <div class="calendar-task-card mb-2" style="border-left: 3px solid #10B981;">
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                        <div class="fw-semibold text-light small">
+                            <i class="bi ${typeIcon} text-success me-1"></i>
+                            ${escapeHtml(evDesc)}
+                        </div>
+                        <span class="badge ${typeBadge} font-monospace" style="font-size: 0.7rem;">${typeLabel}</span>
+                    </div>
+                    ${evVehicle ? `<div class="small text-secondary mt-1"><i class="bi bi-car-front me-1"></i>${escapeHtml(evVehicle)}</div>` : ''}
+                    ${evNotes ? `<div class="small text-muted text-truncate mt-1">${escapeHtml(evNotes)}</div>` : ''}
+                </div>
+            `;
+        }
+        $list.append(html);
+    });
+}
+
+function goToCalendarToday() {
+    var today = new Date();
+    $(".reminderCalendarViewContent").datepicker('setDate', today);
+    renderSelectedDayEvents(today);
+}
+
+function openAddEventModal() {
+    var dateToUse = currentSelectedCalendarDate || new Date();
+    var isoDate = formatDateToISO(dateToUse);
+    $("#newReminderDate").val(isoDate);
+    $("#newReminderDescription").val("");
+    $("#newReminderNotes").val("");
+    $("#newReminderUrgency").val("NotUrgent");
+    $("#addCalendarReminderModal").modal('show');
+}
+
+function saveCalendarNewReminder() {
+    var vehicleId = $("#newReminderVehicle").val();
+    var date = $("#newReminderDate").val();
+    var description = $("#newReminderDescription").val();
+    var urgency = $("#newReminderUrgency").val();
+    var notes = $("#newReminderNotes").val();
+
+    if (!vehicleId) {
+        errorToast("Por favor, selecciona un vehículo");
+        return;
+    }
+    if (!description || !description.trim()) {
+        errorToast("Por favor, introduce una descripción");
+        return;
+    }
+
+    $.post('/Home/AddCalendarReminder', {
+        vehicleId: vehicleId,
+        date: date,
+        description: description,
+        urgency: urgency,
+        notes: notes
+    }, function (data) {
+        if (data.success) {
+            $("#addCalendarReminderModal").modal('hide');
+            successToast(data.message || "Recordatorio guardado correctamente");
+            getVehicleCalendarEvents();
+        } else {
+            errorToast(data.message || "Error al guardar el recordatorio");
         }
     });
 }
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function performLogOut() {
     $.post('/Login/LogOut', function (data) {
         if (data) {

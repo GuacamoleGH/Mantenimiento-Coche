@@ -142,7 +142,119 @@ namespace CarCareTracker.Controllers
                 vehiclesStored = _userLogic.FilterUserVehicles(vehiclesStored, GetUserID());
             }
             var reminders = _vehicleLogic.GetReminders(vehiclesStored, true);
-            return PartialView("_Calendar", reminders);
+            var calendarVm = new CalendarViewModel
+            {
+                PendingReminders = reminders,
+                Vehicles = vehiclesStored
+            };
+
+            foreach (var r in reminders)
+            {
+                var v = vehiclesStored.FirstOrDefault(x => x.Id == r.VehicleId);
+                var vName = v != null ? $"{v.Year} {v.Make} {v.Model}" : "";
+                calendarVm.CalendarEvents.Add(new CalendarEventItem
+                {
+                    Id = r.Id,
+                    VehicleId = r.VehicleId,
+                    VehicleName = vName,
+                    Date = r.Date,
+                    Description = r.Description,
+                    Type = "Reminder",
+                    Urgency = r.Urgency,
+                    Notes = r.Notes ?? string.Empty
+                });
+            }
+
+            foreach (var v in vehiclesStored)
+            {
+                try
+                {
+                    var records = _vehicleLogic.GetVehicleRecords(v.Id);
+                    var vName = $"{v.Year} {v.Make} {v.Model}";
+
+                    if (records.ServiceRecords != null)
+                    {
+                        foreach (var s in records.ServiceRecords)
+                        {
+                            calendarVm.CalendarEvents.Add(new CalendarEventItem
+                            {
+                                Id = s.Id,
+                                VehicleId = v.Id,
+                                VehicleName = vName,
+                                Date = s.Date,
+                                Description = s.Description,
+                                Type = "Service",
+                                Notes = s.Notes ?? string.Empty
+                            });
+                        }
+                    }
+                    if (records.CollisionRecords != null)
+                    {
+                        foreach (var c in records.CollisionRecords)
+                        {
+                            calendarVm.CalendarEvents.Add(new CalendarEventItem
+                            {
+                                Id = c.Id,
+                                VehicleId = v.Id,
+                                VehicleName = vName,
+                                Date = c.Date,
+                                Description = c.Description,
+                                Type = "Repair",
+                                Notes = c.Notes ?? string.Empty
+                            });
+                        }
+                    }
+                    if (records.UpgradeRecords != null)
+                    {
+                        foreach (var u in records.UpgradeRecords)
+                        {
+                            calendarVm.CalendarEvents.Add(new CalendarEventItem
+                            {
+                                Id = u.Id,
+                                VehicleId = v.Id,
+                                VehicleName = vName,
+                                Date = u.Date,
+                                Description = u.Description,
+                                Type = "Upgrade",
+                                Notes = u.Notes ?? string.Empty
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error getting records for calendar");
+                }
+            }
+
+            return PartialView("_Calendar", calendarVm);
+        }
+
+        [HttpPost]
+        public IActionResult AddCalendarReminder(int vehicleId, string date, string description, ReminderUrgency urgency, string notes)
+        {
+            if (vehicleId <= 0 || string.IsNullOrWhiteSpace(description))
+            {
+                return Json(OperationResponse.Failed("Datos requeridos incompletos"));
+            }
+            if (!_userLogic.UserCanEditVehicle(GetUserID(), vehicleId, HouseholdPermission.Edit))
+            {
+                return Json(OperationResponse.Failed("Acceso denegado"));
+            }
+            if (!DateTime.TryParse(date, out var parsedDate))
+            {
+                parsedDate = DateTime.Today;
+            }
+            var reminder = new ReminderRecord
+            {
+                VehicleId = vehicleId,
+                Date = parsedDate,
+                Description = description.Trim(),
+                Metric = ReminderMetric.Date,
+                Notes = notes ?? string.Empty
+            };
+            var result = _reminderRecordDataAccess.SaveReminderRecordToVehicle(reminder);
+            return Json(OperationResponse.Conditional(result, "Recordatorio añadido con éxito", "Error al guardar el recordatorio"));
         }
         public IActionResult ViewCalendarReminder(int reminderId)
         {

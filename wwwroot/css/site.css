@@ -573,12 +573,35 @@ input[type="file"] {
     }
 
 .reminderCalendarViewContent .datepicker table tr td.day {
-    cursor: default;
+    cursor: pointer !important;
+    border-radius: 8px !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    height: 48px;
+    vertical-align: middle;
+    text-align: center;
+    position: relative;
 }
 
-    .reminderCalendarViewContent .datepicker table tr td.day:hover {
-        cursor: default;
-    }
+.reminderCalendarViewContent .datepicker table tr td.day:hover {
+    background-color: rgba(251, 196, 30, 0.15) !important;
+    cursor: pointer !important;
+}
+
+.reminderCalendarViewContent .datepicker table tr td.day.today {
+    border: 1px solid #FBC41E !important;
+    background-color: rgba(251, 196, 30, 0.1) !important;
+}
+
+.reminderCalendarViewContent .datepicker table tr td.day.active,
+.reminderCalendarViewContent .datepicker table tr td.day.active:hover {
+    background-color: #FBC41E !important;
+    color: #111622 !important;
+    font-weight: bold !important;
+}
+
+.reminderCalendarViewContent .datepicker table tr td.day.active .day-dot {
+    border: 1px solid #111622;
+}
 
 .reminder-calendar-item {
     cursor: pointer;
@@ -2142,4 +2165,75 @@ a:hover {
 }
 .user-read-only .table tr {
     cursor: default !important;
+}
+
+/* ==========================================================================
+   Estilos Avanzados del Calendario de Tres Columnas
+   ========================================================================== */
+.calendar-panel-header {
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #30394A !important;
+}
+
+.calendar-day-details {
+    background: #191F2C;
+    border: 1px solid #30394A;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    height: 100%;
+}
+
+.calendar-day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: 2px 0;
+}
+
+.calendar-day-cell .day-num {
+    font-size: 0.9rem;
+    line-height: 1.1;
+}
+
+.calendar-day-cell .day-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 3px;
+    display: inline-block;
+}
+
+.calendar-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.reminderCalendarViewContent .datepicker-days th.dow {
+    color: #94A3B8 !important;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 8px 0;
+    text-align: center;
+}
+
+.reminderCalendarViewContent .datepicker-days th.datepicker-switch {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #F8FAFC !important;
+    text-transform: capitalize;
+}
+
+.reminderCalendarViewContent .datepicker-days th.prev,
+.reminderCalendarViewContent .datepicker-days th.next {
+    font-size: 1.2rem;
+    color: #FBC41E !important;
+    cursor: pointer !important;
 }
