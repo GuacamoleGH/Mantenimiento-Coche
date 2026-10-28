@@ -1,4 +1,4 @@
-﻿function showAddVehicleModal() {
+function showAddVehicleModal() {
     uploadedFile = "";
     $.get('/Vehicle/AddVehiclePartialView', function (data) {
         if (data) {
@@ -233,14 +233,14 @@ function initCalendar() {
                     enabled: true,
                     classes: 'calendar-has-event-day',
                     content: `<div class="calendar-day-cell">
-                                <span class="day-num">${date.getDate()}</span>
-                                <span class="day-dot ${dotClass}" title="${events.length} evento(s)"></span>
+                                <div class="day-num">${date.getDate()}</div>
+                                <div class="day-dot ${dotClass}" title="${events.length} evento(s)"></div>
                               </div>`
                 };
             }
             return {
                 enabled: true,
-                content: `<div class="calendar-day-cell"><span class="day-num">${date.getDate()}</span></div>`
+                content: `<div class="calendar-day-cell"><div class="day-num">${date.getDate()}</div></div>`
             };
         }
     }).on('changeDate', function (e) {
