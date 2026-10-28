@@ -1408,11 +1408,15 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     font-weight: 600;
     padding: 0.4rem 0.85rem;
     font-size: 0.84rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     transition: all 0.15s ease-in-out;
 }
 
 .btn-action-cockpit i {
     color: #94A3B8;
+    margin-right: 0.35rem !important;
     transition: color 0.15s ease;
 }
 

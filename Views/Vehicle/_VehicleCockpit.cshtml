@@ -96,8 +96,10 @@
     }
 }
 
-<div class="row g-3 mb-4 hideOnPrint">
-    <div class="col-12">
+<div class="row g-3 mb-4 hideOnPrint">
+
+    <div class="col-12">
+
         <div class="cockpit-box">
     @if (!canEdit)
     {
@@ -133,17 +135,17 @@
         {
             <!-- Botones de Acción Rápida (1-Click) -->
             <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
-                    <i class="bi bi-fuel-pump-fill text-success me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
+                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
+                    <i class="bi bi-fuel-pump-fill text-success me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Fuel")</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
-                    <i class="bi bi-tools text-warning me-1"></i>@translator.Translate(userLanguage, "Add_Service")
+                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
+                    <i class="bi bi-tools text-warning me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Service")</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
-                    <i class="bi bi-speedometer2 text-info me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
+                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
+                    <i class="bi bi-speedometer2 text-info me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Odometer")</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
-                    <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
+                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Repair")</span>
                 </button>
             </div>
         }
@@ -160,14 +162,66 @@
         <!-- Tarjeta de ITV -->
         <div class="col-12 col-md-6 col-xl-3">
             <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
                     <span class="fw-semibold small text-light text-nowrap d-flex align-items-center">
                         @if (!string.IsNullOrEmpty(itvDotClass)) { <span class="status-indicator-dot @itvDotClass"></span> }
-                        <i class="bi bi-clipboard2-check-fill text-warning me-1"></i>@translator.Translate(userLanguage, "ITV_Inspection")
+                        <i class="bi bi-clipboard2-check-fill text-warning me-2"></i>@translator.Translate(userLanguage, "ITV_Inspection")
                     </span>
                     <span class="@itvBadgeClass small rounded-pill px-2 py-1 text-nowrap flex-shrink-0">@itvStatusText</span>
                 </div>
-                <div class="small text-secondary d-flex justify-content-between align-items-center mt-auto">
+
+                <!-- Cuerpo Central Informativo -->
+                <div class="my-auto py-2">
+                    @if (itvDaysLeft.HasValue)
+                    {
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-secondary small mb-1">Plazo de inspección</div>
+                                @if (itvDaysLeft < 0)
+                                {
+                                    <div class="d-flex align-items-baseline gap-1 text-danger">
+                                        <span class="fs-4 fw-bold font-monospace">@Math.Abs(itvDaysLeft.Value)</span>
+                                        <span class="small fw-semibold">días caducada</span>
+                                    </div>
+                                }
+                                else if (itvDaysLeft <= 30)
+                                {
+                                    <div class="d-flex align-items-baseline gap-1 text-warning">
+                                        <span class="fs-4 fw-bold font-monospace">@itvDaysLeft.Value</span>
+                                        <span class="small fw-semibold">días restantes</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-baseline gap-1 text-success">
+                                        <span class="fs-4 fw-bold font-monospace">@itvDaysLeft.Value</span>
+                                        <span class="small fw-semibold">días restantes</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="opacity-50 pe-1">
+                                <i class="bi bi-shield-check fs-2 @(itvDaysLeft < 0 ? "text-danger" : (itvDaysLeft <= 30 ? "text-warning" : "text-success"))"></i>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-secondary small mb-1">Inspección periódica</div>
+                                <div class="small text-muted">Sin fecha registrada</div>
+                            </div>
+                            @if (canEdit)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 small" onclick="editVehicle(@Model.Id)" title="Configurar fecha de ITV">
+                                    <i class="bi bi-plus-lg me-1"></i>Añadir
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="small text-secondary d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
                     <span class="text-nowrap me-1">Próxima fecha:</span>
                     <strong class="font-monospace text-light text-nowrap">@(string.IsNullOrWhiteSpace(Model.ItvExpiry) ? "---" : Model.ItvExpiry)</strong>
                 </div>
@@ -177,15 +231,74 @@
         <!-- Tarjeta de Seguro -->
         <div class="col-12 col-md-6 col-xl-3">
             <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
                     <span class="fw-semibold small text-light text-nowrap d-flex align-items-center">
                         @if (!string.IsNullOrEmpty(insDotClass)) { <span class="status-indicator-dot @insDotClass"></span> }
-                        <i class="bi bi-shield-fill-check text-info me-1"></i>@translator.Translate(userLanguage, "Insurance")
+                        <i class="bi bi-shield-fill-check text-info me-2"></i>@translator.Translate(userLanguage, "Insurance")
                     </span>
                     <span class="@insBadgeClass small rounded-pill px-2 py-1 text-nowrap flex-shrink-0">@insStatusText</span>
                 </div>
-                <div class="small text-secondary d-flex justify-content-between align-items-center mt-auto">
-                    <span class="text-truncate me-1">@(string.IsNullOrWhiteSpace(Model.InsuranceCompany) ? "Póliza:" : Model.InsuranceCompany)</span>
+
+                <!-- Cuerpo Central Informativo -->
+                <div class="my-auto py-2">
+                    @if (insDaysLeft.HasValue || !string.IsNullOrWhiteSpace(Model.InsuranceCompany))
+                    {
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-secondary small mb-1 text-truncate" style="max-width: 145px;" title="@Model.InsuranceCompany">@(string.IsNullOrWhiteSpace(Model.InsuranceCompany) ? "Póliza vigente" : Model.InsuranceCompany)</div>
+                                @if (insDaysLeft.HasValue)
+                                {
+                                    if (insDaysLeft < 0)
+                                    {
+                                        <div class="d-flex align-items-baseline gap-1 text-danger">
+                                            <span class="fs-4 fw-bold font-monospace">@Math.Abs(insDaysLeft.Value)</span>
+                                            <span class="small fw-semibold">días vencido</span>
+                                        </div>
+                                    }
+                                    else if (insDaysLeft <= 30)
+                                    {
+                                        <div class="d-flex align-items-baseline gap-1 text-warning">
+                                            <span class="fs-4 fw-bold font-monospace">@insDaysLeft.Value</span>
+                                            <span class="small fw-semibold">días de cobertura</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-baseline gap-1 text-info">
+                                            <span class="fs-4 fw-bold font-monospace">@insDaysLeft.Value</span>
+                                            <span class="small fw-semibold">días de cobertura</span>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="small text-light">Póliza configurada</div>
+                                }
+                            </div>
+                            <div class="opacity-50 pe-1">
+                                <i class="bi bi-file-earmark-medical fs-2 @(insDaysLeft < 0 ? "text-danger" : (insDaysLeft <= 30 ? "text-warning" : "text-info"))"></i>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-secondary small mb-1">Póliza y seguro</div>
+                                <div class="small text-muted">Sin seguro registrado</div>
+                            </div>
+                            @if (canEdit)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-info py-0 px-2 small" onclick="editVehicle(@Model.Id)" title="Configurar seguro">
+                                    <i class="bi bi-plus-lg me-1"></i>Añadir
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="small text-secondary d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 mt-auto">
+                    <span class="text-nowrap me-1">Vencimiento:</span>
                     <strong class="font-monospace text-light text-nowrap">@(string.IsNullOrWhiteSpace(Model.InsuranceExpiry) ? "---" : Model.InsuranceExpiry)</strong>
                 </div>
             </div>
