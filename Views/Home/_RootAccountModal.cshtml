@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @model UserData
@@ -7,26 +7,28 @@
     var userLanguage = userConfig.UserLanguage;
 }
 <div class="modal-header">
-    <h5 class="modal-title" id="updateRootAccountModalLabel">@translator.Translate(userLanguage, "Update Profile")</h5>
-    <button type="button" class="btn-close" onclick="hideAccountInformationModal()" aria-label="Close"></button>
+    <h5 class="modal-title d-flex align-items-center gap-2" id="updateRootAccountModalLabel">
+        <i class="bi bi-person-gear text-warning"></i>
+        <span>@translator.Translate(userLanguage, "Update Profile")</span>
+    </h5>
+    <button type="button" class="btn-close btn-close-white" onclick="hideAccountInformationModal()" aria-label="Close"></button>
 </div>
 <div class="modal-body" onkeydown="handleEnter(this)">
     <form class="form-inline">
         <div class="form-group">
-            <label for="inputUsername">@translator.Translate(userLanguage, "Username")</label>
-            <input type="text" id="inputUsername" class="form-control" placeholder="@translator.Translate(userLanguage, "Account Username")" value="@Model.UserName">
-            <label for="inputPassword">@translator.Translate(userLanguage, "Password")</label>
+            <label for="inputUsername" class="mb-1 fw-semibold small text-light">@translator.Translate(userLanguage, "Username")</label>
+            <input type="text" id="inputUsername" class="form-control mb-3" placeholder="@translator.Translate(userLanguage, "Account Username")" value="@Model.UserName">
+            <label for="inputPassword" class="mb-1 fw-semibold small text-light">@translator.Translate(userLanguage, "Password")</label>
             <div class="input-group">
                 <input type="password" id="inputPassword" class="form-control" placeholder="@translator.Translate(userLanguage, "Password")" value="">
                 <div class="input-group-text">
-                    <button type="button" class="btn btn-sm text-secondary password-visible-button" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
+                    <button type="button" class="btn btn-sm text-secondary password-visible-button p-0" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
                 </div>
             </div>
         </div>
     </form>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn btn-warning me-auto" onclick="showUserApiKeyModalFromUserModal()">@translator.Translate(userLanguage, "Manage API Keys")</button>
     <button type="button" class="btn btn-secondary" onclick="hideAccountInformationModal()">@translator.Translate(userLanguage, "Cancel")</button>
     <button type="button" onclick="validateAndSaveRootUserAccount()" class="btn btn-primary">@translator.Translate(userLanguage, "Update")</button>
 </div>
