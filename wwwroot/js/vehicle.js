@@ -674,18 +674,20 @@ function getAndValidateSelectedRecurringReminder() {
 }
 function getLastOdometerReadingAndIncrement(odometerFieldName) {
     $.get(`/Vehicle/GetMaxMileage?vehicleId=${GetVehicleId().vehicleId}`, function (currentOdometer) {
-        let additionalHtml = isNaN(currentOdometer) || currentOdometer == 0 ? '' : `<span>Current Odometer: ${currentOdometer}</span><br/>`;
+        let additionalHtml = isNaN(currentOdometer) || currentOdometer == 0 ? '' : `<p class="mb-2 text-secondary">Último cuentakilómetros: <strong class="text-warning">${currentOdometer}</strong></p>`;
         Swal.fire({
-            title: 'Increment Last Reported Odometer Reading',
+            title: 'Sumar al último kilometraje',
             html: `${additionalHtml}
-                            <input type="text" inputmode="decimal" id="inputOdometerIncrement" class="swal2-input" placeholder="Increment" onkeydown="handleSwalEnter(event)">
+                            <input type="text" inputmode="decimal" id="inputOdometerIncrement" class="swal2-input text-center" placeholder="Kilómetros recorridos (o 0)" onkeydown="handleSwalEnter(event)">
               `,
-            confirmButtonText: 'Add',
+            confirmButtonText: 'Aplicar',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
             focusConfirm: false,
             preConfirm: () => {
                 const odometerIncrement = parseInt(globalParseFloat($("#inputOdometerIncrement").val()));
                 if (isNaN(odometerIncrement) || odometerIncrement < 0) {
-                    Swal.showValidationMessage(`Please enter a positive amount to increment or 0 to use current odometer`);
+                    Swal.showValidationMessage(`Introduce los km recorridos a sumar o 0 para usar el último registrado`);
                 }
                 return { odometerIncrement }
             },

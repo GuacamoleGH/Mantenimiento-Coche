@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @model GasRecordInputContainer
@@ -63,7 +63,7 @@
                             @if (isNew)
                             {
                                 <div class="input-group-text">
-                                    <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('gasRecordMileage')"><i class="bi bi-plus"></i></button>
+                                    <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('gasRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus"></i></button>
                                 </div>
                             }
                         </div>
