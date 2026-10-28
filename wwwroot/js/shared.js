@@ -452,6 +452,78 @@ function initExtraFieldDatePicker(fieldName) {
         });
     }
 }
+function handleDateInputAutoSlash(e) {
+    var input = e.target;
+    var inputType = e.inputType || (e.originalEvent && e.originalEvent.inputType);
+    var prevVal = $(input).data('prev-date-val') || '';
+    var currentVal = input.value || '';
+
+    // No intervenir si se está borrando (Backspace o Delete)
+    if (inputType === 'deleteContentBackward' || inputType === 'deleteContentForward' || currentVal.length < prevVal.length) {
+        $(input).data('prev-date-val', currentVal);
+        return;
+    }
+
+    // Extraer únicamente los dígitos numéricos
+    var digits = currentVal.replace(/\D/g, '');
+    if (digits.length === 0) {
+        $(input).data('prev-date-val', '');
+        return;
+    }
+
+    // Limitar a 8 dígitos (DDMMAAAA)
+    if (digits.length > 8) {
+        digits = digits.substring(0, 8);
+    }
+
+    var formatted = '';
+    if (digits.length === 1) {
+        formatted = digits;
+    } else if (digits.length === 2) {
+        formatted = digits + '/';
+    } else if (digits.length === 3) {
+        formatted = digits.substring(0, 2) + '/' + digits.substring(2);
+    } else if (digits.length === 4) {
+        formatted = digits.substring(0, 2) + '/' + digits.substring(2) + '/';
+    } else {
+        formatted = digits.substring(0, 2) + '/' + digits.substring(2, 4) + '/' + digits.substring(4);
+    }
+
+    if (input.value !== formatted && formatted.length > 0) {
+        var isAtEnd = (input.selectionStart >= currentVal.length);
+        input.value = formatted;
+        if (isAtEnd && typeof input.setSelectionRange === 'function') {
+            input.setSelectionRange(formatted.length, formatted.length);
+        }
+    }
+    $(input).data('prev-date-val', input.value);
+
+    // Si completó los 10 caracteres (DD/MM/AAAA), sincronizar el datepicker
+    if (formatted.length === 10 && typeof $(input).datepicker === 'function') {
+        try {
+            $(input).datepicker('update');
+        } catch (err) {}
+    }
+}
+
+function attachDateInputMask(input) {
+    if (!input || !input.length) return;
+    input.addClass('has-date-mask');
+    input.attr('maxlength', '10');
+    input.attr('autocomplete', 'off');
+    input.off('input.dateAutoSlash').on('input.dateAutoSlash', handleDateInputAutoSlash);
+}
+
+// Delegación global para cualquier campo de fecha en la aplicación
+$(document).on('input.dateAutoSlash', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', function (e) {
+    if (!$(this).hasClass('has-date-mask')) {
+        $(this).addClass('has-date-mask');
+        $(this).attr('maxlength', '10');
+        $(this).attr('autocomplete', 'off');
+    }
+    handleDateInputAutoSlash(e);
+});
+
 function initDatePicker(input, mode) {
     var datepickerOptions = {
         format: getShortDatePattern().pattern,
@@ -475,6 +547,7 @@ function initDatePicker(input, mode) {
     }
 
     input.datepicker(datepickerOptions);
+    attachDateInputMask(input);
 }
 function initTagSelector(input, noDataList) {
     if (noDataList) {
