@@ -2119,8 +2119,10 @@ a:hover {
 }
 .lubelogger-tab .nav-item.dropdown > .dropdown-menu {
     position: absolute !important;
-    top: calc(100% + 4px) !important;
+    top: 100% !important;
     left: 0 !important;
+    margin-top: 4px !important;
+    transform: none !important;
     z-index: 1060 !important;
 }
 
@@ -2586,4 +2588,39 @@ a:hover {
 
 [data-bs-theme="light"] .btn-close-white {
     filter: invert(1) grayscale(100%) brightness(20%) !important;
+}
+
+/* Línea divisoria destacada en amarillo para menús de usuario */
+.user-dropdown-divider,
+.dropdown-divider.user-dropdown-divider {
+    border: none !important;
+    border-top: 1.5px solid #FBC41E !important;
+    opacity: 0.9 !important;
+    margin: 0.35rem 0 !important;
+}
+
+[data-bs-theme="light"] .user-dropdown-divider,
+[data-bs-theme="light"] .dropdown-divider.user-dropdown-divider {
+    border-top: 1.5px solid #D97706 !important;
+    opacity: 0.9 !important;
+}
+
+/* Icono y acción de cerrar sesión en rojo */
+.lubelogger-tab .dropdown-item.text-danger,
+.dropdown-item.text-danger,
+.dropdown-item.text-danger i,
+.dropdown-item i.bi-box-arrow-right,
+button[onclick="performLogOut()"] i {
+    color: #EF4444 !important;
+}
+
+.lubelogger-tab .dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:hover {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #EF4444 !important;
+}
+
+.lubelogger-tab .dropdown-item.text-danger:hover i,
+.dropdown-item.text-danger:hover i {
+    color: #EF4444 !important;
 }

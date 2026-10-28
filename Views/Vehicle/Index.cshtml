@@ -55,7 +55,7 @@
 
                     <!-- 2. Mantenimiento y Uso -->
                     <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" id="group-maintenance-tab">
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" id="group-maintenance-tab">
                             <i class="bi bi-tools text-warning"></i>
                             <span class="ms-1">Mantenimiento</span>
                         </button>
@@ -85,7 +85,7 @@
 
                     <!-- 3. Planificación -->
                     <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" id="group-planning-tab">
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" id="group-planning-tab">
                             <i class="bi bi-calendar-check text-primary"></i>
                             <span class="ms-1">Planificación</span>
                         </button>
@@ -110,7 +110,7 @@
 
                     <!-- 4. Ficha y Equipamiento -->
                     <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" id="group-details-tab">
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" id="group-details-tab">
                             <i class="bi bi-card-text text-warning"></i>
                             <span class="ms-1">Ficha y Notas</span>
                         </button>
@@ -135,7 +135,7 @@
 
                     <!-- 5. Gastos y Stock -->
                     <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" id="group-expenses-tab">
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" id="group-expenses-tab">
                             <i class="bi bi-wallet2 text-success"></i>
                             <span class="ms-1">Gastos y Stock</span>
                         </button>
@@ -196,13 +196,13 @@
                                     }
                                     <li>
                                         <button class="dropdown-item py-1 px-3 small" onclick="returnToGarage()">
-                                            <i class="bi bi-car-front me-2 text-primary"></i>@translator.Translate(userLanguage, "Garage")
+                                            <i class="bi bi-car-front me-2 text-warning"></i>@translator.Translate(userLanguage, "Garage")
                                         </button>
                                     </li>
-                                    <li><hr class="dropdown-divider opacity-25 my-1"></li>
+                                    <li><hr class="dropdown-divider user-dropdown-divider my-1"></li>
                                     <li>
                                         <button class="dropdown-item py-1 px-3 small text-danger" onclick="performLogOut()">
-                                            <i class="bi bi-box-arrow-right me-2"></i>@translator.Translate(userLanguage, "Logout")
+                                            <i class="bi bi-box-arrow-right me-2 text-danger" style="color: #EF4444 !important;"></i>@translator.Translate(userLanguage, "Logout")
                                         </button>
                                     </li>
                                 </ul>
