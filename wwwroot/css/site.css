@@ -1927,13 +1927,10 @@ a:hover {
 .lubelogger-navbar .lubelogger-tab {
     display: flex !important;
     flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    -webkit-overflow-scrolling: touch !important;
-    gap: 0.25rem;
-    padding-bottom: 2px;
+    overflow: visible !important;
+    gap: 0.35rem;
+    position: relative;
+    z-index: 1050;
 }
 .lubelogger-navbar .lubelogger-tab::-webkit-scrollbar {
     display: none !important;
@@ -2028,4 +2025,27 @@ a:hover {
 .lubelogger-tab .dropdown-item.active i,
 .lubelogger-tab .dropdown-item:active i {
     color: #111722 !important;
+}
+
+/* Soporte hover y clic para dropdowns de navegación */
+.lubelogger-tab .nav-item.dropdown {
+    position: relative !important;
+}
+.lubelogger-tab .nav-item.dropdown > .dropdown-menu {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    left: 0 !important;
+    z-index: 1060 !important;
+}
+@media (min-width: 768px) {
+    .lubelogger-tab .nav-item.dropdown:hover > .dropdown-menu {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+.lubelogger-tab .nav-item.dropdown > .dropdown-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }

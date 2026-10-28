@@ -2,6 +2,11 @@
     //bind functions on page load
     var vehicleId = GetVehicleId().vehicleId;
     //bind tabs
+    $('.lubelogger-tab .dropdown-item').on('click', function () {
+        let parentDropdown = $(this).closest('.dropdown');
+        parentDropdown.find('.dropdown-menu').removeClass('show');
+        parentDropdown.find('.dropdown-toggle').removeClass('show').attr('aria-expanded', 'false');
+    });
     $('button[data-bs-toggle="tab"]').on('show.bs.tab', function (e) {
         switch (e.target.id) {
             case "servicerecord-tab":
