@@ -910,3 +910,55 @@ function setLastOdometer(mileageInputId) {
         $(`#${mileageInputId}`).val(data);
     });
 }
+
+function quickAddRecord(recordType) {
+    switch (recordType) {
+        case "GasRecord":
+            $('#gas-tab').tab('show');
+            waitForElement('#gasRecordModalContent', showAddGasRecordModal);
+            break;
+        case "ServiceRecord":
+            $('#servicerecord-tab').tab('show');
+            waitForElement('#serviceRecordModalContent', showAddServiceRecordModal);
+            break;
+        case "RepairRecord":
+            $('#accident-tab').tab('show');
+            waitForElement('#collisionRecordModalContent', showAddCollisionRecordModal);
+            break;
+        case "OdometerRecord":
+            $('#odometer-tab').tab('show');
+            waitForElement('#odometerRecordModalContent', showAddOdometerRecordModal);
+            break;
+        case "ReminderRecord":
+            showAddReminderModal();
+            break;
+        case "PlanRecord":
+            $('#plan-tab').tab('show');
+            waitForElement('#planRecordModalContent', showAddPlanRecordModal);
+            break;
+        case "TaxRecord":
+            $('#tax-tab').tab('show');
+            waitForElement('#taxRecordModalContent', showAddTaxRecordModal);
+            break;
+        case "UpgradeRecord":
+            $('#upgrade-tab').tab('show');
+            waitForElement('#upgradeRecordModalContent', showAddUpgradeRecordModal);
+            break;
+        case "NoteRecord":
+            $('#notes-tab').tab('show');
+            waitForElement('#noteModalContent', showAddNoteModal);
+            break;
+        case "SupplyRecord":
+            $('#supply-tab').tab('show');
+            waitForElement('#supplyRecordModalContent', showAddSupplyRecordModal);
+            break;
+        case "InspectionRecord":
+            $('#inspection-tab').tab('show');
+            waitForElement('#inspection-tab-pane table, #inspection-tab-pane .row, #inspection-tab-pane button', showInspectionRecordTemplateSelectorModal);
+            break;
+        case "EquipmentRecord":
+            $('#equipment-tab').tab('show');
+            waitForElement('#equipmentRecordModalContent', showAddEquipmentRecordModal);
+            break;
+    }
+}

@@ -109,7 +109,7 @@
         </div>
     }
 
-    <!-- Fila Superior: Datos Principales y Acciones Rápidas -->
+    <!-- Fila 1: Datos Principales y Botón General de Añadir -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <div class="d-flex align-items-center flex-wrap gap-2">
             <h1 class="h4 mb-0 fw-bold text-light">@($"{Model.Year} {Model.Make} {Model.Model}")</h1>
@@ -133,20 +133,33 @@
 
         @if (canEdit)
         {
-            <!-- Botones de Acción Rápida (1-Click) -->
-            <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
-                    <i class="bi bi-fuel-pump-fill text-success me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Fuel")</span>
+            <!-- Botón General de Añadir Registro (+ Dropdown Completo) -->
+            <div class="dropdown">
+                <button type="button" class="btn btn-warning fw-bold d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm rounded-3 dropdown-toggle btn-quick-add-main" data-bs-toggle="dropdown" aria-expanded="false" id="quickAddRecordDropdownBtn">
+                    <i class="bi bi-plus-circle-fill fs-6"></i>
+                    <span>Añadir</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
-                    <i class="bi bi-tools text-warning me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Service")</span>
-                </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
-                    <i class="bi bi-speedometer2 text-info me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Odometer")</span>
-                </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
-                    <i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Repair")</span>
-                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-2 border-secondary border-opacity-25" style="min-width: 270px; z-index: 1060;" aria-labelledby="quickAddRecordDropdownBtn">
+                    <li class="dropdown-header text-uppercase text-secondary small fw-bold px-3 py-1"><i class="bi bi-tools me-2 text-warning"></i>Mantenimiento y Uso</li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('GasRecord')"><i class="bi bi-fuel-pump text-success fs-6"></i><span>Repostaje</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('ServiceRecord')"><i class="bi bi-tools text-warning fs-6"></i><span>Mantenimiento / Servicio</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('RepairRecord')"><i class="bi bi-exclamation-triangle text-danger fs-6"></i><span>Avería / Reparación</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('OdometerRecord')"><i class="bi bi-speedometer2 text-info fs-6"></i><span>Lectura de kilometraje</span></button></li>
+
+                    <li><hr class="dropdown-divider user-dropdown-divider my-1"></li>
+                    <li class="dropdown-header text-uppercase text-secondary small fw-bold px-3 py-1"><i class="bi bi-calendar-check me-2 text-primary"></i>Planificación</li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('ReminderRecord')"><i class="bi bi-bell text-warning fs-6"></i><span>Recordatorio</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('PlanRecord')"><i class="bi bi-clipboard-check text-primary fs-6"></i><span>Plan / Checklist de tareas</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('InspectionRecord')"><i class="bi bi-check2-square text-success fs-6"></i><span>Inspección técnica</span></button></li>
+
+                    <li><hr class="dropdown-divider user-dropdown-divider my-1"></li>
+                    <li class="dropdown-header text-uppercase text-secondary small fw-bold px-3 py-1"><i class="bi bi-wallet2 me-2 text-success"></i>Gastos y Gestión</li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('TaxRecord')"><i class="bi bi-currency-dollar text-success fs-6"></i><span>Gasto / Impuesto / Tasa</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('UpgradeRecord')"><i class="bi bi-stars text-info fs-6"></i><span>Mejora / Modificación</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('NoteRecord')"><i class="bi bi-journal-text text-light fs-6"></i><span>Nota / Apunte</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('SupplyRecord')"><i class="bi bi-shop text-warning fs-6"></i><span>Suministro / Repuesto</span></button></li>
+                    <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('EquipmentRecord')"><i class="bi bi-disc text-primary fs-6"></i><span>Equipamiento / Accesorio</span></button></li>
+                </ul>
             </div>
         }
         else
@@ -156,6 +169,25 @@
             </div>
         }
     </div>
+
+    @if (canEdit)
+    {
+        <!-- Fila 2: Acciones Rápidas Habituales (1-Click) -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="quickAddRecord('GasRecord')" title="@translator.Translate(userLanguage, "Add_Fuel")">
+                <i class="bi bi-fuel-pump-fill text-success me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Fuel")</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="quickAddRecord('ServiceRecord')" title="@translator.Translate(userLanguage, "Add_Service")">
+                <i class="bi bi-tools text-warning me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Service")</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="quickAddRecord('OdometerRecord')" title="@translator.Translate(userLanguage, "Add_Odometer")">
+                <i class="bi bi-speedometer2 text-info me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Odometer")</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-action-cockpit d-inline-flex align-items-center" onclick="quickAddRecord('RepairRecord')" title="@translator.Translate(userLanguage, "Add_Repair")">
+                <i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-6"></i><span>@translator.Translate(userLanguage, "Add_Repair")</span>
+            </button>
+        </div>
+    }
 
     <!-- Fila Inferior: Tarjetas de ITV, Seguro y Ficha Técnica -->
     <div class="row g-3">

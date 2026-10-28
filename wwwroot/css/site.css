@@ -2628,3 +2628,31 @@ button[onclick="performLogOut()"] i {
 .dropdown-item.text-danger:hover i {
     color: #EF4444 !important;
 }
+
+/* Botón principal de Añadir en Cockpit */
+.btn-quick-add-main {
+    background-color: #FBC41E !important;
+    border-color: #FBC41E !important;
+    color: #0F172A !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease-in-out;
+}
+.btn-quick-add-main:hover,
+.btn-quick-add-main:focus {
+    background-color: #F59E0B !important;
+    border-color: #F59E0B !important;
+    color: #0F172A !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(251, 196, 30, 0.35) !important;
+}
+
+[data-bs-theme="light"] .btn-quick-add-main {
+    background-color: #F59E0B !important;
+    border-color: #F59E0B !important;
+    color: #FFFFFF !important;
+}
+[data-bs-theme="light"] .btn-quick-add-main:hover {
+    background-color: #D97706 !important;
+    border-color: #D97706 !important;
+    color: #FFFFFF !important;
+}
