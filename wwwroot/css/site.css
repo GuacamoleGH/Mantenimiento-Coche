@@ -47,8 +47,8 @@ body {
 }
 
 .reportTabContainer {
-    overflow-y: auto;
-    overflow-x: auto;
+    overflow: visible !important;
+    height: auto !important;
 }
 
 .vehicleDetailTabContainer.fixed {
@@ -865,6 +865,13 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 .vehicleTabPane {
     height: calc(100dvh - 48px - 2.5rem);
+}
+
+#report-tab-pane .vehicleTabPane,
+.vehicleReportPane {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
 }
 
 .lubelogger-record-nav .nav-no-copy {
