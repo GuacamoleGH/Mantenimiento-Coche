@@ -132,6 +132,20 @@
         </div>
 
         <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="inputToken" class="form-label small fw-semibold text-secondary mb-0">Código / Token de verificación</label>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-warning extra-small fw-semibold" onclick="requestRegistrationToken()">
+                    <i class="bi bi-send me-1"></i>Solicitar código
+                </button>
+            </div>
+            <div class="login-field-box">
+                <div class="login-field-icon"><i class="bi bi-shield-check"></i></div>
+                <input type="text" id="inputToken" class="login-field-input font-monospace text-uppercase" placeholder="Token o código recibido" autocomplete="off" value="@Model.Token">
+            </div>
+            <div class="extra-small text-secondary mt-1">Introduce el código recibido por correo o facilitado por el administrador.</div>
+        </div>
+
+        <div class="mb-3">
             <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Nombre de usuario</label>
             <div class="login-field-box">
                 <div class="login-field-icon"><i class="bi bi-person"></i></div>

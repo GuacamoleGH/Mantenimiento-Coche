@@ -75,14 +75,36 @@ function checkPasswordMatch() {
     }
 }
 
+function requestRegistrationToken() {
+    let userEmail = $("#inputEmail").val()?.trim() || '';
+    if (!userEmail) {
+        errorToast("Por favor, introduce primero tu correo electrónico.");
+        $("#inputEmail").focus();
+        return;
+    }
+    infoToast("Solicitando código de verificación...");
+    $.post('/Login/SendRegistrationToken', { emailAddress: userEmail }, function (data) {
+        if (data.success) {
+            successToast(data.message);
+        } else {
+            errorToast(data.message);
+        }
+    });
+}
+
 function performRegistration() {
     let userName = $("#inputUserName").val()?.trim() || '';
     let userEmail = $("#inputEmail").val()?.trim() || '';
+    let userToken = $("#inputToken").val()?.trim() || '';
     let userPassword = $("#inputUserPassword").val() || '';
     let userPasswordConfirm = $("#inputUserPasswordConfirm").val() || '';
 
     if (!userEmail) {
         errorToast("Por favor, introduce tu correo electrónico.");
+        return;
+    }
+    if (!userToken) {
+        errorToast("Por favor, introduce el código o token de verificación.");
         return;
     }
     if (!userName) {
@@ -102,7 +124,7 @@ function performRegistration() {
         return;
     }
 
-    $.post('/Login/Register', { userName: userName, password: userPassword, emailAddress: userEmail }, function (data) {
+    $.post('/Login/Register', { userName: userName, password: userPassword, emailAddress: userEmail, token: userToken }, function (data) {
         if (data.success) {
             successToast(data.message);
             setTimeout(function () { window.location.href = '/Login/Index' }, 800);

@@ -134,30 +134,76 @@ namespace CarCareTracker.Controllers
             try
             {
                 bool isNewAddition = vehicleInput.Id == default;
+                int currentUserId = GetUserID();
+                bool isAdmin = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin));
+
                 if (!isNewAddition)
                 {
-                    if (!_userLogic.UserCanEditVehicle(GetUserID(), vehicleInput.Id, HouseholdPermission.Edit))
+                    var existingVehicle = _dataAccess.GetVehicleById(vehicleInput.Id);
+                    if (existingVehicle == null)
                     {
-                        return Json(OperationResponse.Failed("Access Denied"));
+                        return Json(OperationResponse.Failed("Vehículo no encontrado"));
                     }
-                }
-                //move image from temp folder to images folder.
-                vehicleInput.ImageLocation = _fileHelper.MoveFileFromTemp(vehicleInput.ImageLocation, "images/");
-                vehicleInput.MapLocation = _fileHelper.MoveFileFromTemp(vehicleInput.MapLocation, "documents/");
-                //save vehicle.
-                var result = _dataAccess.SaveVehicle(vehicleInput);
-                if (User.IsInRole(nameof(UserData.IsRootUser)) && ownerUserId.HasValue)
-                {
-                    _userLogic.SetVehicleOwner(vehicleInput.Id, ownerUserId.Value);
-                }
-                if (isNewAddition)
-                {
-                    _userLogic.AddUserAccessToVehicle(GetUserID(), vehicleInput.Id);
-                    _eventLogic.PublishEvent(GetUserID(), WebHookPayload.Generic($"Created Vehicle {vehicleInput.Year} {vehicleInput.Make} {vehicleInput.Model}({StaticHelper.GetVehicleIdentifier(vehicleInput)})", "vehicle.add", User.Identity?.Name ?? string.Empty, vehicleInput.Id.ToString()));
+                    if (!_userLogic.UserCanEditVehicle(currentUserId, vehicleInput.Id, HouseholdPermission.Edit))
+                    {
+                        return Json(OperationResponse.Failed("Acceso Denegado"));
+                    }
+
+                    // Solo el dueño real o admin puede cambiar la visibilidad pública
+                    bool isOwner = existingVehicle.OwnerUserId == currentUserId || currentUserId == -1;
+                    if (!isOwner && !isAdmin)
+                    {
+                        vehicleInput.IsPublic = existingVehicle.IsPublic;
+                        vehicleInput.OwnerUserId = existingVehicle.OwnerUserId;
+                    }
+                    else if (isAdmin && ownerUserId.HasValue)
+                    {
+                        vehicleInput.OwnerUserId = ownerUserId.Value;
+                    }
+                    else
+                    {
+                        vehicleInput.OwnerUserId = existingVehicle.OwnerUserId;
+                    }
                 }
                 else
                 {
-                    _eventLogic.PublishEvent(GetUserID(), WebHookPayload.Generic($"Updated Vehicle {vehicleInput.Year} {vehicleInput.Make} {vehicleInput.Model}({StaticHelper.GetVehicleIdentifier(vehicleInput)})", "vehicle.update", User.Identity?.Name ?? string.Empty, vehicleInput.Id.ToString()));
+                    // Asignación de propietario en alta nueva
+                    if (isAdmin && ownerUserId.HasValue && ownerUserId.Value > 0)
+                    {
+                        vehicleInput.OwnerUserId = ownerUserId.Value;
+                    }
+                    else
+                    {
+                        vehicleInput.OwnerUserId = currentUserId;
+                    }
+                }
+
+                // Mover imágenes y mapas
+                vehicleInput.ImageLocation = _fileHelper.MoveFileFromTemp(vehicleInput.ImageLocation, "images/");
+                vehicleInput.MapLocation = _fileHelper.MoveFileFromTemp(vehicleInput.MapLocation, "documents/");
+
+                // Guardar vehículo
+                var result = _dataAccess.SaveVehicle(vehicleInput);
+
+                if (isNewAddition)
+                {
+                    if (vehicleInput.OwnerUserId > 0)
+                    {
+                        _userLogic.AddUserAccessToVehicle(vehicleInput.OwnerUserId, vehicleInput.Id);
+                    }
+                    if (currentUserId > 0 && currentUserId != vehicleInput.OwnerUserId)
+                    {
+                        _userLogic.AddUserAccessToVehicle(currentUserId, vehicleInput.Id);
+                    }
+                    _eventLogic.PublishEvent(currentUserId, WebHookPayload.Generic($"Created Vehicle {vehicleInput.Year} {vehicleInput.Make} {vehicleInput.Model}({StaticHelper.GetVehicleIdentifier(vehicleInput)})", "vehicle.add", User.Identity?.Name ?? string.Empty, vehicleInput.Id.ToString()));
+                }
+                else
+                {
+                    if (isAdmin && ownerUserId.HasValue)
+                    {
+                        _userLogic.SetVehicleOwner(vehicleInput.Id, ownerUserId.Value);
+                    }
+                    _eventLogic.PublishEvent(currentUserId, WebHookPayload.Generic($"Updated Vehicle {vehicleInput.Year} {vehicleInput.Make} {vehicleInput.Model}({StaticHelper.GetVehicleIdentifier(vehicleInput)})", "vehicle.update", User.Identity?.Name ?? string.Empty, vehicleInput.Id.ToString()));
                 }
                 return Json(OperationResponse.Conditional(result, string.Empty, StaticHelper.GenericErrorMessage));
             }

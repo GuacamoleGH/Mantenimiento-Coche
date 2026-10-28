@@ -1,4 +1,4 @@
-﻿using CarCareTracker.External.Interfaces;
+using CarCareTracker.External.Interfaces;
 using CarCareTracker.Models;
 using Npgsql;
 
@@ -59,7 +59,7 @@ namespace CarCareTracker.External.Implementations
         {
             try
             {
-                string cmd = $"SELECT id, username, emailaddress, password, isadmin FROM app.{tableName} WHERE username = @username";
+                string cmd = $"SELECT id, username, emailaddress, password, isadmin FROM app.{tableName} WHERE LOWER(username) = LOWER(@username)";
                 var result = new UserData();
                 using (var ctext = pgDataSource.CreateCommand(cmd))
                 {
@@ -86,7 +86,7 @@ namespace CarCareTracker.External.Implementations
         {
             try
             {
-                string cmd = $"SELECT id, username, emailaddress, password, isadmin FROM app.{tableName} WHERE emailaddress = @emailaddress";
+                string cmd = $"SELECT id, username, emailaddress, password, isadmin FROM app.{tableName} WHERE LOWER(emailaddress) = LOWER(@emailaddress)";
                 var result = new UserData();
                 using (var ctext = pgDataSource.CreateCommand(cmd))
                 {

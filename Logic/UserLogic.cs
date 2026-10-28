@@ -134,9 +134,9 @@ namespace CarCareTracker.Logic
                 return results;
             }
             var user = _userData.GetUserRecordById(userId);
-            bool isJose = user != null && user.UserName.Equals("Jose Fernandez Ocon", StringComparison.OrdinalIgnoreCase);
+            bool isAdmin = user != null && (user.IsAdmin || user.IsRootUser);
 
-            return results.Where(v => v.IsPublic || isJose || UserCanDirectlyEditVehicle(userId, v.Id)).ToList();
+            return results.Where(v => v.IsPublic || isAdmin || v.OwnerUserId == userId || UserCanDirectlyEditVehicle(userId, v.Id)).ToList();
         }
         public bool UserCanEditVehicle(int userId, int vehicleId, HouseholdPermission permission)
         {
@@ -145,7 +145,7 @@ namespace CarCareTracker.Logic
                 return true;
             }
             var user = _userData.GetUserRecordById(userId);
-            if (user != null && user.UserName.Equals("Jose Fernandez Ocon", StringComparison.OrdinalIgnoreCase))
+            if (user != null && (user.IsAdmin || user.IsRootUser))
             {
                 return true;
             }
@@ -182,13 +182,13 @@ namespace CarCareTracker.Logic
                 return true;
             }
             var user = _userData.GetUserRecordById(userId);
-            if (user != null && user.UserName.Equals("Jose Fernandez Ocon", StringComparison.OrdinalIgnoreCase))
+            if (user != null && (user.IsAdmin || user.IsRootUser))
             {
-                var existingAccess = _userAccess.GetUserAccessByVehicleAndUserId(userId, vehicleId);
-                if (existingAccess == null || existingAccess.Id.UserId != userId)
-                {
-                    AddUserAccessToVehicle(userId, vehicleId);
-                }
+                return true;
+            }
+            var vehicle = _vehicleData.GetVehicleById(vehicleId);
+            if (vehicle != null && vehicle.OwnerUserId == userId)
+            {
                 return true;
             }
             var userAccess = _userAccess.GetUserAccessByVehicleAndUserId(userId, vehicleId);

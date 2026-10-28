@@ -1577,6 +1577,9 @@ function selectEveryRowInBetween(rowId) {
     }
 }
 function handleTableRowClick(e, callBack, rowId) {
+    if ($("#vehicleViewContainer").hasClass("user-read-only")) {
+        return;
+    }
     var selectMode = $("#chkSelectMode").length > 0 ? $("#chkSelectMode").is(":checked") : false;
     if (!(event.ctrlKey || event.metaKey || event.shiftKey || selectMode)) {
         callBack(rowId);

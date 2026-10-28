@@ -55,6 +55,11 @@ namespace CarCareTracker.Models
         public string InsuranceCompany { get; set; } = string.Empty;
 
         /// <summary>
+        /// ID del usuario propietario del vehículo. -1 si no tiene propietario asignado.
+        /// </summary>
+        public int OwnerUserId { get; set; } = -1;
+
+        /// <summary>
         /// Visibilidad del vehículo: false = Privado (solo dueño/colaboradores), true = Público (otros usuarios pueden verlo en modo lectura).
         /// </summary>
         public bool IsPublic { get; set; } = false;

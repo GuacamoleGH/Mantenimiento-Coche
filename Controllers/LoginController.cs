@@ -648,8 +648,9 @@ namespace CarCareTracker.Controllers
                 {
                     Response.Cookies.Delete("OIDC_STATE");
                 }
-                if (string.IsNullOrEmpty(code) || (!string.IsNullOrEmpty(storedState) && storedState != state))
+                if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(storedState) || storedState != state)
                 {
+                    _logger.LogError("OAuth state validation failed: missing or invalid state");
                     return RedirectToAction("Index");
                 }
 
@@ -690,6 +691,12 @@ namespace CarCareTracker.Controllers
                 var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
                 using var userDoc = JsonDocument.Parse(userInfoJson);
                 var email = userDoc.RootElement.GetProperty("email").GetString();
+                var emailVerified = userDoc.RootElement.TryGetProperty("email_verified", out var evProp) && evProp.GetBoolean();
+                if (!emailVerified || string.IsNullOrWhiteSpace(email))
+                {
+                    _logger.LogError("Google OAuth returned unverified or empty email");
+                    return Content("<script>alert('Tu cuenta de Google debe tener un correo electrónico verificado.'); window.location.href='/Login';</script>", "text/html; charset=utf-8");
+                }
                 var name = userDoc.RootElement.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : email?.Split('@')[0];
 
                 return ProcessSocialLogin(email, name);
@@ -727,8 +734,9 @@ namespace CarCareTracker.Controllers
                 {
                     Response.Cookies.Delete("OIDC_STATE");
                 }
-                if (string.IsNullOrEmpty(code) || (!string.IsNullOrEmpty(storedState) && storedState != state))
+                if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(storedState) || storedState != state)
                 {
+                    _logger.LogError("OAuth state validation failed: missing or invalid state");
                     return RedirectToAction("Index");
                 }
 
@@ -769,12 +777,13 @@ namespace CarCareTracker.Controllers
                 var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
                 using var userDoc = JsonDocument.Parse(userInfoJson);
                 var email = userDoc.RootElement.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
-                var username = userDoc.RootElement.TryGetProperty("username", out var userProp) ? userProp.GetString() : null;
-
-                if (string.IsNullOrWhiteSpace(email))
+                var isVerified = userDoc.RootElement.TryGetProperty("verified", out var verProp) && verProp.GetBoolean();
+                if (!isVerified || string.IsNullOrWhiteSpace(email))
                 {
-                    email = $"{username}@discord.local";
+                    _logger.LogError("Discord OAuth returned unverified or missing email");
+                    return Content("<script>alert('Tu cuenta de Discord debe tener un correo electrónico verificado para iniciar sesión.'); window.location.href='/Login';</script>", "text/html; charset=utf-8");
                 }
+                var username = userDoc.RootElement.TryGetProperty("username", out var userProp) ? userProp.GetString() : null;
 
                 return ProcessSocialLogin(email, username ?? email.Split('@')[0]);
             }
@@ -795,6 +804,12 @@ namespace CarCareTracker.Controllers
             var userData = _loginLogic.ValidateOpenIDUser(new LoginModel() { EmailAddress = email });
             if (userData.Id == default)
             {
+                if (_config.GetServerDisabledRegistration())
+                {
+                    _logger.LogWarning($"Social registration blocked: registration is disabled on this server ({email})");
+                    return Content("<script>alert('El registro de nuevos usuarios está desactivado en este servidor.'); window.location.href='/Login';</script>", "text/html; charset=utf-8");
+                }
+
                 var uniqueUsername = string.IsNullOrWhiteSpace(displayName) ? email.Split('@')[0] : displayName;
                 var existingUser = _loginLogic.GetAllUsers().FirstOrDefault(x => x.UserName.Equals(uniqueUsername, StringComparison.OrdinalIgnoreCase));
                 if (existingUser != null)

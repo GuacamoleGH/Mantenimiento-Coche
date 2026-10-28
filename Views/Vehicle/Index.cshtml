@@ -1,9 +1,15 @@
 ﻿@using CarCareTracker.Helper
+@using System.Security.Claims
+@inject CarCareTracker.Logic.IUserLogic userLogic
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @{
     var userConfig = config.GetUserConfig(User);
     var userLanguage = userConfig.UserLanguage;
+    var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    int currentUserId = -1;
+    if (!string.IsNullOrEmpty(currentUserIdClaim)) int.TryParse(currentUserIdClaim, out currentUserId);
+    bool canEdit = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin)) || userLogic.UserCanDirectlyEditVehicle(currentUserId, Model.Id);
 }
 @model Vehicle
 @{
@@ -198,9 +204,12 @@
             <button class="nav-link flex-grow-1 text-start" onclick="returnToGarage()"><span class="display-3 ms-2"><i class="bi bi-arrow-left-square me-2"></i>@translator.Translate(userLanguage,"Garage")</span></button>
             <button class="nav-link" onclick="hideMobileNav()"><span class="display-3 me-2"><i class="bi bi-x-lg"></i></span></button>
         </li>
-        <li class="nav-item d-flex" role="presentation" style="order: -2">
-            <button class="nav-link flex-grow-1 text-start" onclick="editVehicle(@Model.Id)"><span class="display-3 ms-2"><i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Edit Vehicle")</span></button>
-        </li>
+        @if (canEdit)
+        {
+            <li class="nav-item d-flex" role="presentation" style="order: -2">
+                <button class="nav-link flex-grow-1 text-start" onclick="editVehicle(@Model.Id)"><span class="display-3 ms-2"><i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Edit Vehicle")</span></button>
+            </li>
+        }
         <li class="nav-item d-flex" role="presentation" style="order: -1">
             <button class="nav-link flex-grow-1 text-start" onclick="showGlobalSearch()"><span class="display-3 ms-2"><i class="bi bi-search me-2"></i>@translator.Translate(userLanguage, "Search")</span></button>
         </li>
@@ -245,7 +254,7 @@
         </li>
     </ul>
 </div>
-<div class="container">
+<div class="container @(canEdit ? "user-can-edit" : "user-read-only")" id="vehicleViewContainer">
     @await Html.PartialAsync("_VehicleCockpit", Model)
 
     <div class="tab-content" id="vehicleTabContent">

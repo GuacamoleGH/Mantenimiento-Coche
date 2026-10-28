@@ -468,12 +468,12 @@ html[data-bs-theme="dark"], :root {
     --color-bg: #111722;
     --color-surface: #191F2C;
     --color-surface-elevated: #252E3F;
-    --color-border: #30394A;
+    --color-border: #475569;
     --color-text: #F1F5F9;
     --color-text-secondary: #A0AABD;
     --color-success: #22C55E;
     --color-warning: #F59E0B;
-    --color-danger: #EF4444;
+    --color-danger: #F87171;
     --color-info: #38BDF8;
     --color-statistics: #A78BFA;
 
@@ -483,7 +483,7 @@ html[data-bs-theme="dark"], :root {
     --bs-body-bg-rgb: 17, 23, 34;
     --bs-secondary-bg: #191F2C;
     --bs-tertiary-bg: #252E3F;
-    --bs-border-color: #30394A;
+    --bs-border-color: #475569;
     --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
     --bs-card-bg: #191F2C;
     --bs-primary: #FBC41E;
@@ -1177,8 +1177,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     --bs-border-color: #26334d;
     --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
     --bs-card-bg: #191F2C;
-    --bs-primary: #3b82f6;
-    --bs-primary-rgb: 59, 130, 246;
+
 }
 
 [data-bs-theme="dark"] body {
@@ -2084,15 +2083,45 @@ a:hover {
     left: 0 !important;
     z-index: 1060 !important;
 }
-@media (min-width: 768px) {
-    .lubelogger-tab .nav-item.dropdown:hover > .dropdown-menu {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-}
+
 .lubelogger-tab .nav-item.dropdown > .dropdown-menu.show {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+
+/* ========================================================
+   ACCESIBILIDAD Y CONTROL DE MODO LECTURA
+   ======================================================== */
+
+/* Indicador de foco accesible para teclado (WCAG 2.4.7) */
+:focus-visible {
+    outline: 2px solid #FBC41E !important;
+    outline-offset: 2px !important;
+}
+
+/* Respeto a preferencia de movimiento reducido (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Texto peligro con contraste accesible sobre fondo oscuro (>= 4.5:1) */
+.text-danger {
+    color: #F87171 !important;
+}
+
+/* Vistas de vehículos en modo solo lectura (coche ajeno / público) */
+.user-read-only .lubelogger-record-add,
+.user-read-only .record-dropdown,
+.user-read-only .context-menu-active-multiple {
+    display: none !important;
+}
+.user-read-only .table tr {
+    cursor: default !important;
 }

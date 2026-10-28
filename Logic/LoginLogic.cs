@@ -186,14 +186,16 @@ namespace CarCareTracker.Logic
                 return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
             }
 
-            if (!string.IsNullOrWhiteSpace(credentials.Token))
+            if (string.IsNullOrWhiteSpace(credentials.Token))
             {
-                var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
-                if (existingToken.Id != default)
-                {
-                    _tokenData.DeleteToken(existingToken.Id);
-                }
+                return OperationResponse.Failed("Se requiere un código o token de verificación para verificar tu correo electrónico.");
             }
+            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token.Trim());
+            if (existingToken.Id == default || !existingToken.EmailAddress.Equals(credentials.EmailAddress.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return OperationResponse.Failed("El código o token de verificación no es válido para este correo electrónico.");
+            }
+            _tokenData.DeleteToken(existingToken.Id);
 
             var newUser = new UserData()
             {
@@ -213,13 +215,32 @@ namespace CarCareTracker.Logic
         }
         public async Task<OperationResponse> SendRegistrationToken(LoginModel credentials)
         {
-            if (_configHelper.GetServerOpenRegistration())
+            if (_configHelper.GetServerDisabledRegistration())
             {
-                var response = await GenerateUserToken(credentials.EmailAddress, true);
-                return response;
-            } else
+                return OperationResponse.Failed("El registro está desactivado en este servidor.");
+            }
+            if (string.IsNullOrWhiteSpace(credentials.EmailAddress))
             {
-                return OperationResponse.Failed("Open Registration Disabled");
+                return OperationResponse.Failed("Por favor, introduce una dirección de correo válida.");
+            }
+            var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress.Trim());
+            if (existingUserWithEmail.Id != default)
+            {
+                return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
+            }
+            var tokenSent = await GenerateTokenForEmailAddress(credentials.EmailAddress.Trim(), false);
+            if (tokenSent)
+            {
+                return OperationResponse.Succeed("Se ha enviado un código de verificación a tu correo.");
+            }
+            else
+            {
+                var mailConfig = _configHelper.GetMailConfig();
+                if (string.IsNullOrWhiteSpace(mailConfig.EmailServer))
+                {
+                    return OperationResponse.Failed("El servidor SMTP no está configurado. Solicita un token de invitación al administrador.");
+                }
+                return OperationResponse.Failed("No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde.");
             }
         }
         /// <summary>

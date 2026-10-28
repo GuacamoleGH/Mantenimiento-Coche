@@ -1,7 +1,7 @@
 // Web Audio API Sound System for LubeLogger / Mantenimiento-Coche
 // Provides subtle, crisp UI haptic-like clicks and feedback sounds without external audio files.
 
-var soundEnabled = localStorage.getItem('ui_sound_enabled') !== 'false';
+var soundEnabled = localStorage.getItem('ui_sound_enabled') === 'true';
 var audioCtx = null;
 
 function getAudioContext() {

@@ -1,5 +1,6 @@
 @inject CarCareTracker.Logic.IUserLogic userLogic
 @using CarCareTracker.Helper
+@using System.Security.Claims
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @model Vehicle
@@ -11,6 +12,11 @@
     {
         Model.ImageLocation = "";
     }
+    var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    int currentUserId = -1;
+    if (!string.IsNullOrEmpty(currentUserIdClaim)) int.TryParse(currentUserIdClaim, out currentUserId);
+    bool isAdmin = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin));
+    bool isOwner = isNew || isAdmin || Model.OwnerUserId == currentUserId || (Model.OwnerUserId <= 0 && userLogic.GetVehicleOwnerUserId(Model.Id) == currentUserId);
 }
 <div class="modal-header">
     <h5 class="modal-title" id="addVehicleModalLabel">@(isNew ? translator.Translate(userLanguage, "Add New Vehicle") : translator.Translate(userLanguage, "Edit Vehicle"))</h5>
@@ -73,13 +79,13 @@
                     <input style="display:none;" onChange="uploadMap(this)" type="file" accept=".json" class="form-control-file" id="inputMap">
 
                     
-                    @if (User.IsInRole(nameof(UserData.IsRootUser)))
+                    @if (isAdmin)
                     {
                         var allUsers = userLogic.GetAllUsers();
-                        var currentOwnerId = isNew ? -1 : userLogic.GetVehicleOwnerUserId(Model.Id);
+                        var currentOwnerId = isNew ? -1 : (Model.OwnerUserId > 0 ? Model.OwnerUserId : userLogic.GetVehicleOwnerUserId(Model.Id));
                         <div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 border border-warning border-opacity-25">
                             <label for="inputVehicleOwner" class="form-label text-warning small fw-semibold mb-1">
-                                <i class="bi bi-shield-lock me-1"></i>Asignar Propietario (Admin/Root)
+                                <i class="bi bi-shield-lock me-1"></i>Asignar Propietario (Admin)
                             </label>
                             <select class="form-select form-select-sm" id="inputVehicleOwner">
                                 <!option value="-1" @(currentOwnerId <= 0 ? "selected" : "")>-- Sin propietario (Coche huérfano / Flota) --</!option>
@@ -102,9 +108,13 @@
                                 <div class="small text-secondary" id="visibilityHelpText">
                                     @(Model.IsPublic ? "Público: visible para otros usuarios del garaje en modo lectura." : "Privado: solo visible para ti como propietario.")
                                 </div>
+                                @if (!isOwner)
+                                {
+                                    <div class="extra-small text-warning mt-1"><i class="bi bi-lock me-1"></i>Solo el propietario o un administrador pueden modificar la visibilidad.</div>
+                                }
                             </div>
                             <div class="form-check form-switch fs-4 mb-0">
-                                <input class="form-check-input" type="checkbox" role="switch" id="inputIsPublic" @(Model.IsPublic ? "checked" : "") onchange="$('#visibilityHelpText').text(this.checked ? 'Público: visible para otros usuarios del garaje en modo lectura.' : 'Privado: solo visible para ti como propietario.');">
+                                <input class="form-check-input" type="checkbox" role="switch" id="inputIsPublic" @(Model.IsPublic ? "checked" : "") @(!isOwner ? "disabled" : "") onchange="$('#visibilityHelpText').text(this.checked ? 'Público: visible para otros usuarios del garaje en modo lectura.' : 'Privado: solo visible para ti como propietario.');">
                             </div>
                         </div>
                     </div>

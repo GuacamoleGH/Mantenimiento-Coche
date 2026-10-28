@@ -1,4 +1,4 @@
-﻿using CarCareTracker.External.Interfaces;
+using CarCareTracker.External.Interfaces;
 using CarCareTracker.Models;
 using LiteDB;
 using CarCareTracker.Helper;
@@ -23,14 +23,14 @@ namespace CarCareTracker.External.Implementations
         {
             var db = _liteDB.GetLiteDB();
             var table = db.GetCollection<UserData>(tableName);
-            var userRecord = table.FindOne(Query.EQ(nameof(UserData.UserName), userName));
+            var userRecord = table.FindOne(x => x.UserName.ToLower() == userName.ToLower());
             return userRecord ?? new UserData();
         }
         public UserData GetUserRecordByEmailAddress(string emailAddress)
         {
             var db = _liteDB.GetLiteDB();
             var table = db.GetCollection<UserData>(tableName);
-            var userRecord = table.FindOne(Query.EQ(nameof(UserData.EmailAddress), emailAddress));
+            var userRecord = table.FindOne(x => x.EmailAddress.ToLower() == emailAddress.ToLower());
             return userRecord ?? new UserData();
         }
         public UserData GetUserRecordById(int userId)
