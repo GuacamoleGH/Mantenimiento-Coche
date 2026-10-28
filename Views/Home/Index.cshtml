@@ -71,6 +71,11 @@
                             <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link resizable-nav-link" type="button" id="soundToggleBtnNav" onclick="toggleSoundPreference()" title="Activar/desactivar sonidos">
+                            <i id="soundToggleIconNav" class="bi bi-volume-up-fill"></i>
+                        </button>
+                    </li>
                     @if (User.IsInRole("CookieAuth") || User.IsInRole("APIAuth"))
                     {
                         <li class="nav-item dropdown nav-item-persist" role="presentation">

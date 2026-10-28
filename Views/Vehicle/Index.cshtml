@@ -96,6 +96,9 @@
                         <button class="nav-link resizable-nav-link" type="button" onclick="toggleTheme()" title="Cambiar tema">
                             <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
                         </button>
+                        <button class="nav-link resizable-nav-link" type="button" id="soundToggleBtnNav" onclick="toggleSoundPreference()" title="Activar/desactivar sonidos">
+                            <i id="soundToggleIconNav" class="bi bi-volume-up-fill"></i>
+                        </button>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <div class="dropdown">
