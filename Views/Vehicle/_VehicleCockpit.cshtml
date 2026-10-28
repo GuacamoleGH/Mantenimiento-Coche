@@ -131,17 +131,17 @@
         {
             <!-- Botones de Acción Rápida (1-Click) -->
             <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
-                    <i class="bi bi-fuel-pump-fill me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
+                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddGasRecordModal()" title="@translator.Translate(userLanguage, "Add_Fuel")">
+                    <i class="bi bi-fuel-pump-fill text-success me-1"></i>@translator.Translate(userLanguage, "Add_Fuel")
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
-                    <i class="bi bi-tools me-1"></i>@translator.Translate(userLanguage, "Add_Service")
+                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddServiceRecordModal()" title="@translator.Translate(userLanguage, "Add_Service")">
+                    <i class="bi bi-tools text-warning me-1"></i>@translator.Translate(userLanguage, "Add_Service")
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
-                    <i class="bi bi-speedometer2 me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
+                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddOdometerRecordModal()" title="@translator.Translate(userLanguage, "Add_Odometer")">
+                    <i class="bi bi-speedometer2 text-info me-1"></i>@translator.Translate(userLanguage, "Add_Odometer")
                 </button>
-                <button type="button" class="btn btn-sm btn-action-cockpit " onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
+                <button type="button" class="btn btn-sm btn-action-cockpit" onclick="showAddCollisionRecordModal()" title="@translator.Translate(userLanguage, "Add_Repair")">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>@translator.Translate(userLanguage, "Add_Repair")
                 </button>
             </div>
         }
@@ -158,16 +158,16 @@
         <!-- Tarjeta de ITV -->
         <div class="col-12 col-md-6 col-xl-3">
             <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="fw-semibold small text-light">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <span class="fw-semibold small text-light text-nowrap d-flex align-items-center">
                         @if (!string.IsNullOrEmpty(itvDotClass)) { <span class="status-indicator-dot @itvDotClass"></span> }
                         <i class="bi bi-clipboard2-check-fill text-warning me-1"></i>@translator.Translate(userLanguage, "ITV_Inspection")
                     </span>
-                    <span class="@itvBadgeClass small rounded-pill px-2 py-1">@itvStatusText</span>
+                    <span class="@itvBadgeClass small rounded-pill px-2 py-1 text-nowrap flex-shrink-0">@itvStatusText</span>
                 </div>
                 <div class="small text-secondary d-flex justify-content-between align-items-center mt-auto">
-                    <span>Próxima fecha:</span>
-                    <strong class="font-monospace text-light">@(string.IsNullOrWhiteSpace(Model.ItvExpiry) ? "---" : Model.ItvExpiry)</strong>
+                    <span class="text-nowrap me-1">Próxima fecha:</span>
+                    <strong class="font-monospace text-light text-nowrap">@(string.IsNullOrWhiteSpace(Model.ItvExpiry) ? "---" : Model.ItvExpiry)</strong>
                 </div>
             </div>
         </div>
@@ -175,16 +175,16 @@
         <!-- Tarjeta de Seguro -->
         <div class="col-12 col-md-6 col-xl-3">
             <div class="cockpit-card p-3 h-100 d-flex flex-column justify-content-between">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="fw-semibold small text-light">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <span class="fw-semibold small text-light text-nowrap d-flex align-items-center">
                         @if (!string.IsNullOrEmpty(insDotClass)) { <span class="status-indicator-dot @insDotClass"></span> }
                         <i class="bi bi-shield-fill-check text-info me-1"></i>@translator.Translate(userLanguage, "Insurance")
                     </span>
-                    <span class="@insBadgeClass small rounded-pill px-2 py-1">@insStatusText</span>
+                    <span class="@insBadgeClass small rounded-pill px-2 py-1 text-nowrap flex-shrink-0">@insStatusText</span>
                 </div>
                 <div class="small text-secondary d-flex justify-content-between align-items-center mt-auto">
                     <span class="text-truncate me-1">@(string.IsNullOrWhiteSpace(Model.InsuranceCompany) ? "Póliza:" : Model.InsuranceCompany)</span>
-                    <strong class="font-monospace text-light">@(string.IsNullOrWhiteSpace(Model.InsuranceExpiry) ? "---" : Model.InsuranceExpiry)</strong>
+                    <strong class="font-monospace text-light text-nowrap">@(string.IsNullOrWhiteSpace(Model.InsuranceExpiry) ? "---" : Model.InsuranceExpiry)</strong>
                 </div>
             </div>
         </div>
