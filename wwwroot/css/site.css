@@ -2267,3 +2267,323 @@ a:hover {
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(251, 196, 30, 0.15) !important;
     overflow: hidden;
 }
+
+/* ========================================================
+   SISTEMA COMPLETO DE TEMA CLARO (LIGHT THEME)
+   ======================================================== */
+[data-bs-theme="light"] {
+    --color-primary: #D97706;
+    --color-primary-hover: #B45309;
+    --color-primary-soft: #FEF3C7;
+    --color-bg: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-surface-elevated: #F1F5F9;
+    --color-border: #CBD5E1;
+    --color-text: #0F172A;
+    --color-text-secondary: #475569;
+    --color-success: #16A34A;
+    --color-warning: #D97706;
+    --color-danger: #DC2626;
+    --color-info: #0284C7;
+
+    --bs-body-bg: #F8FAFC;
+    --bs-body-color: #0F172A;
+    --bs-body-bg-rgb: 248, 250, 252;
+    --bs-secondary-bg: #FFFFFF;
+    --bs-tertiary-bg: #F1F5F9;
+    --bs-border-color: #CBD5E1;
+    --bs-border-color-translucent: rgba(0, 0, 0, 0.1);
+    --bs-card-bg: #FFFFFF;
+    --bs-card-color: #0F172A;
+    --bs-link-color: #B45309;
+    --bs-link-hover-color: #92400E;
+    --bs-secondary-color: #475569;
+}
+
+[data-bs-theme="light"] body {
+    background-color: #F8FAFC !important;
+    background: #F8FAFC !important;
+    color: #0F172A !important;
+}
+
+/* Navbar en Modo Claro */
+[data-bs-theme="light"] .lubelogger-navbar-container.frosted {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-bottom: 1px solid #CBD5E1 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .nav-link {
+    color: #475569 !important;
+}
+
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .nav-link:hover {
+    color: #0F172A !important;
+    background: #E2E8F0 !important;
+}
+
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .nav-link.active,
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .nav-item > .btn.active,
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .dropdown-toggle.active {
+    background: #FEF3C7 !important;
+    color: #92400E !important;
+    font-weight: 700 !important;
+    border: 1px solid #FCD34D !important;
+    border-bottom: 3px solid #D97706 !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .nav-link.active i,
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .nav-item > .btn.active i,
+[data-bs-theme="light"] .lubelogger-navbar .lubelogger-tab .dropdown-toggle.active i {
+    color: #B45309 !important;
+}
+
+[data-bs-theme="light"] #homeUserMenuBtn,
+[data-bs-theme="light"] #vehicleUserMenuBtn,
+[data-bs-theme="light"] #themeToggleBtn,
+[data-bs-theme="light"] .lubelogger-navbar button {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .lubelogger-tab .dropdown-menu,
+[data-bs-theme="light"] .dropdown-menu {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-bs-theme="light"] .lubelogger-tab .dropdown-item,
+[data-bs-theme="light"] .dropdown-item {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .lubelogger-tab .dropdown-item:hover,
+[data-bs-theme="light"] .dropdown-item:hover {
+    background-color: #F1F5F9 !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .lubelogger-tab .dropdown-item-desc {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .lubelogger-navbar-container .btn-secondary {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+    border-color: #CBD5E1 !important;
+}
+
+/* Cockpit del Vehículo */
+[data-bs-theme="light"] .cockpit-box {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-bs-theme="light"] .cockpit-card {
+    background: #F8FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-bs-theme="light"] .cockpit-card:hover {
+    border-color: #94A3B8 !important;
+}
+
+[data-bs-theme="light"] .cockpit-box h1,
+[data-bs-theme="light"] .cockpit-box .h4,
+[data-bs-theme="light"] .cockpit-box .text-light,
+[data-bs-theme="light"] .cockpit-card .text-light {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .btn-action-cockpit {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .btn-action-cockpit:hover {
+    background: #F1F5F9 !important;
+    border-color: #94A3B8 !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .spec-info .spec-label {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .spec-info .spec-value {
+    color: #0F172A !important;
+}
+
+/* Tarjetas KPI y Dashboard */
+[data-bs-theme="light"] .kpi-stat-card {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-bs-theme="light"] .kpi-label {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .kpi-value {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .dashboard-card {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-bs-theme="light"] .dashboard-card-title {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .dashboard-select {
+    background-color: #F8FAFC !important;
+    color: #0F172A !important;
+    border-color: #CBD5E1 !important;
+}
+
+[data-bs-theme="light"] .empty-icon-box {
+    background: #F1F5F9 !important;
+    border-color: #CBD5E1 !important;
+}
+
+[data-bs-theme="light"] .btn-report-action {
+    background: #F8FAFC !important;
+    border-color: #E2E8F0 !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .btn-report-action:hover {
+    background: #FEF3C7 !important;
+    border-color: #FCD34D !important;
+    color: #92400E !important;
+}
+
+/* Tarjetas de Garaje */
+[data-bs-theme="light"] .garage-item .card {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-bs-theme="light"] .garage-item .card:hover {
+    border-color: #D97706 !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-bs-theme="light"] .garage-item .card .text-light,
+[data-bs-theme="light"] .garage-item .card h5,
+[data-bs-theme="light"] .garage-item .card .fw-bold {
+    color: #0F172A !important;
+}
+
+/* Calendario en Modo Claro */
+[data-bs-theme="light"] .calendar-pending-tasks,
+[data-bs-theme="light"] .calendar-card-container,
+[data-bs-theme="light"] .calendar-day-details {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-bs-theme="light"] .calendar-task-card {
+    background: #F8FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+}
+
+[data-bs-theme="light"] .calendar-task-card:hover {
+    background: #FFFFFF !important;
+    border-color: #D97706 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-bs-theme="light"] .calendar-task-card .text-light,
+[data-bs-theme="light"] .calendar-panel-header .text-light,
+[data-bs-theme="light"] #calendarSelectedDateText {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker {
+    background: #FFFFFF !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker-days th.datepicker-switch {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker-days th.dow {
+    color: #64748B !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day:hover {
+    background-color: #FEF3C7 !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day.old,
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day.new {
+    color: #94A3B8 !important;
+}
+
+/* Tablas de Mantenimiento / Servicios */
+[data-bs-theme="light"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #0F172A;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .table > :not(caption) > * > * {
+    background-color: transparent !important;
+    color: #0F172A !important;
+    border-bottom-color: #E2E8F0 !important;
+}
+
+[data-bs-theme="light"] .table-hover > tbody > tr:hover > * {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Modales en Modo Claro */
+[data-bs-theme="light"] .modal-content {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #0F172A !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-bs-theme="light"] .modal-header,
+[data-bs-theme="light"] .modal-footer {
+    border-color: #E2E8F0 !important;
+}
+
+[data-bs-theme="light"] .modal-title,
+[data-bs-theme="light"] .modal-body label {
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .form-control,
+[data-bs-theme="light"] .form-select {
+    background-color: #FFFFFF !important;
+    border-color: #CBD5E1 !important;
+    color: #0F172A !important;
+}
+
+[data-bs-theme="light"] .form-control:focus,
+[data-bs-theme="light"] .form-select:focus {
+    border-color: #D97706 !important;
+    box-shadow: 0 0 0 0.25rem rgba(217, 119, 6, 0.2) !important;
+}
+
+[data-bs-theme="light"] .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(20%) !important;
+}
