@@ -26,18 +26,7 @@
                     <button type="button" class="btn btn-sm text-secondary password-visible-button" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
                 </div>
             </div>
-            <small class="text-muted d-block mb-3" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúsculas, minúsculas, números y al menos un carácter especial (!@@#$%...).</small>
-            
-            @if (Model.IsSmtpConfigured)
-            {
-                <label for="inputToken" class="mb-1">@translator.Translate(userLanguage, "Token")</label>
-                <input type="text" id="inputToken" class="form-control mb-2" placeholder="@translator.Translate(userLanguage, "Token")" value="">
-                <div class="row mb-3">
-                    <div class="col-12">
-                        <a onclick="generateTokenForUser()" class="btn btn-link p-0 small">@translator.Translate(userLanguage, "Send Token")</a>
-                    </div>
-                </div>
-            }
+            <small class="text-muted d-block mb-2" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúsculas, minúsculas, números y al menos un carácter especial (!@@#$%...).</small>
         </div>
     </form>
 </div>

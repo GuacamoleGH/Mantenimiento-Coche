@@ -95,16 +95,11 @@ function requestRegistrationToken() {
 function performRegistration() {
     let userName = $("#inputUserName").val()?.trim() || '';
     let userEmail = $("#inputEmail").val()?.trim() || '';
-    let userToken = $("#inputToken").val()?.trim() || '';
     let userPassword = $("#inputUserPassword").val() || '';
     let userPasswordConfirm = $("#inputUserPasswordConfirm").val() || '';
 
     if (!userEmail) {
         errorToast("Por favor, introduce tu correo electrónico.");
-        return;
-    }
-    if (!userToken) {
-        errorToast("Por favor, introduce el código o token de verificación.");
         return;
     }
     if (!userName) {
@@ -124,7 +119,7 @@ function performRegistration() {
         return;
     }
 
-    $.post('/Login/Register', { userName: userName, password: userPassword, emailAddress: userEmail, token: userToken }, function (data) {
+    $.post('/Login/Register', { userName: userName, password: userPassword, emailAddress: userEmail, token: '' }, function (data) {
         if (data.success) {
             successToast(data.message);
             setTimeout(function () { window.location.href = '/Login/Index' }, 800);

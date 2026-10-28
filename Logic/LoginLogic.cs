@@ -83,19 +83,7 @@ namespace CarCareTracker.Logic
                 return OperationResponse.Failed("Usuario no encontrado");
             }
 
-            var mailConfig = _configHelper.GetMailConfig();
-            bool isSmtpConfigured = !string.IsNullOrWhiteSpace(mailConfig.EmailServer);
 
-            // Solo validar token si el servidor tiene SMTP configurado
-            if (isSmtpConfigured)
-            {
-                var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
-                if (existingToken.Id == default || existingToken.EmailAddress != existingUser.EmailAddress)
-                {
-                    return OperationResponse.Failed("Token inválido");
-                }
-                _tokenData.DeleteToken(existingToken.Id);
-            }
 
             if (!string.IsNullOrWhiteSpace(credentials.UserName) && existingUser.UserName != credentials.UserName)
             {
@@ -196,16 +184,7 @@ namespace CarCareTracker.Logic
                 return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
             }
 
-            if (string.IsNullOrWhiteSpace(credentials.Token))
-            {
-                return OperationResponse.Failed("Se requiere un código o token de verificación para verificar tu correo electrónico.");
-            }
-            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token.Trim());
-            if (existingToken.Id == default || !existingToken.EmailAddress.Equals(credentials.EmailAddress.Trim(), StringComparison.OrdinalIgnoreCase))
-            {
-                return OperationResponse.Failed("El código o token de verificación no es válido para este correo electrónico.");
-            }
-            _tokenData.DeleteToken(existingToken.Id);
+
 
             var newUser = new UserData()
             {
