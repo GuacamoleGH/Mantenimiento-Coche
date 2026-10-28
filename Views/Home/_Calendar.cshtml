@@ -1,31 +1,138 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @model List<ReminderRecordViewModel>
 @{
     var userConfig = config.GetUserConfig(User);
+    var sortedReminders = Model != null ? Model.OrderBy(x => x.Date).ToList() : new List<ReminderRecordViewModel>();
 }
 <script>
     var eventDates = [];
     var groupedDates = [];
-    @foreach(ReminderRecordViewModel reminderRecord in Model)
+    @foreach(ReminderRecordViewModel reminderRecord in sortedReminders)
     {
         @:eventDates.push({ id: @reminderRecord.Id, date: decodeHTMLEntities('@StaticHelper.GetEpochFromDateTime(reminderRecord.Date)'), description: decodeHTMLEntities('@reminderRecord.Description'), urgency: decodeHTMLEntities('@reminderRecord.Urgency.ToString()') });
     }
 </script>
-<div class="d-flex vehicleTabPane">
-    <div class="row vehicleDetailTabContainer">
-        <div class="col-12 reminderCalendarView d-flex flex-column">
-            <div class="reminderCalendarViewContent flex-grow-1">
+
+<div class="container-fluid px-2 px-md-3 py-3">
+    <div class="row g-3">
+        <!-- Columna Izquierda: Tareas Pendientes -->
+        <div class="col-12 col-lg-4">
+            <div class="calendar-pending-tasks d-flex flex-column h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                    <h5 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
+                        <i class="bi bi-card-checklist text-warning fs-4"></i>
+                        <span>Tareas Pendientes</span>
+                    </h5>
+                    <span class="badge bg-warning text-dark font-monospace fw-bold px-2 py-1">
+                        @(sortedReminders.Any() ? sortedReminders.Count.ToString() : "3")
+                    </span>
+                </div>
+
+                <div class="flex-grow-1 overflow-auto" style="max-height: 540px;">
+                    @if (sortedReminders.Any())
+                    {
+                        @foreach (var task in sortedReminders)
+                        {
+                            var badgeClass = task.Urgency == ReminderUrgency.VeryUrgent ? "bg-danger" : task.Urgency == ReminderUrgency.Urgent ? "bg-warning text-dark" : "bg-secondary";
+                            var urgencyText = task.Urgency == ReminderUrgency.VeryUrgent ? "Muy Urgente" : task.Urgency == ReminderUrgency.Urgent ? "Urgente" : "Programado";
+                            <div class="calendar-task-card cursor-pointer" onclick="showReminderRecordCalendarModal(@task.Id)" title="Clic para ver detalles">
+                                <div class="d-flex align-items-start justify-content-between gap-2">
+                                    <div class="fw-semibold text-light mb-1">
+                                        <i class="bi bi-clock-history text-warning me-1"></i>
+                                        @task.Description
+                                    </div>
+                                    <span class="badge @badgeClass font-monospace small">@urgencyText</span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
+                                    <span><i class="bi bi-calendar3 me-1"></i>@task.Date.ToShortDateString()</span>
+                                    @if (task.DueDays != default)
+                                    {
+                                        <span>@(task.DueDays < 0 ? $"Vencido hace {Math.Abs(task.DueDays)}d" : $"En {task.DueDays} días")</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Tareas de ejemplo para una experiencia rica desde el primer momento -->
+                        <div class="calendar-task-card">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <div class="fw-semibold text-light mb-1">
+                                    <i class="bi bi-droplet-half text-info me-1"></i>
+                                    Lavar y aspirar el coche
+                                </div>
+                                <span class="badge bg-info text-dark font-monospace small">Semanal</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
+                                <span><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.AddDays(2).ToShortDateString()</span>
+                                <span class="text-info">En 2 días</span>
+                            </div>
+                        </div>
+
+                        <div class="calendar-task-card">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <div class="fw-semibold text-light mb-1">
+                                    <i class="bi bi-speedometer text-warning me-1"></i>
+                                    Revisión de presión de neumáticos
+                                </div>
+                                <span class="badge bg-warning text-dark font-monospace small">Pendiente</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
+                                <span><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.AddDays(5).ToShortDateString()</span>
+                                <span>En 5 días</span>
+                            </div>
+                        </div>
+
+                        <div class="calendar-task-card">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <div class="fw-semibold text-light mb-1">
+                                    <i class="bi bi-tools text-danger me-1"></i>
+                                    Cambio de aceite y filtro 5W-30
+                                </div>
+                                <span class="badge bg-danger text-white font-monospace small">Mantenimiento</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
+                                <span><i class="bi bi-calendar3 me-1"></i>@DateTime.Today.AddDays(20).ToShortDateString()</span>
+                                <span>En 20 días</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-dark border-secondary border-opacity-25 mt-3 py-2 px-3 small text-secondary">
+                            <i class="bi bi-info-circle me-1 text-warning"></i>
+                            Estas son tareas sugeridas. Al crear recordatorios en tus vehículos aparecerán aquí sincronizadas.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Calendario Compacto -->
+        <div class="col-12 col-lg-8">
+            <div class="calendar-card-container d-flex flex-column h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                    <h5 class="fw-bold mb-0 text-light d-flex align-items-center gap-2">
+                        <i class="bi bi-calendar-week text-warning fs-4"></i>
+                        <span>Calendario de Eventos</span>
+                    </h5>
+                </div>
+                <div class="reminderCalendarView flex-grow-1 d-flex flex-column">
+                    <div class="reminderCalendarViewContent flex-grow-1">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
 <div class="modal fade" data-bs-focus="false" id="reminderRecordCalendarModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content" id="reminderRecordCalendarModalContent">
         </div>
     </div>
 </div>
+
 <script>
     initCalendar();
 </script>

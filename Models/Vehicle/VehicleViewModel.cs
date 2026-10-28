@@ -24,5 +24,6 @@ namespace CarCareTracker.Models
         public decimal TotalCost { get; set; }
         public string DistanceUnit { get; set; } = string.Empty;
         public bool CanEdit { get; set; } = true;
+        public bool IsPublic { get; set; } = false;
     }
 }

@@ -60,36 +60,26 @@
                         <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.NoteRecord)" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-journal-text"></i><span class="ms-2">@translator.Translate(userLanguage, "Notes")</span></button>
                     </li>
                     
-                    <!-- Menú Más Opciones (Limpio y minimalista) -->
-                    <li class="nav-item dropdown nav-item-persist nav-item-more" role="presentation" style="order: 8">
-                        <button class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" type="button" aria-expanded="false" id="more-tab">
-                            <i class="bi bi-grid-fill"></i>
-                            <span class="ms-1">Más</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.PlanRecord)" id="plan-tab" data-bs-toggle="tab" data-bs-target="#plan-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-bar-chart-steps me-2 text-primary"></i>@translator.Translate(userLanguage, "Planner")</button>
-                            </li>
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.UpgradeRecord)" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgrade-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-wrench-adjustable me-2 text-info"></i>@translator.Translate(userLanguage, "Upgrades")</button>
-                            </li>
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.SupplyRecord)" id="supply-tab" data-bs-toggle="tab" data-bs-target="#supply-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-shop me-2 text-warning"></i>@translator.Translate(userLanguage, "Supplies")</button>
-                            </li>
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-currency-dollar me-2 text-success"></i>@translator.Translate(userLanguage, "Taxes")</button>
-                            </li>
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.InspectionRecord)" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-clipboard-check me-2 text-info"></i>@translator.Translate(userLanguage, "Inspections")</button>
-                            </li>
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-disc me-2 text-secondary"></i>@translator.Translate(userLanguage, "Equipment")</button>
-                            </li>
-                            <li><hr class="dropdown-divider opacity-25"></li>
-                            <li class="nav-item-dropdown-item" role="presentation">
-                                <button class="dropdown-item py-2" type="button" role="tab" aria-selected="false" id="search-tab" onclick="showGlobalSearch()"><i class="bi bi-search me-2 text-warning"></i>@translator.Translate(userLanguage, "Search")</button>
-                            </li>
-                        </ul>
+                    <li class="nav-item" role="presentation" style="order: 8">
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.PlanRecord)" id="plan-tab" data-bs-toggle="tab" data-bs-target="#plan-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-bar-chart-steps"></i><span class="ms-2">@translator.Translate(userLanguage, "Planner")</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="order: 9">
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.UpgradeRecord)" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgrade-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-wrench-adjustable"></i><span class="ms-2">@translator.Translate(userLanguage, "Upgrades")</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="order: 10">
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.SupplyRecord)" id="supply-tab" data-bs-toggle="tab" data-bs-target="#supply-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-shop"></i><span class="ms-2">@translator.Translate(userLanguage, "Supplies")</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="order: 11">
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-currency-dollar"></i><span class="ms-2">@translator.Translate(userLanguage, "Taxes")</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="order: 12">
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.InspectionRecord)" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-clipboard-check"></i><span class="ms-2">@translator.Translate(userLanguage, "Inspections")</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="order: 13">
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-disc"></i><span class="ms-2">@translator.Translate(userLanguage, "Equipment")</span></button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="order: 14">
+                        <button class="nav-link resizable-nav-link" type="button" onclick="showGlobalSearch()" title="Buscar"><i class="bi bi-search"></i><span class="ms-2">@translator.Translate(userLanguage, "Search")</span></button>
                     </li>
 
                     <li class="nav-item ms-auto d-flex align-items-center gap-1" role="presentation" style="order: 99">

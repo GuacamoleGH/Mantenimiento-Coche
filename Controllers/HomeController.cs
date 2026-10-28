@@ -101,7 +101,8 @@ namespace CarCareTracker.Controllers
                     Tags = x.Tags,
                     DashboardMetrics = x.DashboardMetrics,
                     VehicleIdentifier = x.VehicleIdentifier,
-                    CanEdit = User.IsInRole(nameof(UserData.IsRootUser)) || _userLogic.UserCanDirectlyEditVehicle(GetUserID(), x.Id)
+                    CanEdit = User.IsInRole(nameof(UserData.IsRootUser)) || _userLogic.UserCanDirectlyEditVehicle(GetUserID(), x.Id),
+                    IsPublic = x.IsPublic
                 };
                 //dashboard metrics
                 if (x.DashboardMetrics.Any())

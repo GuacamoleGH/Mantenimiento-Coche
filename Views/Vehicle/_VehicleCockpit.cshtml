@@ -122,6 +122,9 @@
                     <i class="bi bi-clipboard me-1 text-info"></i>VIN: @Model.Vin
                 </span>
             }
+            <span class="badge @(Model.IsPublic ? "bg-info text-dark" : "bg-secondary text-light") border border-secondary px-2 py-1 font-monospace" title="@(Model.IsPublic ? "Vehículo público: otros usuarios pueden verlo en modo lectura" : "Vehículo privado: solo visible para ti")">
+                <i class="bi @(Model.IsPublic ? "bi-globe2" : "bi-lock-fill") me-1"></i>@(Model.IsPublic ? "Público" : "Privado")
+            </span>
         </div>
 
         @if (canEdit)

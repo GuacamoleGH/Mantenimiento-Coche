@@ -309,13 +309,13 @@ body {
 
     .lubelogger-tab .nav-link.active {
         background-color: var(--bs-primary) !important;
-        color: #ffffff !important;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), 0.35);
+        color: #111722 !important;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(251, 196, 30, 0.35);
     }
 
     .lubelogger-tab .nav-link.active i {
-        color: #ffffff !important;
+        color: #111722 !important;
     }
 
 /*Media Queries*/
@@ -1294,6 +1294,9 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     font-weight: 700;
     box-shadow: 0 4px 14px rgba(251, 196, 30, 0.35);
 }
+.lubelogger-tab .nav-link.active i {
+    color: #111722 !important;
+}
 
 /* Barra Superior Translúcida (Navbar) */
 .lubelogger-navbar-container.frosted {
@@ -1918,4 +1921,77 @@ a:hover {
     filter: grayscale(0%) opacity(1) !important;
     color: #5865F2 !important;
     transform: none !important;
+}
+
+/* Pestañas horizontales responsive con scroll fluido */
+.lubelogger-navbar .lubelogger-tab {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 0.25rem;
+    padding-bottom: 2px;
+}
+.lubelogger-navbar .lubelogger-tab::-webkit-scrollbar {
+    display: none !important;
+}
+.lubelogger-navbar .lubelogger-tab .nav-item {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+.lubelogger-navbar .lubelogger-tab .nav-link {
+    display: flex;
+    align-items: center;
+    border-radius: 9999px !important;
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.875rem;
+    color: #A0AABD;
+    border: 1px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+.lubelogger-navbar .lubelogger-tab .nav-link:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.05);
+}
+.lubelogger-navbar .lubelogger-tab .nav-link.active {
+    background: #FBC41E !important;
+    color: #111722 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(251, 196, 30, 0.35) !important;
+}
+.lubelogger-navbar .lubelogger-tab .nav-link.active i {
+    color: #111722 !important;
+}
+.lubelogger-navbar .lubelogger-tab .nav-link i {
+    font-size: 1rem;
+}
+
+/* Tareas pendientes en calendario */
+.calendar-pending-tasks {
+    background: #191F2C;
+    border: 1px solid #30394A;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    height: 100%;
+}
+.calendar-task-card {
+    background: #111722;
+    border: 1px solid #30394A;
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.75rem;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.calendar-task-card:hover {
+    transform: translateY(-2px);
+    border-color: #FBC41E;
+}
+.calendar-card-container {
+    background: #191F2C;
+    border: 1px solid #30394A;
+    border-radius: 1rem;
+    padding: 1.25rem;
 }

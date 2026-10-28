@@ -113,6 +113,7 @@ function saveVehicle(isEdit) {
     var vehicleItvExpiry = $("#inputItvExpiry").val() || '';
     var vehicleInsuranceExpiry = $("#inputInsuranceExpiry").val() || '';
     var vehicleInsuranceCompany = $("#inputInsuranceCompany").val() || '';
+    var vehicleIsPublic = $("#inputIsPublic").is(":checked");
     var vehicleDashboardMetrics = $("#collapseMetricInfo :checked").map(function () {
         return this.value;
     }).toArray();
@@ -242,7 +243,8 @@ function saveVehicle(isEdit) {
         tyreSizes: vehicleTyreSizes,
         itvExpiry: vehicleItvExpiry,
         insuranceExpiry: vehicleInsuranceExpiry,
-        insuranceCompany: vehicleInsuranceCompany
+        insuranceCompany: vehicleInsuranceCompany,
+        isPublic: vehicleIsPublic
     }, function (data) {
         if (data.success) {
             if (!isEdit) {
@@ -1993,6 +1995,10 @@ function bindNavBarResize() {
     resizeObserver.observe(document.querySelector('.lubelogger-navbar'));
 }
 function checkNavBarOverflow() {
+    if ($('.nav-item-more').length === 0) {
+        $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
+        return;
+    }
     // Show all primary tabs, ensure dropdown items in 'Más' remain visible
     $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
     $('.nav-item-more > ul > li.nav-item-dropdown-item').show();

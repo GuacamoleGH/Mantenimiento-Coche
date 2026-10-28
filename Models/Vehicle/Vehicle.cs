@@ -53,5 +53,10 @@ namespace CarCareTracker.Models
         [JsonConverter(typeof(FromDateOptional))]
         public string InsuranceExpiry { get; set; } = string.Empty;
         public string InsuranceCompany { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Visibilidad del vehículo: false = Privado (solo dueño/colaboradores), true = Público (otros usuarios pueden verlo en modo lectura).
+        /// </summary>
+        public bool IsPublic { get; set; } = false;
     }
 }
