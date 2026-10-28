@@ -365,16 +365,22 @@ namespace CarCareTracker.Controllers
         [HttpGet]
         public IActionResult GetUserAccountInformationModal()
         {
-            var emailAddress = User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-            var userName = User?.Identity?.Name ?? string.Empty;
+            var userId = GetUserID();
+            var userRecord = _userLogic.GetUserRecordById(userId);
+            var emailAddress = userRecord != null && !string.IsNullOrWhiteSpace(userRecord.EmailAddress) ? userRecord.EmailAddress : (User.FindFirstValue(ClaimTypes.Email) ?? string.Empty);
+            var userName = userRecord != null && !string.IsNullOrWhiteSpace(userRecord.UserName) ? userRecord.UserName : (User?.Identity?.Name ?? string.Empty);
             var mailConfig = _config.GetMailConfig();
             bool isSmtpConfigured = !string.IsNullOrWhiteSpace(mailConfig.EmailServer);
+            bool hasPassword = userRecord != null && !string.IsNullOrWhiteSpace(userRecord.Password);
+
             return PartialView("_AccountModal", new UserDataViewModel()
             {
+                Id = userId,
                 EmailAddress = emailAddress,
                 UserName = userName,
                 CanResetPassword = true,
-                IsSmtpConfigured = isSmtpConfigured
+                IsSmtpConfigured = isSmtpConfigured,
+                HasExistingPassword = hasPassword
             });
         }
         [HttpGet]

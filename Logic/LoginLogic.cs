@@ -105,6 +105,20 @@ namespace CarCareTracker.Logic
             }
             if (!string.IsNullOrWhiteSpace(credentials.Password))
             {
+                // Si el usuario ya tenía contraseña establecida, exigir y validar la contraseña actual
+                if (!string.IsNullOrWhiteSpace(existingUser.Password))
+                {
+                    if (string.IsNullOrWhiteSpace(credentials.CurrentPassword))
+                    {
+                        return OperationResponse.Failed("Debes introducir tu contraseña actual para cambiarla.");
+                    }
+                    var hashedCurrent = StaticHelper.GetHash(credentials.CurrentPassword);
+                    if (hashedCurrent != existingUser.Password)
+                    {
+                        return OperationResponse.Failed("La contraseña actual no es correcta.");
+                    }
+                }
+
                 var passValidation = StaticHelper.ValidatePasswordComplexity(credentials.Password);
                 if (!passValidation.Success)
                 {

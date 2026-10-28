@@ -2444,29 +2444,38 @@ function validateAndSaveUserAccount() {
     } else {
         $('#inputEmail').removeClass("is-invalid");
     }
-    if ($('#inputToken').val().trim() == '') {
-        $('#inputToken').addClass("is-invalid");
-        hasError = true;
+
+    var newPassword = $('#inputPassword').val().trim();
+    var currentPassword = $('#inputCurrentPassword').length ? $('#inputCurrentPassword').val() : '';
+
+    if (newPassword != '' && $('#inputCurrentPassword').length > 0 && currentPassword.trim() == '') {
+        $('#inputCurrentPassword').addClass("is-invalid");
+        errorToast("Debes introducir tu contraseña actual para cambiarla");
+        return;
     } else {
-        $('#inputToken').removeClass("is-invalid");
+        $('#inputCurrentPassword').removeClass("is-invalid");
     }
+
     if (hasError) {
-        errorToast("Please check the form data");
+        errorToast("Por favor, revisa los datos del formulario.");
         return;
     }
     var userAccountInfo = {
         userName: $('#inputUsername').val(),
-        password: $('#inputPassword').val(),
+        currentPassword: currentPassword,
+        password: newPassword,
         emailAddress: $('#inputEmail').val(),
-        token: $('#inputToken').val()
+        token: ''
     };
     $.post('/Home/UpdateUserAccount', { userAccount: userAccountInfo }, function (data) {
         if (data.success) {
             hideAccountInformationModal();
-            successToast('Profile Updated');
-            performLogOut();
+            successToast(data.message || 'Perfil actualizado con éxito');
+            if (newPassword != '') {
+                setTimeout(performLogOut, 1500);
+            }
         } else {
-            errorToast(data.message);
+            errorToast(data.message || 'Error al actualizar');
         }
     });
 }

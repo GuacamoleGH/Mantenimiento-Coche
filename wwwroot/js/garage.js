@@ -1058,13 +1058,26 @@ function validateAndSaveUserAccount() {
     } else {
         $('#inputEmail').removeClass("is-invalid");
     }
+
+    var newPassword = $('#inputPassword').val().trim();
+    var currentPassword = $('#inputCurrentPassword').length ? $('#inputCurrentPassword').val() : '';
+
+    if (newPassword != '' && $('#inputCurrentPassword').length > 0 && currentPassword.trim() == '') {
+        $('#inputCurrentPassword').addClass("is-invalid");
+        errorToast("Debes introducir tu contraseña actual para cambiarla");
+        return;
+    } else {
+        $('#inputCurrentPassword').removeClass("is-invalid");
+    }
+
     if (hasError) {
         errorToast("Por favor, revisa los datos del formulario.");
         return;
     }
     var userAccountInfo = {
         userName: $('#inputUsername').val(),
-        password: $('#inputPassword').val(),
+        currentPassword: currentPassword,
+        password: newPassword,
         emailAddress: $('#inputEmail').val(),
         token: ''
     };
@@ -1072,7 +1085,7 @@ function validateAndSaveUserAccount() {
         if (data.success) {
             hideAccountInformationModal();
             successToast(data.message || 'Perfil actualizado con éxito');
-            if ($('#inputPassword').val().trim() != '') {
+            if (newPassword != '') {
                 setTimeout(performLogOut, 1500);
             }
         } else {

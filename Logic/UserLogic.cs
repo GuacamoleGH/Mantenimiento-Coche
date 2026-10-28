@@ -32,6 +32,7 @@ namespace CarCareTracker.Logic
         int GetVehicleOwnerUserId(int vehicleId);
         bool SetVehicleOwner(int vehicleId, int newOwnerUserId);
         int ClaimOrphanVehicles(int targetUserId);
+        UserData GetUserRecordById(int userId);
     }
     public class UserLogic: IUserLogic
     {
@@ -396,6 +397,10 @@ namespace CarCareTracker.Logic
                 }
             }
             return claimed;
+        }
+        public UserData GetUserRecordById(int userId)
+        {
+            return _userData.GetUserRecordById(userId);
         }
     }
 }

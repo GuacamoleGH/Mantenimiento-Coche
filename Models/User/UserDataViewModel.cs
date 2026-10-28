@@ -4,5 +4,6 @@ namespace CarCareTracker.Models
     {
         public bool CanResetPassword { get; set; } = true;
         public bool IsSmtpConfigured { get; set; } = false;
+        public bool HasExistingPassword { get; set; } = false;
     }
 }
