@@ -34,10 +34,78 @@
     .login-input-group {
         background-color: #252E3F !important;
         border: 1px solid #30394A !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+        height: 46px !important;
     }
     .login-input-group:focus-within {
         border-color: #FBC41E !important;
         box-shadow: 0 0 0 0.2rem rgba(251, 196, 30, 0.25) !important;
+    }
+    .login-input-group .input-group-text {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        outline: none !important;
+        color: #A0AABD !important;
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 100% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.15rem !important;
+        line-height: 1 !important;
+        flex-shrink: 0 !important;
+    }
+    .login-input-group .input-group-text i,
+    .login-input-group .input-group-text svg {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+    }
+    .login-input-group .form-control,
+    .login-input-group .form-control:focus,
+    .login-input-group input.form-control,
+    .login-input-group input.form-control:focus {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        color: #F1F5F9 !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.75rem !important;
+        height: 100% !important;
+        font-size: 0.95rem !important;
+    }
+    .login-input-group .btn-password-toggle {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        color: #A0AABD !important;
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 100% !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.15rem !important;
+        line-height: 1 !important;
+        flex-shrink: 0 !important;
+    }
+    .login-input-group .btn-password-toggle:hover {
+        color: #F1F5F9 !important;
     }
     .btn-auth-social {
         border-radius: 8px;
@@ -81,7 +149,7 @@
         <!-- Formulario Local -->
         <div class="mb-3">
             <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Usuario o correo</label>
-            <div class="login-input-group input-group d-flex align-items-center">
+            <div class="login-input-group input-group">
                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                 <input type="text" id="inputUserName" class="form-control" placeholder="usuario o email" autocomplete="username">
             </div>
@@ -92,7 +160,7 @@
                 <label for="inputUserPassword" class="form-label small fw-semibold text-secondary mb-0">Contraseña</label>
                 <a href="/Login/ForgotPassword" class="small text-decoration-none text-primary fw-semibold">¿Contraseña olvidada?</a>
             </div>
-            <div class="login-input-group input-group d-flex align-items-center">
+            <div class="login-input-group input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="inputUserPassword" onkeyup="callBackOnEnter(event, performLogin)" class="form-control" placeholder="••••••••" autocomplete="current-password">
                 <button type="button" class="btn-password-toggle" onclick="togglePasswordVisibility(this)" tabindex="-1" title="Mostrar/ocultar contraseña">
