@@ -64,7 +64,7 @@
   "Reminders_by_Category": "Recordatorios por categoría",
   "Reminders_by_Urgency": "Recordatorios por urgencia",
   "Collaborators": "Colaboradores",
-  "Username": "Usuario",
+  "Username": "Usuario o correo",
   "Delete": "Borrar",
   "Fuel_Mileage_by_Month": "Kilometraje de combustible por mes",
   "Vehicle_Maintenance_Report": "Informe de mantenimiento del vehículo",
@@ -231,9 +231,9 @@
   "Edit_Note": "Editar Nota",
   "Password": "Contraseña",
   "Remember_Me": "Recordar",
-  "Login": "Usuario",
+  "Login": "Iniciar Sesión",
   "Forgot_Password": "Contraseña olvidada",
-  "Register": "Registrar",
+  "Register": "Registrarse",
   "Request": "Solicitud",
   "I_Have_a_Token": "Tengo un token",
   "Back_to_Login": "Volver al inicio de sesión",
@@ -689,5 +689,8 @@
   "Expired_days_ago": "Vencida hace {0} días",
   "Expires_in_days": "Vence en {0} días",
   "Up_to_date": "Vigente",
-  "Copy_VIN": "Copiar VIN"
+  "Copy_VIN": "Copiar VIN",
+  "Remember Me": "Recordar sesión",
+  "Forgot Password": "¿Contraseña olvidada?",
+  "Back to Login": "Volver a Iniciar Sesión"
 }

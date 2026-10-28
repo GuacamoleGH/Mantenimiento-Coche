@@ -1864,16 +1864,18 @@ function handleSwalEnter(e) {
     }
 }
 function togglePasswordVisibility(elem) {
-    var passwordField = $(elem).parent().siblings("input");
+    var group = $(elem).closest('.input-group, .auth-input-group');
+    var passwordField = group.find('input');
+    if (!passwordField.length) {
+        passwordField = $(elem).parent().siblings("input");
+    }
     var passwordButton = $(elem).find('.bi');
-    if (passwordField.attr("type") == "password") {
+    if (passwordField.attr("type") === "password") {
         passwordField.attr("type", "text");
-        passwordButton.removeClass('bi-eye');
-        passwordButton.addClass('bi-eye-slash');
+        passwordButton.removeClass('bi-eye').addClass('bi-eye-slash');
     } else {
         passwordField.attr("type", "password");
-        passwordButton.removeClass('bi-eye-slash');
-        passwordButton.addClass('bi-eye');
+        passwordButton.removeClass('bi-eye-slash').addClass('bi-eye');
     }
 }
 var tableColumnDragToReorder = undefined;
