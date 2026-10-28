@@ -8,7 +8,7 @@
     var userLanguage = userConfig.UserLanguage;
 }
 <div class="modal-header">
-    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Odometer Record") : translator.Translate(userLanguage, "Edit Odometer Record"))<a class="ms-1 link-body-emphasis" onclick="@(isNew ? $"createQR('add', '')" : $"createQR('id', {Model.Id})")"><i class="bi bi-qr-code"></i></a><small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditOdometerRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
+    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Odometer Record") : translator.Translate(userLanguage, "Edit Odometer Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditOdometerRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
     <button type="button" class="btn-close" onclick="hideAddOdometerRecordModal()" aria-label="Close"></button>
 </div>
 <div class="modal-body d-none trip-modal">
@@ -34,55 +34,67 @@
 <div class="modal-body odometer-modal" onkeydown="handleEnter(this)">
     <form>
         <div class="form-group">
-            <div class="row">
-                <div class="col-md-6 col-12">
+            <div class="row g-4">
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
                     <input type="text" id="workAroundInput" style="height:0px; width:0px; display:none;">
-                    <label for="odometerRecordDate">@translator.Translate(userLanguage,"Date")</label>
-                    <div class="input-group">
-                        <input type="text" id="odometerRecordDate" class="form-control" placeholder="@translator.Translate(userLanguage,"Date recorded")" value="@Model.Date">
-                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                    <div>
+                        <label for="odometerRecordDate" class="form-label mb-1">@translator.Translate(userLanguage,"Date")</label>
+                        <div class="input-group">
+                            <input type="text" id="odometerRecordDate" class="form-control" placeholder="@translator.Translate(userLanguage,"Date recorded")" value="@Model.Date">
+                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                        </div>
                     </div>
-                    <label for="initialOdometerRecordMileage">@translator.Translate(userLanguage, "Initial Odometer")</label>
-                    <div class="input-group">
-                        <input type="number" inputmode="numeric" id="initialOdometerRecordMileage" @(Model.InitialMileage != default ? "disabled" : "") class="form-control" placeholder="@translator.Translate(userLanguage,"Initial Odometer reading")" value="@(Model.InitialMileage)">
-                        @if (Model.InitialMileage != default)
-                        {
-                            <div class="input-group-text">
-                                <button type="button" class="btn btn-sm btn-secondary zero-y-padding" onclick="toggleInitialOdometerEnabled()"><i class="bi bi-pencil"></i></button>
-                            </div>
-                        }
+                    <div>
+                        <label for="initialOdometerRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage, "Initial Odometer")</label>
+                        <div class="input-group">
+                            <input type="number" inputmode="numeric" id="initialOdometerRecordMileage" @(Model.InitialMileage != default ? "disabled" : "") class="form-control" placeholder="@translator.Translate(userLanguage,"Initial Odometer reading")" value="@(Model.InitialMileage)">
+                            @if (Model.InitialMileage != default)
+                            {
+                                <div class="input-group-text">
+                                    <button type="button" class="btn btn-sm btn-secondary zero-y-padding" onclick="toggleInitialOdometerEnabled()"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <label for="odometerRecordMileage">@translator.Translate(userLanguage,"Odometer")</label>
-                    <div class="input-group">
-                        <input type="number" inputmode="numeric" id="odometerRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading")" value="@(isNew ? "" : Model.Mileage)">
-                        @if (isNew)
-                        {
-                            <div class="input-group-text">
-                                <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('odometerRecordMileage')"><i class="bi bi-plus"></i></button>
-                            </div>
-                            <div class="input-group-text trip-show d-none">
-                                <button type="button" class="btn btn-sm btn-danger zero-y-padding" onclick="showTripModal()"><i class="bi bi-record-fill"></i></button>
-                            </div>
-                        }
+                    <div>
+                        <label for="odometerRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage,"Odometer")</label>
+                        <div class="input-group">
+                            <input type="number" inputmode="numeric" id="odometerRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading")" value="@(isNew ? "" : Model.Mileage)">
+                            @if (isNew)
+                            {
+                                <div class="input-group-text">
+                                    <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('odometerRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus"></i></button>
+                                </div>
+                                <div class="input-group-text trip-show d-none">
+                                    <button type="button" class="btn btn-sm btn-danger zero-y-padding" onclick="showTripModal()"><i class="bi bi-record-fill"></i></button>
+                                </div>
+                            }
+                        </div>
                     </div>
-                    <label for="odometerRecordTag">@translator.Translate(userLanguage,"Tags(optional)")</label>
-                    <select multiple class="form-select" id="odometerRecordTag">
-                        @foreach (string tag in Model.Tags)
-                        {
-                            <!option value="@tag">@tag</!option>
-                        }
-                    </select>
+                    <div>
+                        <label for="odometerRecordTag" class="form-label mb-1">@translator.Translate(userLanguage,"Tags(optional)")</label>
+                        <select multiple class="form-select" id="odometerRecordTag">
+                            @foreach (string tag in Model.Tags)
+                            {
+                                <!option value="@tag">@tag</!option>
+                            }
+                        </select>
+                    </div>
                     @await Html.PartialAsync("_ExtraField", Model.ExtraFields)
                 </div>
-                <div class="col-md-6 col-12">
-                    <label for="odometerRecordNotes">@translator.Translate(userLanguage,"Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
-                    <textarea id="odometerRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
+                    <div>
+                        <label for="odometerRecordNotes" class="form-label mb-1">@translator.Translate(userLanguage,"Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
+                        <textarea id="odometerRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
+                    </div>
                     @if (Model.EquipmentRecords.Any())
                     {
-                        <label for="equipmentSelector">@translator.Translate(userLanguage, "Equipment")</label>
-                        @await Html.PartialAsync("Equipment/_EquipmentSelector", Model.EquipmentRecords)
+                        <div>
+                            <label for="equipmentSelector" class="form-label mb-1">@translator.Translate(userLanguage, "Equipment")</label>
+                            @await Html.PartialAsync("Equipment/_EquipmentSelector", Model.EquipmentRecords)
+                        </div>
                     }
-                    <div>
+                    <div class="d-flex flex-column gap-2">
                         @await Html.PartialAsync("_UploadedFiles", Model.Files)
                         @await Html.PartialAsync("_FileUploader", Model.Files.Any())
                     </div>

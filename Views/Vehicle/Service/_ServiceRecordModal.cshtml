@@ -8,65 +8,75 @@
     var userLanguage = userConfig.UserLanguage;
 }
 <div class="modal-header">
-    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Service Record") : translator.Translate(userLanguage, "Edit Service Record"))<a class="ms-1 link-body-emphasis" onclick="@(isNew ? $"createQR('add', '')" : $"createQR('id', {Model.Id})")"><i class="bi bi-qr-code"></i></a><small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditServiceRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
+    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Service Record") : translator.Translate(userLanguage, "Edit Service Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditServiceRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
     <button type="button" class="btn-close" onclick="hideAddServiceRecordModal()" aria-label="Close"></button>
 </div>
 <div class="modal-body" onkeydown="handleEnter(this)">
     <form>
         <div class="form-group">
-            <div class="row">
-                <div class="col-md-6 col-12">
+            <div class="row g-4">
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
                     <input type="text" id="workAroundInput" style="height:0px; width:0px; display:none;">
-                    <label for="serviceRecordDate">@translator.Translate(userLanguage,"Date")</label>
-                    <div class="input-group">
-                        <input type="text" id="serviceRecordDate" class="form-control" placeholder="@translator.Translate(userLanguage,"Date service was performed")" value="@Model.Date">
-                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                    <div>
+                        <label for="serviceRecordDate" class="form-label mb-1">@translator.Translate(userLanguage,"Date")</label>
+                        <div class="input-group">
+                            <input type="text" id="serviceRecordDate" class="form-control" placeholder="@translator.Translate(userLanguage,"Date service was performed")" value="@Model.Date">
+                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                        </div>
                     </div>
-                    <label for="serviceRecordMileage">@translator.Translate(userLanguage, "Odometer")</label>
-                    <div class="input-group">
-                        <input type="number" inputmode="numeric" id="serviceRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading when serviced")" value="@(isNew || Model.Mileage == default ? "" : Model.Mileage)">
+                    <div>
+                        <label for="serviceRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage, "Odometer")</label>
+                        <div class="input-group">
+                            <input type="number" inputmode="numeric" id="serviceRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading when serviced")" value="@(isNew || Model.Mileage == default ? "" : Model.Mileage)">
+                            @if (isNew)
+                            {
+                                <div class="input-group-text">
+                                    <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('serviceRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus"></i></button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <label for="serviceRecordDescription" class="form-label mb-1">@translator.Translate(userLanguage,"Description")</label>
+                        <input type="text" id="serviceRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of item(s) serviced(i.e. Oil Change)")" value="@Model.Description">
                         @if (isNew)
                         {
-                            <div class="input-group-text">
-                                <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('serviceRecordMileage')"><i class="bi bi-plus"></i></button>
+                            <div class="mt-1">
+                                <a onclick="showRecurringReminderSelector('serviceRecordDescription', 'serviceRecordNotes')" class="btn btn-link p-0 text-decoration-none">@translator.Translate(userLanguage, "Select Reminder")</a>
                             </div>
                         }
                     </div>
-                    <label for="serviceRecordDescription">@translator.Translate(userLanguage,"Description")</label>
-                    <input type="text" id="serviceRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of item(s) serviced(i.e. Oil Change)")" value="@Model.Description">
-                    @if (isNew)
-                    {
-                        <div class="row">
-                            <div class="col-12">
-                                <a onclick="showRecurringReminderSelector('serviceRecordDescription', 'serviceRecordNotes')" class="btn btn-link">@translator.Translate(userLanguage, "Select Reminder")</a>
-                            </div>
-                        </div>
-                    }
-                    <label for="serviceRecordCost">@translator.Translate(userLanguage,"Cost")</label>
-                    <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="serviceRecordCost" class="form-control" placeholder="@translator.Translate(userLanguage,"Cost of the service")" value="@(isNew ? "" : Model.Cost)">
-                    @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "ServiceRecord", AdditionalSupplies = Model.RequisitionHistory.Any() })
-                    <label for="serviceRecordTag">@translator.Translate(userLanguage,"Tags(optional)")</label>
-                    <select multiple class="form-select" id="serviceRecordTag">
-                        @foreach(string tag in Model.Tags)
-                        {
-                            <!option value="@tag">@tag</!option>
-                        }
+                    <div>
+                        <label for="serviceRecordCost" class="form-label mb-1">@translator.Translate(userLanguage,"Cost")</label>
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="serviceRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the service")" value="@(isNew ? "" : Model.Cost)">
+                        @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "ServiceRecord", AdditionalSupplies = Model.RequisitionHistory.Any() })
+                    </div>
+                    <div>
+                        <label for="serviceRecordTag" class="form-label mb-1">@translator.Translate(userLanguage,"Tags(optional)")</label>
+                        <select multiple class="form-select" id="serviceRecordTag">
+                            @foreach(string tag in Model.Tags)
+                            {
+                                <!option value="@tag">@tag</!option>
+                            }
                         </select>
+                    </div>
                     @await Html.PartialAsync("_ExtraField", Model.ExtraFields)
                 </div>
-                <div class="col-md-6 col-12">
-                    <label for="serviceRecordNotes">@translator.Translate(userLanguage,"Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
-                    <textarea id="serviceRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
-                    @if (isNew)
-                    {
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="addReminderCheck">
-                            <label class="form-check-label" for="addReminderCheck">
-                                @translator.Translate(userLanguage, "Add Reminder")
-                            </label>
-                        </div>
-                    }
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
                     <div>
+                        <label for="serviceRecordNotes" class="form-label mb-1">@translator.Translate(userLanguage,"Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
+                        <textarea id="serviceRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
+                        @if (isNew)
+                        {
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" value="" id="addReminderCheck">
+                                <label class="form-check-label" for="addReminderCheck">
+                                    @translator.Translate(userLanguage, "Add Reminder")
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex flex-column gap-2">
                         @await Html.PartialAsync("_UploadedFiles", Model.Files)
                         @await Html.PartialAsync("_FileUploader", Model.Files.Any())
                     </div>

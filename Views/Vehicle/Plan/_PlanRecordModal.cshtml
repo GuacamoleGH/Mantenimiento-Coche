@@ -8,57 +8,69 @@
     var userLanguage = userConfig.UserLanguage;
 }
 <div class="modal-header">
-    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Plan Record") : translator.Translate(userLanguage, "Edit Plan Record"))<a class="ms-1 link-body-emphasis" onclick="@(isNew ? $"createQR('add', '')" : $"createQR('id', {Model.Id})")"><i class="bi bi-qr-code"></i></a><small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditPlanRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
+    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Plan Record") : translator.Translate(userLanguage, "Edit Plan Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditPlanRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
     <button type="button" class="btn-close" onclick="hideAddPlanRecordModal()" aria-label="Close"></button>
 </div>
 <div class="modal-body" onkeydown="handleEnter(this)">
     <form>
         <div class="form-group">
-            <div class="row">
-                <div class="col-md-6 col-12">
+            <div class="row g-4">
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
                     <input type="text" id="workAroundInput" style="height:0px; width:0px; display:none;">
-                    <label for="planRecordDescription">@translator.Translate(userLanguage, "Description")</label>
-                    <input type="text" id="planRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage, "Describe the Plan")" value="@Model.Description">
-                    @if (Model.ReminderRecordId == default && !Model.CreatedFromReminder)
-                    {
-                        <div class="row">
-                            <div class="col-12">
-                                <a onclick="showRecurringReminderSelector('planRecordDescription', 'planRecordNotes')" class="btn btn-link">@translator.Translate(userLanguage, "Select Reminder")</a>
+                    <div>
+                        <label for="planRecordDescription" class="form-label mb-1">@translator.Translate(userLanguage, "Description")</label>
+                        <input type="text" id="planRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage, "Describe the Plan")" value="@Model.Description">
+                        @if (Model.ReminderRecordId == default && !Model.CreatedFromReminder)
+                        {
+                            <div class="mt-1">
+                                <a onclick="showRecurringReminderSelector('planRecordDescription', 'planRecordNotes')" class="btn btn-link p-0 text-decoration-none">@translator.Translate(userLanguage, "Select Reminder")</a>
                             </div>
-                        </div>
-                    }
-                    <label for="planRecordCost">@translator.Translate(userLanguage, "Cost")</label>
-                    <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="planRecordCost" class="form-control" placeholder="@translator.Translate(userLanguage, "Cost of the Plan")" value="@Model.Cost">
-                    @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "PlanRecord", AdditionalSupplies = Model.RequisitionHistory.Any() })
-                    <label for="planRecordType">@translator.Translate(userLanguage, "Type")</label>
-                    <select class="form-select" id="planRecordType">
-                        <!option value="ServiceRecord" @(Model.ImportMode == ImportMode.ServiceRecord || isNew ? "selected" : "")>@translator.Translate(userLanguage, "Service")</!option>
-                        <!option value="RepairRecord" @(Model.ImportMode == ImportMode.RepairRecord ? "selected" : "")>@translator.Translate(userLanguage, "Repair")</!option>
-                        <!option value="UpgradeRecord" @(Model.ImportMode == ImportMode.UpgradeRecord ? "selected" : "")>@translator.Translate(userLanguage, "Upgrade")</!option>
-                    </select>
-                    <label for="planRecordPriority">@translator.Translate(userLanguage, "Priority")</label>
-                    <select class="form-select" id="planRecordPriority">
-                        <!option value="Critical" @(Model.Priority == PlanPriority.Critical ? "selected" : "")>@translator.Translate(userLanguage, "Critical")</!option>
-                        <!option value="Normal" @(Model.Priority == PlanPriority.Normal || isNew ? "selected" : "")>@translator.Translate(userLanguage, "Normal")</!option>
-                        <!option value="Low" @(Model.Priority == PlanPriority.Low ? "selected" : "")>@translator.Translate(userLanguage, "Low")</!option>
-                    </select>
-                    <label for="planRecordProgress">@translator.Translate(userLanguage, "Current Stage")</label>
-                    <select class="form-select" id="planRecordProgress">
-                        <!option value = "Backlog" @(Model.Progress == PlanProgress.Backlog || isNew ? "selected" : "")>@translator.Translate(userLanguage, "Planned")</!option>
-                        <!option value="InProgress" @(Model.Progress == PlanProgress.InProgress ? "selected" : "")>@translator.Translate(userLanguage, "Doing")</!option>
-                        <!option value = "Testing" @(Model.Progress == PlanProgress.Testing ? "selected" : "")>@translator.Translate(userLanguage, "Testing")</!option>
-                    </select>
+                        }
+                    </div>
+                    <div>
+                        <label for="planRecordCost" class="form-label mb-1">@translator.Translate(userLanguage, "Cost")</label>
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="planRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage, "Cost of the Plan")" value="@Model.Cost">
+                        @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "PlanRecord", AdditionalSupplies = Model.RequisitionHistory.Any() })
+                    </div>
+                    <div>
+                        <label for="planRecordType" class="form-label mb-1">@translator.Translate(userLanguage, "Type")</label>
+                        <select class="form-select" id="planRecordType">
+                            <!option value="ServiceRecord" @(Model.ImportMode == ImportMode.ServiceRecord || isNew ? "selected" : "")>@translator.Translate(userLanguage, "Service")</!option>
+                            <!option value="RepairRecord" @(Model.ImportMode == ImportMode.RepairRecord ? "selected" : "")>@translator.Translate(userLanguage, "Repair")</!option>
+                            <!option value="UpgradeRecord" @(Model.ImportMode == ImportMode.UpgradeRecord ? "selected" : "")>@translator.Translate(userLanguage, "Upgrade")</!option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="planRecordPriority" class="form-label mb-1">@translator.Translate(userLanguage, "Priority")</label>
+                        <select class="form-select" id="planRecordPriority">
+                            <!option value="Critical" @(Model.Priority == PlanPriority.Critical ? "selected" : "")>@translator.Translate(userLanguage, "Critical")</!option>
+                            <!option value="Normal" @(Model.Priority == PlanPriority.Normal || isNew ? "selected" : "")>@translator.Translate(userLanguage, "Normal")</!option>
+                            <!option value="Low" @(Model.Priority == PlanPriority.Low ? "selected" : "")>@translator.Translate(userLanguage, "Low")</!option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="planRecordProgress" class="form-label mb-1">@translator.Translate(userLanguage, "Current Stage")</label>
+                        <select class="form-select" id="planRecordProgress">
+                            <!option value = "Backlog" @(Model.Progress == PlanProgress.Backlog || isNew ? "selected" : "")>@translator.Translate(userLanguage, "Planned")</!option>
+                            <!option value="InProgress" @(Model.Progress == PlanProgress.InProgress ? "selected" : "")>@translator.Translate(userLanguage, "Doing")</!option>
+                            <!option value = "Testing" @(Model.Progress == PlanProgress.Testing ? "selected" : "")>@translator.Translate(userLanguage, "Testing")</!option>
+                        </select>
+                    </div>
                     @await Html.PartialAsync("_ExtraField", Model.ExtraFields)
                     @if (!isNew)
                     {
-                        <label>@($"{translator.Translate(userLanguage, "Date Created")}: {Model.DateCreated}")</label>
-                        <label>@($"{translator.Translate(userLanguage, "Last Modified")}: {Model.DateModified}")</label>
+                        <div class="d-flex flex-column text-secondary small">
+                            <span>@($"{translator.Translate(userLanguage, "Date Created")}: {Model.DateCreated}")</span>
+                            <span>@($"{translator.Translate(userLanguage, "Last Modified")}: {Model.DateModified}")</span>
+                        </div>
                     }
                 </div>
-                <div class="col-md-6 col-12">
-                    <label for="planRecordNotes">@translator.Translate(userLanguage, "Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
-                    <textarea id="planRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
                     <div>
+                        <label for="planRecordNotes" class="form-label mb-1">@translator.Translate(userLanguage, "Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
+                        <textarea id="planRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
                         @await Html.PartialAsync("_UploadedFiles", Model.Files)
                         @await Html.PartialAsync("_FileUploader", Model.Files.Any())
                     </div>
