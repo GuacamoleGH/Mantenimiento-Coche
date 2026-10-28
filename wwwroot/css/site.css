@@ -457,11 +457,38 @@ body {
         color: #fff !important;
     }
 
-html[data-bs-theme="dark"] .table-context-menu {
-    background-color: rgba(33, 37, 41, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
+html[data-bs-theme="dark"], :root {
+    /* Variables de Paleta LubeLogger (paleta-colores-lubelogger.md) */
+    --color-primary: #FBC41E;
+    --color-primary-hover: #D6A512;
+    --color-primary-soft: #3A3016;
+    --color-bg: #111722;
+    --color-surface: #191F2C;
+    --color-surface-elevated: #252E3F;
+    --color-border: #30394A;
+    --color-text: #F1F5F9;
+    --color-text-secondary: #A0AABD;
+    --color-success: #22C55E;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --color-info: #38BDF8;
+    --color-statistics: #A78BFA;
+
+    /* Mapeo Bootstrap Tema Oscuro */
+    --bs-body-bg: #111722;
+    --bs-body-color: #F1F5F9;
+    --bs-body-bg-rgb: 17, 23, 34;
+    --bs-secondary-bg: #191F2C;
+    --bs-tertiary-bg: #252E3F;
+    --bs-border-color: #30394A;
+    --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
+    --bs-card-bg: #191F2C;
+    --bs-primary: #FBC41E;
+    --bs-primary-rgb: 251, 196, 30;
+    --bs-primary-text-emphasis: #FBC41E;
+    --bs-link-color: #FBC41E;
+    --bs-link-hover-color: #D6A512;
+    --bs-secondary-color: #A0AABD;}
 
 html[data-bs-theme="light"] .table-context-menu {
     background-color: rgba(255, 255, 255, 0.7);
@@ -1139,27 +1166,27 @@ html[data-bs-theme="dark"] .swal2-validation-message {
    MODO OSCURO PREMIUM Y REFINAMIENTO DE INTERFAZ
    ======================================================== */
 [data-bs-theme="dark"] {
-    --bs-body-bg: #0b0f19;
+    --bs-body-bg: #111722;
     --bs-body-color: #f1f5f9;
     --bs-body-bg-rgb: 11, 15, 25;
     --bs-secondary-bg: #141b2d;
     --bs-tertiary-bg: #1e293b;
     --bs-border-color: #26334d;
     --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
-    --bs-card-bg: #131926;
+    --bs-card-bg: #191F2C;
     --bs-primary: #3b82f6;
     --bs-primary-rgb: 59, 130, 246;
 }
 
 [data-bs-theme="dark"] body {
-    background: var(--bs-body-bg) !important;
-    background-color: var(--bs-body-bg) !important;
+    background-color: #111722 !important;
+    background: #111722 !important;
     color: #f1f5f9;
 }
 
 /* Tarjetas en Modo Oscuro */
 [data-bs-theme="dark"] .card {
-    background-color: #131926;
+    background-color: #191F2C;
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
 }
@@ -1262,10 +1289,10 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 .lubelogger-tab .nav-link.active {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-    color: #ffffff !important;
-    font-weight: 600;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+    background: #FBC41E !important;
+    color: #111722 !important;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(251, 196, 30, 0.35);
 }
 
 /* Barra Superior Translúcida (Navbar) */
@@ -1279,7 +1306,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 /* Cockpit Ficha de Vehículo */
 .cockpit-box {
-    background: #131926;
+    background: #191F2C;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1.25rem;
@@ -1287,7 +1314,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 .cockpit-card {
-    background: #182030 !important;
+    background: #252E3F !important;
     border: 1px solid rgba(255, 255, 255, 0.07) !important;
     border-radius: 12px !important;
     transition: border-color 0.2s ease, transform 0.2s ease;
@@ -1339,7 +1366,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 /* Buscador redondeado con estilo flotante */
 .search-pill-group {
-    background: #131926;
+    background: #191F2C;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 30px;
     overflow: hidden;
@@ -1454,7 +1481,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 .btn-cockpit-odo:hover {
     background: #06b6d4 !important;
-    color: #0b0f19 !important;
+    color: #111722 !important;
     border-color: #06b6d4 !important;
 }
 
@@ -1472,7 +1499,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 /* Nav Item More Minimalist */
 .nav-item-more .dropdown-menu {
     border-radius: 12px;
-    background: #131926;
+    background: #191F2C;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     min-width: 200px;
@@ -1493,7 +1520,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 /* --- Modern Dashboard KPI Cards & Empty States --- */
 .kpi-stat-card {
-    background: #131926;
+    background: #191F2C;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
     padding: 0.85rem 1rem;
@@ -1549,7 +1576,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 .dashboard-card {
-    background: #131926 !important;
+    background: #191F2C !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 14px !important;
     padding: 1rem;
@@ -1681,4 +1708,144 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 .login-input-group .btn-password-toggle:hover {
     color: var(--bs-body-color);
+}
+
+
+/* ========================================================
+   ESTILOS DE MARCA LUBELOGGER (paleta-colores-lubelogger.md)
+   ======================================================== */
+
+/* Botón Principal (Amarillo LubeLogger con texto oscuro) */
+.btn-primary {
+    --bs-btn-bg: #FBC41E;
+    --bs-btn-border-color: #FBC41E;
+    --bs-btn-color: #111722;
+    --bs-btn-hover-bg: #D6A512;
+    --bs-btn-hover-border-color: #D6A512;
+    --bs-btn-hover-color: #111722;
+    --bs-btn-active-bg: #b88d0f;
+    --bs-btn-active-border-color: #b88d0f;
+    --bs-btn-active-color: #111722;
+    --bs-btn-disabled-bg: #FBC41E;
+    --bs-btn-disabled-border-color: #FBC41E;
+    --bs-btn-disabled-color: rgba(17, 23, 34, 0.6);
+    background-color: #FBC41E !important;
+    border-color: #FBC41E !important;
+    color: #111722 !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #D6A512 !important;
+    border-color: #D6A512 !important;
+    color: #111722 !important;
+    box-shadow: 0 4px 14px rgba(251, 196, 30, 0.35) !important;
+}
+
+.btn-primary:active {
+    background-color: #b88d0f !important;
+    border-color: #b88d0f !important;
+    color: #111722 !important;
+}
+
+/* Botones Secundarios */
+.btn-secondary {
+    background-color: #252E3F !important;
+    border-color: #30394A !important;
+    color: #F1F5F9 !important;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #30394A !important;
+    border-color: #4A5568 !important;
+    color: #ffffff !important;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #FBC41E;
+    --bs-btn-border-color: #FBC41E;
+    --bs-btn-hover-color: #111722;
+    --bs-btn-hover-bg: #FBC41E;
+    --bs-btn-hover-border-color: #FBC41E;
+    border-color: #FBC41E !important;
+    color: #FBC41E !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #FBC41E !important;
+    color: #111722 !important;
+}
+
+/* Enlaces y acentos de texto */
+a {
+    color: #FBC41E;
+    transition: color 0.15s ease;
+}
+
+a:hover {
+    color: #D6A512;
+}
+
+.text-primary {
+    color: #FBC41E !important;
+}
+
+/* Inputs, Selects y Foco */
+.form-control, .form-select {
+    background-color: #252E3F !important;
+    border-color: #30394A !important;
+    color: #F1F5F9 !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #FBC41E !important;
+    box-shadow: 0 0 0 0.2rem rgba(251, 196, 30, 0.25) !important;
+    color: #F1F5F9 !important;
+}
+
+.form-check-input:checked {
+    background-color: #FBC41E !important;
+    border-color: #FBC41E !important;
+}
+
+.form-check-input:focus {
+    border-color: #FBC41E !important;
+    box-shadow: 0 0 0 0.2rem rgba(251, 196, 30, 0.25) !important;
+}
+
+/* Botones de Inicio de Sesión Social (Google y Discord) */
+.btn-auth-social {
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.btn-auth-google {
+    background-color: #252E3F !important;
+    border: 1px solid #30394A !important;
+    color: #F1F5F9 !important;
+}
+
+.btn-auth-google:hover {
+    background-color: #30394A !important;
+    border-color: #4A5568 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-auth-discord {
+    background-color: #5865F2 !important;
+    border: 1px solid #5865F2 !important;
+    color: #ffffff !important;
+}
+
+.btn-auth-discord:hover {
+    background-color: #4752C4 !important;
+    border-color: #4752C4 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(88, 101, 242, 0.45) !important;
 }
