@@ -62,8 +62,17 @@ namespace CarCareTracker.Controllers
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty);
         }
-        public IActionResult Index()
+                public IActionResult Index()
         {
+            int currentUserId = GetUserID();
+            if (currentUserId > 0)
+            {
+                var allUsers = _userLogic.GetAllUsers();
+                if (allUsers.Count == 1 && allUsers[0].Id == currentUserId)
+                {
+                    _userLogic.ClaimOrphanVehicles(currentUserId);
+                }
+            }
             return View();
         }
         public IActionResult Garage()

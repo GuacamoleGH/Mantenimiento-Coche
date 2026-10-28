@@ -1,3 +1,4 @@
+@inject CarCareTracker.Logic.IUserLogic userLogic
 @using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
@@ -70,6 +71,26 @@
                     <label for="inputImage" id="inputImageUploadLabel" class="@(string.IsNullOrWhiteSpace(Model.ImageLocation) ? "" : "d-none") mt-2">@translator.Translate(userLanguage, "Upload a picture(optional)")</label>
                     <input onChange="uploadThumbnail(this)" type="file" accept=".png,.jpg,.jpeg" class="form-control-file" id="inputImage">
                     <input style="display:none;" onChange="uploadMap(this)" type="file" accept=".json" class="form-control-file" id="inputMap">
+
+                    
+                    @if (User.IsInRole(nameof(UserData.IsRootUser)))
+                    {
+                        var allUsers = userLogic.GetAllUsers();
+                        var currentOwnerId = isNew ? -1 : userLogic.GetVehicleOwnerUserId(Model.Id);
+                        <div class="mt-2 p-2 rounded-3 bg-dark bg-opacity-25 border border-warning border-opacity-25">
+                            <label for="inputVehicleOwner" class="form-label text-warning small fw-semibold mb-1">
+                                <i class="bi bi-shield-lock me-1"></i>Asignar Propietario (Admin/Root)
+                            </label>
+                            <select class="form-select form-select-sm" id="inputVehicleOwner">
+                                <!option value="-1" @(currentOwnerId <= 0 ? "selected" : "")>-- Sin propietario (Coche huérfano / Flota) --</!option>
+                                @foreach (var u in allUsers)
+                                {
+                                    <!option value="@u.Id" @(currentOwnerId == u.Id ? "selected" : "")>@u.UserName (@u.EmailAddress)</!option>
+                                }
+                            </select>
+                            <div class="extra-small text-secondary mt-1">Como administrador puedes asignar o transferir este vehículo a cualquier usuario registrado.</div>
+                        </div>
+                    }
 
                     @await Html.PartialAsync("_ExtraField", Model.ExtraFields)
                     <label for="inputIdentifier" class="@(!Model.ExtraFields.Any() ? "d-none" : "")">@translator.Translate(userLanguage, "Identifier")</label>

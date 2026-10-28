@@ -210,7 +210,9 @@ function saveVehicle(isEdit) {
     if (hasError) {
         return;
     }
+    let vehicleOwner = $("#inputVehicleOwner").length ? $("#inputVehicleOwner").val() : null;
     $.post('/Vehicle/SaveVehicle', {
+        ownerUserId: vehicleOwner,
         id: vehicleId,
         imageLocation: uploadedFile,
         mapLocation: uploadedMap,

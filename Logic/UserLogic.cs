@@ -28,6 +28,10 @@ namespace CarCareTracker.Logic
         List<HouseholdPermission> GetAPIKeyPermissions(string apiKey);
         bool DeleteAPIKeyByKeyIdAndUserId(int keyId, int userId);
         bool DeleteAllAPIKeysByUserId(int userId);
+        List<UserData> GetAllUsers();
+        int GetVehicleOwnerUserId(int vehicleId);
+        bool SetVehicleOwner(int vehicleId, int newOwnerUserId);
+        int ClaimOrphanVehicles(int targetUserId);
     }
     public class UserLogic: IUserLogic
     {
@@ -35,14 +39,17 @@ namespace CarCareTracker.Logic
         private readonly IUserRecordDataAccess _userData;
         private readonly IUserHouseholdDataAccess _userHouseholdData;
         private readonly IApiKeyRecordDataAccess _apiKeyData;
+        private readonly IVehicleDataAccess _vehicleData;
         public UserLogic(IUserAccessDataAccess userAccess,
             IUserRecordDataAccess userData,
             IUserHouseholdDataAccess userHouseholdData,
-            IApiKeyRecordDataAccess apiKeyData) { 
+            IApiKeyRecordDataAccess apiKeyData,
+            IVehicleDataAccess vehicleData) { 
             _userAccess = userAccess;
             _userData = userData;
             _userHouseholdData = userHouseholdData;
             _apiKeyData = apiKeyData;
+            _vehicleData = vehicleData;
         }
         public List<UserCollaborator> GetCollaboratorsForVehicle(int vehicleId)
         {
@@ -331,6 +338,44 @@ namespace CarCareTracker.Logic
         {
             var result = _apiKeyData.DeleteAllAPIKeysByUserId(userId);
             return result;
+        }
+        public List<UserData> GetAllUsers()
+        {
+            return _userData.GetUsers();
+        }
+        public int GetVehicleOwnerUserId(int vehicleId)
+        {
+            var accesses = _userAccess.GetUserAccessByVehicleId(vehicleId);
+            if (accesses != null && accesses.Any())
+            {
+                return accesses.First().Id.UserId;
+            }
+            return -1;
+        }
+        public bool SetVehicleOwner(int vehicleId, int newOwnerUserId)
+        {
+            _userAccess.DeleteAllAccessRecordsByVehicleId(vehicleId);
+            if (newOwnerUserId > 0)
+            {
+                return AddUserAccessToVehicle(newOwnerUserId, vehicleId);
+            }
+            return true;
+        }
+        public int ClaimOrphanVehicles(int targetUserId)
+        {
+            if (targetUserId <= 0) return 0;
+            var allVehicles = _vehicleData.GetVehicles();
+            int claimed = 0;
+            foreach (var vehicle in allVehicles)
+            {
+                var accesses = _userAccess.GetUserAccessByVehicleId(vehicle.Id);
+                if (accesses == null || !accesses.Any())
+                {
+                    AddUserAccessToVehicle(targetUserId, vehicle.Id);
+                    claimed++;
+                }
+            }
+            return claimed;
         }
     }
 }

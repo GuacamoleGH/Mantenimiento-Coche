@@ -4,3 +4,6 @@ obj/
 data/
 CarCareTracker.csproj.user
 Properties/launchSettings.json
+.env
+.env.local
+.env.*.local

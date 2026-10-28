@@ -129,7 +129,7 @@ namespace CarCareTracker.Controllers
             return PartialView("_VehicleModal", data);
         }
         [HttpPost]
-        public IActionResult SaveVehicle(Vehicle vehicleInput)
+        public IActionResult SaveVehicle(Vehicle vehicleInput, int? ownerUserId = null)
         {
             try
             {
@@ -146,6 +146,10 @@ namespace CarCareTracker.Controllers
                 vehicleInput.MapLocation = _fileHelper.MoveFileFromTemp(vehicleInput.MapLocation, "documents/");
                 //save vehicle.
                 var result = _dataAccess.SaveVehicle(vehicleInput);
+                if (User.IsInRole(nameof(UserData.IsRootUser)) && ownerUserId.HasValue)
+                {
+                    _userLogic.SetVehicleOwner(vehicleInput.Id, ownerUserId.Value);
+                }
                 if (isNewAddition)
                 {
                     _userLogic.AddUserAccessToVehicle(GetUserID(), vehicleInput.Id);

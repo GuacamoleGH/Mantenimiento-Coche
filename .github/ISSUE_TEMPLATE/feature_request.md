@@ -1,21 +1,20 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
-title: "[FEATURE REQUEST]"
+name: Sugerencia de funcionalidad
+about: Proponer una nueva idea o mejora para el proyecto
+title: "[PROPUESTA] "
 labels: enhancement
 assignees: ''
 
 ---
 
-**Checklist**
-Please make sure you have performed the following steps before submitting a new feature request, change `[ ]` to `[x]` to mark it as done
+**¿Tu propuesta resuelve un problema concreto?**
+Descripción clara del problema que experimentas o la necesidad detectada.
 
-- [ ] I have read the [Contributing Guidelines](https://github.com/hargata/lubelog/blob/main/.github/CONTRIBUTING.md) and [Scope and Purpose](https://github.com/hargata/lubelog/wiki/Scope-and-Purpose)
-- [ ] I have searched through existing issues.
+**Solución propuesta**
+Descripción de cómo te gustaría que funcionase la nueva funcionalidad.
 
-**Description**
-<!-- Describe the feature request below this line -->
+**Alternativas consideradas**
+Otras soluciones que hayas valorado o probado.
 
-**Acknowledgment**
-
-- [ ] I acknowledge that LubeLogger is a side project and that development efforts are entirely voluntary. I do not expect the core maintainers to respond to this issue, and I will not hound or chase them regarding this issue or any other issues.
+**Contexto adicional**
+Cualquier detalle adicional o boceto de interfaz.

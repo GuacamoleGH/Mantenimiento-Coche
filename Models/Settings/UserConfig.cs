@@ -37,13 +37,18 @@
         public string UserTheme { get; set; } = string.Empty;
         public List<ImportMode> VisibleTabs { get; set; } = new List<ImportMode>() { 
             ImportMode.Dashboard,
+            ImportMode.PlanRecord,
+            ImportMode.OdometerRecord,
             ImportMode.ServiceRecord, 
             ImportMode.RepairRecord, 
-            ImportMode.GasRecord, 
             ImportMode.UpgradeRecord, 
+            ImportMode.GasRecord, 
+            ImportMode.SupplyRecord, 
             ImportMode.TaxRecord, 
-            ImportMode.ReminderRecord, 
-            ImportMode.NoteRecord
+            ImportMode.NoteRecord,
+            ImportMode.InspectionRecord,
+            ImportMode.EquipmentRecord,
+            ImportMode.ReminderRecord
         };
         public ImportMode DefaultTab { get; set; } = ImportMode.Dashboard;
         public List<ImportMode> TabOrder { get; set; } = new List<ImportMode>() {
