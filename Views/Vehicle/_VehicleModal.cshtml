@@ -16,7 +16,8 @@
     int currentUserId = -1;
     if (!string.IsNullOrEmpty(currentUserIdClaim)) int.TryParse(currentUserIdClaim, out currentUserId);
     bool isAdmin = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin));
-    bool isOwner = isNew || isAdmin || Model.OwnerUserId == currentUserId || (Model.OwnerUserId <= 0 && userLogic.GetVehicleOwnerUserId(Model.Id) == currentUserId);
+    bool userCanEdit = userLogic.UserCanEditVehicle(currentUserId, Model.Id, HouseholdPermission.Edit);
+    bool isOwner = isNew || isAdmin || Model.OwnerUserId == currentUserId || (Model.OwnerUserId <= 0 && (userLogic.GetVehicleOwnerUserId(Model.Id) == currentUserId || userLogic.GetVehicleOwnerUserId(Model.Id) <= 0)) || userCanEdit;
 }
 <div class="modal-header">
     <h5 class="modal-title" id="addVehicleModalLabel">@(isNew ? translator.Translate(userLanguage, "Add New Vehicle") : translator.Translate(userLanguage, "Edit Vehicle"))</h5>

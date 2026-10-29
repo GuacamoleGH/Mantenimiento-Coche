@@ -11,6 +11,14 @@ $(function () {
         $('.lubelogger-tab .dropdown-menu').removeClass('show');
         $('.lubelogger-tab .dropdown-toggle').removeClass('show').attr('aria-expanded', 'false');
     });
+    // Auto-cerrar dropdowns al hacer scroll
+    $(window).on('scroll', function () {
+        var $openDropdowns = $('.cockpit-box .dropdown-menu.show, .lubelogger-tab .dropdown-menu.show');
+        if ($openDropdowns.length) {
+            $openDropdowns.removeClass('show');
+            $('.cockpit-box .dropdown-toggle.show, .lubelogger-tab .dropdown-toggle.show').removeClass('show').attr('aria-expanded', 'false');
+        }
+    });
     $('button[data-bs-toggle="tab"]').on('show.bs.tab', function (e) {
         switch (e.target.id) {
             case "servicerecord-tab":
@@ -974,4 +982,22 @@ function quickAddRecord(recordType) {
             waitForElement('#equipmentRecordModalContent', showAddEquipmentRecordModal);
             break;
     }
+}
+
+function toggleVehiclePublicStatus(vehicleId) {
+    sloader.show();
+    $.post('/Vehicle/ToggleVehiclePublicStatus', { vehicleId: vehicleId }, function (data) {
+        sloader.hide();
+        if (data.success) {
+            successToast(data.message);
+            setTimeout(function () {
+                window.location.reload();
+            }, 300);
+        } else {
+            errorToast(data.message);
+        }
+    }).fail(function () {
+        sloader.hide();
+        errorToast('Error al cambiar la visibilidad del vehículo.');
+    });
 }

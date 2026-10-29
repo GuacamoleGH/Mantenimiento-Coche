@@ -126,9 +126,18 @@
                     <i class="bi bi-clipboard me-1 text-info"></i>VIN: @Model.Vin
                 </button>
             }
-            <span class="badge @(Model.IsPublic ? "bg-info text-dark" : "bg-secondary text-light") border border-secondary px-2 py-1 font-monospace" title="@(Model.IsPublic ? "Vehículo público: otros usuarios pueden verlo en modo lectura" : "Vehículo privado: solo visible para ti")">
-                <i class="bi @(Model.IsPublic ? "bi-globe2" : "bi-lock-fill") me-1"></i>@(Model.IsPublic ? "Público" : "Privado")
-            </span>
+            @if (canEdit)
+            {
+                <button type="button" class="btn btn-sm badge @(Model.IsPublic ? "bg-info text-dark" : "bg-secondary text-light") border border-secondary px-2 py-1 font-monospace d-inline-flex align-items-center" onclick="toggleVehiclePublicStatus(@Model.Id)" title="@(Model.IsPublic ? "Vehículo público (clic para cambiar a Privado)" : "Vehículo privado (clic para cambiar a Público)")" style="cursor: pointer;">
+                    <i class="bi @(Model.IsPublic ? "bi-globe2" : "bi-lock-fill") me-1"></i>@(Model.IsPublic ? "Público" : "Privado")
+                </button>
+            }
+            else
+            {
+                <span class="badge @(Model.IsPublic ? "bg-info text-dark" : "bg-secondary text-light") border border-secondary px-2 py-1 font-monospace" title="@(Model.IsPublic ? "Vehículo público: otros usuarios pueden verlo en modo lectura" : "Vehículo privado: solo visible para ti")">
+                    <i class="bi @(Model.IsPublic ? "bi-globe2" : "bi-lock-fill") me-1"></i>@(Model.IsPublic ? "Público" : "Privado")
+                </span>
+            }
         </div>
 
         @if (canEdit)
@@ -139,7 +148,7 @@
                     <i class="bi bi-plus-circle-fill fs-6"></i>
                     <span>Añadir</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-2 border-secondary border-opacity-25" style="min-width: 270px; z-index: 1060;" aria-labelledby="quickAddRecordDropdownBtn">
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-2 border-secondary border-opacity-25" style="min-width: 270px; z-index: 1025;" aria-labelledby="quickAddRecordDropdownBtn">
                     <li class="dropdown-header text-uppercase text-secondary small fw-bold px-3 py-1"><i class="bi bi-tools me-2 text-warning"></i>Mantenimiento</li>
                     <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('GasRecord')"><i class="bi bi-fuel-pump text-success fs-6" style="color: #35D298 !important;"></i><span>Combustible</span></button></li>
                     <li><button class="dropdown-item d-flex align-items-center gap-2 py-2" onclick="quickAddRecord('ServiceRecord')"><i class="bi bi-tools text-warning fs-6"></i><span>Registro de servicios</span></button></li>
