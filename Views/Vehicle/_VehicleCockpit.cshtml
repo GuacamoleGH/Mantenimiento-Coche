@@ -30,21 +30,21 @@
             if (diff < 0)
             {
                 itvBadgeClass = "badge bg-danger text-white";
-                itvStatusText = $"Vencida hace {Math.Abs(diff)} d";
+                itvStatusText = "Caducada";
                 itvBorderClass = "border-danger";
                 itvDotClass = "status-dot-danger";
             }
             else if (diff <= 30)
             {
                 itvBadgeClass = "badge bg-warning text-dark";
-                itvStatusText = $"Vence en {diff} d";
+                itvStatusText = "Próxima";
                 itvBorderClass = "border-warning";
                 itvDotClass = "status-dot-warning";
             }
             else
             {
                 itvBadgeClass = "badge bg-success text-white";
-                itvStatusText = $"Vigente ({diff} d)";
+                itvStatusText = "Vigente";
                 itvBorderClass = "border-success";
                 itvDotClass = "status-dot-success";
             }
@@ -70,22 +70,22 @@
             if (diff < 0)
             {
                 insBadgeClass = "badge bg-danger text-white";
-                insStatusText = $"Vencido ({Math.Abs(diff)} d)";
+                insStatusText = "Vencido";
                 insBorderClass = "border-danger";
                 insDotClass = "status-dot-danger";
             }
             else if (diff <= 30)
             {
                 insBadgeClass = "badge bg-warning text-dark";
-                insStatusText = $"Renovación en {diff} d";
+                insStatusText = "Por renovar";
                 insBorderClass = "border-warning";
                 insDotClass = "status-dot-warning";
             }
             else
             {
-                insBadgeClass = "badge bg-info text-dark";
-                insStatusText = $"En vigor ({diff} d)";
-                insBorderClass = "border-info";
+                insBadgeClass = "badge bg-success text-white";
+                insStatusText = "Vigente";
+                insBorderClass = "border-success";
                 insDotClass = "status-dot-success";
             }
         }
@@ -295,7 +295,7 @@
                                     }
                                     else
                                     {
-                                        <div class="d-flex align-items-baseline gap-2 cockpit-val-info">
+                                        <div class="d-flex align-items-baseline gap-2 cockpit-val-success">
                                             <span class="fs-3 fw-bold font-monospace">@insDaysLeft.Value</span>
                                             <span class="small fw-semibold">días de cobertura</span>
                                         </div>
@@ -307,7 +307,7 @@
                                 }
                             </div>
                             <div class="pe-1">
-                                <i class="bi bi-file-earmark-medical fs-2 @(insDaysLeft < 0 ? "icon-watermark-danger" : (insDaysLeft <= 30 ? "icon-watermark-warning" : "icon-watermark-info"))"></i>
+                                <i class="bi bi-file-earmark-medical fs-2 @(insDaysLeft < 0 ? "icon-watermark-danger" : (insDaysLeft <= 30 ? "icon-watermark-warning" : "icon-watermark-success"))"></i>
                             </div>
                         </div>
                     }
