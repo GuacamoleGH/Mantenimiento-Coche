@@ -2579,3 +2579,36 @@ function validateAndSaveUserAccount() {
         }
     });
 }
+
+// Normalización de separador decimal: permitir tanto '.' como ',' indistintamente
+$(document).on('keydown', 'input[inputmode="decimal"], input[id*="Cost"], input[id*="Gallons"], input[id*="Price"], input[id*="Quantity"], input[id*="Consumption"]', function (e) {
+    var decimalSep = (typeof getDecimalSeparator === 'function' ? getDecimalSeparator() : null) || ',';
+    if (e.key === '.' || e.key === ',' || e.keyCode === 190 || e.keyCode === 110 || e.keyCode === 188) {
+        e.preventDefault();
+        var val = this.value;
+        var selStart = this.selectionStart;
+        var selEnd = this.selectionEnd;
+        var valWithoutSel = val.substring(0, selStart) + val.substring(selEnd);
+        // Evitar introducir múltiples separadores decimales
+        if (valWithoutSel.indexOf('.') === -1 && valWithoutSel.indexOf(',') === -1) {
+            this.value = val.substring(0, selStart) + decimalSep + val.substring(selEnd);
+            if (typeof this.setSelectionRange === 'function') {
+                this.setSelectionRange(selStart + 1, selStart + 1);
+            }
+            $(this).trigger('input').trigger('change');
+        }
+    }
+});
+
+$(document).on('input', 'input[inputmode="decimal"], input[id*="Cost"], input[id*="Gallons"], input[id*="Price"], input[id*="Quantity"], input[id*="Consumption"]', function () {
+    var decimalSep = (typeof getDecimalSeparator === 'function' ? getDecimalSeparator() : null) || ',';
+    var val = this.value;
+    var otherSep = decimalSep === ',' ? '.' : ',';
+    if (val.indexOf(otherSep) > -1 && val.indexOf(decimalSep) === -1) {
+        var selStart = this.selectionStart;
+        this.value = val.replace(otherSep, decimalSep);
+        if (typeof this.setSelectionRange === 'function' && selStart !== null) {
+            this.setSelectionRange(selStart, selStart);
+        }
+    }
+});

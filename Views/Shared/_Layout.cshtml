@@ -112,21 +112,36 @@
                 pattern: "@shortDatePattern"
             }
         }
+        function getDecimalSeparator() {
+            return decodeHTMLEntities("@numberFormat.NumberDecimalSeparator") || ',';
+        }
         function globalParseFloat(input){
-            //remove thousands separator.
+            if (input === undefined || input === null) return 0;
+            if (typeof input === 'number') return input;
+            input = input.toString().trim();
+            if (input == "---" || input == '') return 0;
+
+            var currencySymbol = decodeHTMLEntities("@numberFormat.CurrencySymbol");
+            if (currencySymbol) {
+                input = input.split(currencySymbol).join('');
+            }
+
             var thousandSeparator = decodeHTMLEntities("@numberFormat.NumberGroupSeparator");
             var decimalSeparator = decodeHTMLEntities("@numberFormat.NumberDecimalSeparator");
-            var currencySymbol = decodeHTMLEntities("@numberFormat.CurrencySymbol");
-            if (input == "---") {
-                input = "0";
+
+            // Si contiene tanto punto como coma (ej: 1.234,56 o 1,234.56), el de miles se elimina
+            if (input.indexOf('.') > -1 && input.indexOf(',') > -1) {
+                input = input.split(thousandSeparator).join('');
+                input = input.split(decimalSeparator).join('.');
+            } else if (input.indexOf(',') > -1) {
+                // Solo contiene coma -> es el separador decimal
+                input = input.replace(',', '.');
             }
-            //strip thousands from input.
-            input = input.replace(thousandSeparator, "");
-            //convert to JS format where decimal is only separated by .
-            input = input.replace(decimalSeparator, ".");
-            //remove any currency symbol
-            input = input.replace(currencySymbol, "");
-            return parseFloat(input);
+            // Si solo contiene punto (ej: 33.78), en JS ya es decimal
+
+            input = input.replace(/[^0-9.-]/g, '');
+            var result = parseFloat(input);
+            return isNaN(result) ? 0 : result;
         }
         function globalFloatToString(input) {
             var decimalSeparator = decodeHTMLEntities("@numberFormat.NumberDecimalSeparator");
