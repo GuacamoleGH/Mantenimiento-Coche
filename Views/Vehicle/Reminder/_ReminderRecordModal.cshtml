@@ -52,9 +52,7 @@
                             <input type="number" inputmode="numeric" id="reminderMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Future Odometer Reading")" value="@(isNew ? "" : Model.Mileage)">
                             @if (isNew)
                             {
-                                <div class="input-group-text">
-                                    <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('reminderMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus"></i></button>
-                                </div>
+                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="getLastOdometerReadingAndIncrement('reminderMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus-lg"></i></button>
                             }
                         </div>
                         <div class="form-check mt-2">

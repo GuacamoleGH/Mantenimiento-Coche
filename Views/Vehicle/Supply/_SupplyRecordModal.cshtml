@@ -41,9 +41,7 @@
                             <label for="supplyRecordQuantity" class="form-label mb-1">@translator.Translate(userLanguage,"Quantity")</label>
                             <div class="input-group">
                                 <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="supplyRecordQuantity" class="form-control" placeholder="@translator.Translate(userLanguage,"Quantity")" value="@(isNew ? "" : StaticHelper.TrimDecimal(Model.Quantity, 2))">
-                                <div class="input-group-text">
-                                    <button type="button" class="btn btn-sm zero-y-padding btn-primary" onclick="replenishSupplies()"><i class="bi bi-plus"></i></button>
-                                </div>
+                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="replenishSupplies()" title="Suministrar"><i class="bi bi-plus-lg"></i></button>
                             </div>
                         </div>
                         <div class="col-6">

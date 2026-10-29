@@ -28,9 +28,7 @@
                 case (ExtraFieldType.Location):
                     <div class="input-group">
                         <input type="text" id="@elementId" class="form-control @(field.IsRequired ? "extra-field-required" : "")" placeholder="@field.Name" value="@field.Value">
-                        <div class="input-group-text">
-                            <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="populateLocationField('@elementId')"><i class="bi bi-geo-alt"></i></button>
-                        </div>
+                        <button type="button" class="btn input-group-text btn-odometer-increment" onclick="populateLocationField('@elementId')" title="Obtener ubicación"><i class="bi bi-geo-alt"></i></button>
                     </div>
                     break;
                 default:

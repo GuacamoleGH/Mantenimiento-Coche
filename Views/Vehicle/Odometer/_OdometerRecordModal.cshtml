@@ -50,9 +50,7 @@
                             <input type="number" inputmode="numeric" id="initialOdometerRecordMileage" @(Model.InitialMileage != default ? "disabled" : "") class="form-control" placeholder="@translator.Translate(userLanguage,"Initial Odometer reading")" value="@(Model.InitialMileage)">
                             @if (Model.InitialMileage != default)
                             {
-                                <div class="input-group-text">
-                                    <button type="button" class="btn btn-sm btn-secondary zero-y-padding" onclick="toggleInitialOdometerEnabled()"><i class="bi bi-pencil"></i></button>
-                                </div>
+                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="toggleInitialOdometerEnabled()" title="Editar"><i class="bi bi-pencil"></i></button>
                             }
                         </div>
                     </div>
@@ -62,12 +60,8 @@
                             <input type="number" inputmode="numeric" id="odometerRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading")" value="@(isNew ? "" : Model.Mileage)">
                             @if (isNew)
                             {
-                                <div class="input-group-text">
-                                    <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('odometerRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus"></i></button>
-                                </div>
-                                <div class="input-group-text trip-show d-none">
-                                    <button type="button" class="btn btn-sm btn-danger zero-y-padding" onclick="showTripModal()"><i class="bi bi-record-fill"></i></button>
-                                </div>
+                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="getLastOdometerReadingAndIncrement('odometerRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus-lg"></i></button>
+                                <button type="button" class="btn input-group-text btn-odometer-increment trip-show d-none text-danger" onclick="showTripModal()"><i class="bi bi-record-fill"></i></button>
                             }
                         </div>
                     </div>

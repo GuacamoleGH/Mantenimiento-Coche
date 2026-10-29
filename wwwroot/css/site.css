@@ -2894,3 +2894,28 @@ button[onclick="performLogOut()"] i {
 a:has(.bi-qr-code) {
     display: none !important;
 }
+
+/* Botón de incremento / acción de kilometraje en input-group */
+.btn-odometer-increment {
+    background-color: var(--bs-tertiary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+    color: var(--bs-secondary-color) !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    box-shadow: none !important;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, transform 0.1s ease;
+}
+
+.btn-odometer-increment:hover {
+    color: var(--bs-body-color) !important;
+    background-color: var(--bs-secondary-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+.btn-odometer-increment:active {
+    transform: scale(0.94);
+}

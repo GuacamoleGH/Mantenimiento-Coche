@@ -27,9 +27,7 @@
                         <label for="inspectionRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage, "Odometer")</label>
                         <div class="input-group">
                             <input type="number" inputmode="numeric" id="inspectionRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage, "Odometer reading when inspected")" value="">
-                            <div class="input-group-text">
-                                <button type="button" class="btn btn-sm btn-primary zero-y-padding" onclick="getLastOdometerReadingAndIncrement('inspectionRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus"></i></button>
-                            </div>
+                            <button type="button" class="btn input-group-text btn-odometer-increment" onclick="getLastOdometerReadingAndIncrement('inspectionRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus-lg"></i></button>
                         </div>
                     </div>
                 </div>
