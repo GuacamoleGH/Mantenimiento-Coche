@@ -14,6 +14,7 @@
         public List<SupplyUsage> Supplies { get; set; } = new List<SupplyUsage>();
         public List<string> Tags { get; set; } = new List<string>();
         public List<ExtraField> ExtraFields { get; set; } = new List<ExtraField>();
+        public List<string> ServiceTypes { get; set; } = new List<string>();
         public List<SupplyUsageHistory> RequisitionHistory { get; set; } = new List<SupplyUsageHistory>();
         public List<SupplyUsageHistory> DeletedRequisitionHistory { get; set; } = new List<SupplyUsageHistory>();
         public bool CopySuppliesAttachment { get; set; } = false;
@@ -28,7 +29,8 @@
             Files = Files, 
             Tags = Tags, 
             ExtraFields = ExtraFields,
-            RequisitionHistory = RequisitionHistory
+            RequisitionHistory = RequisitionHistory,
+            ServiceTypes = ServiceTypes
         }; 
         }
     }

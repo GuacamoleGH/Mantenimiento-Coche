@@ -44,6 +44,37 @@
                             </div>
                         }
                     </div>
+                    <div class="position-relative">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label mb-0">Tipo de servicio</label>
+                            <span class="badge bg-secondary-subtle text-light small" id="serviceTypeCounterBadge" style="display:none; font-size: 0.72rem;">0 seleccionados</span>
+                        </div>
+                        <div id="serviceTypeSelectedBadges" class="d-flex flex-wrap gap-1 mb-1"></div>
+                        <button type="button" class="form-control text-start d-flex justify-content-between align-items-center user-select-none" id="serviceTypeDropdownTrigger" onclick="toggleServiceTypeDropdown(event)">
+                            <span id="serviceTypePlaceholder" class="text-secondary small">Seleccionar tipos de servicio...</span>
+                            <i class="bi bi-chevron-down small" id="serviceTypeChevron"></i>
+                        </button>
+                        <div id="serviceTypeDropdownMenu" class="service-type-dropdown card shadow-lg p-2 border-secondary" style="display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 1060; max-height: 320px; overflow-y: auto;">
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" id="serviceTypeSearch" class="form-control" placeholder="Buscar tipo de servicio..." oninput="filterServiceTypes(this.value)">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearServiceTypeSearch()" title="Limpiar"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2 px-1 border-bottom border-secondary-subtle pb-1">
+                                <span class="small text-muted" id="serviceTypeQuickCount">0 seleccionados</span>
+                                <div class="d-flex gap-2">
+                                    <a href="javascript:void(0)" class="small text-decoration-none" onclick="toggleAllServiceCategories(true)">Expandir</a>
+                                    <span class="small text-muted">|</span>
+                                    <a href="javascript:void(0)" class="small text-decoration-none" onclick="toggleAllServiceCategories(false)">Contraer</a>
+                                    <span class="small text-muted">|</span>
+                                    <a href="javascript:void(0)" class="small text-danger text-decoration-none" onclick="clearAllServiceTypes()">Limpiar</a>
+                                </div>
+                            </div>
+                            <div id="serviceTypeCategoryList" class="d-flex flex-column gap-1">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+                    </div>
                     <div>
                         <label for="serviceRecordCost" class="form-label mb-1">@translator.Translate(userLanguage,"Cost")</label>
                         <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="serviceRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the service")" value="@(isNew ? "" : Model.Cost)">
@@ -114,9 +145,11 @@
     var selectedSupplies = [];
     var recurringReminderRecordId = [];
     var copySuppliesAttachments = false;
+    var initialSelectedServiceTypes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ServiceTypes ?? new List<string>()));
     function getServiceRecordModelData(){
         return {id: @Model.Id}
     }
+    initServiceTypeSelector(initialSelectedServiceTypes);
 </script>
 @if (isNew && userConfig.EnableAutoFillOdometer)
 {

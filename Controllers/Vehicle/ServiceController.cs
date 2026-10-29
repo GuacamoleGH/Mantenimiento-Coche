@@ -99,7 +99,8 @@ namespace CarCareTracker.Controllers
                 Files = result.Files,
                 Tags = result.Tags,
                 RequisitionHistory = result.RequisitionHistory,
-                ExtraFields = StaticHelper.AddExtraFields(result.ExtraFields, _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.ServiceRecord).ExtraFields)
+                ExtraFields = StaticHelper.AddExtraFields(result.ExtraFields, _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.ServiceRecord).ExtraFields),
+                ServiceTypes = result.ServiceTypes
             };
             return PartialView("Service/_ServiceRecordModal", convertedResult);
         }
