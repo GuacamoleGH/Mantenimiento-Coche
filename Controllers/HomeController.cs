@@ -151,7 +151,7 @@ namespace CarCareTracker.Controllers
             foreach (var r in reminders)
             {
                 var v = vehiclesStored.FirstOrDefault(x => x.Id == r.VehicleId);
-                var vName = v != null ? $"{v.Year} {v.Make} {v.Model}" : "";
+                var vName = v != null ? $"{v.Year} {v.Make} {v.Model}" : (!string.IsNullOrWhiteSpace(r.VehicleName) ? r.VehicleName : "");
                 calendarVm.CalendarEvents.Add(new CalendarEventItem
                 {
                     Id = r.Id,

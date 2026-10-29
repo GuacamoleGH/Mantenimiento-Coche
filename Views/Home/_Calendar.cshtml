@@ -43,6 +43,12 @@
                                     </div>
                                     <span class="badge @badgeClass font-monospace text-nowrap" style="font-size: 0.7rem;">@urgencyText</span>
                                 </div>
+                                @if (!string.IsNullOrWhiteSpace(task.VehicleName))
+                                {
+                                    <div class="small text-secondary text-truncate mt-1" title="@task.VehicleName">
+                                        <i class="bi bi-car-front me-1"></i>@task.VehicleName
+                                    </div>
+                                }
                                 <div class="d-flex align-items-center justify-content-between mt-2 text-secondary small">
                                     <span><i class="bi bi-calendar3 me-1"></i>@task.Date.ToShortDateString()</span>
                                     @if (task.DueDays != default)

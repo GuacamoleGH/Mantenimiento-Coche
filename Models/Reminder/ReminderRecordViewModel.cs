@@ -1,4 +1,4 @@
-﻿namespace CarCareTracker.Models
+namespace CarCareTracker.Models
 {
     public class ReminderRecordViewModel
     {
@@ -9,6 +9,7 @@
         public int DueDays { get; set; }
         public int DueMileage { get; set; }
         public string Description { get; set; } = string.Empty;
+        public string VehicleName { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
         /// <summary>
         /// The metric the user selected to calculate the urgency of this reminder.
