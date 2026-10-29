@@ -6,17 +6,6 @@ Este proyecto es un fork y evolución personalizada basada en [LubeLogger](https
 
 ---
 
-## 🚗 Vehículo Principal de Referencia
-
-El diseño y los primeros módulos se optimizan para un **Mazda3 (2010, Generación BL)**:
-- **Motorización:** 2.0 DISI Gasolina (código motor `LF-VD`, 151 CV / 111 kW).
-- **Consumibles destacados:** Aceite motor 5W-30 / 0W-20 A5/B5, bujías de iridio (`SK16PR-E13 / ILKAR7L11`), cadena de distribución.
-- **Alertas legales prioritarias:** Próxima **ITV** y vencimiento de **Seguro** con avisos destacados en el panel principal.
-
-*La aplicación es 100% configurable para admitir cualquier otro vehículo, motocicleta o furgoneta.*
-
----
-
 ## ✨ Características y Evolución sobre LubeLogger
 
 - [x] **Localización 100% en Español:** Sistema de unidades y formatos adaptados a España (€, L/100km, km, Litros, fechas `DD/MM/YYYY`).
