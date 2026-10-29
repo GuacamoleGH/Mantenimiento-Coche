@@ -7,97 +7,97 @@
     var userLanguage = userConfig.UserLanguage;
 }
 
-<div id="attachmentTabs" class="text-start">
-    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-        <span class="text-muted small">Selecciona las categorías a exportar:</span>
-        <button type="button" class="btn btn-sm btn-link text-decoration-none py-0 px-1 text-primary" onclick="toggleAllExportTabs()" id="toggleAllExportBtn">
-            Seleccionar todo
+<div id="attachmentTabs" class="text-start" style="max-height: 60vh; overflow-y: auto;">
+    <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+        <span class="text-secondary small fw-medium">Selecciona las categorías a exportar:</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 extra-small text-light border-0 shadow-none" style="background: rgba(255, 255, 255, 0.08); outline: none !important;" onclick="toggleAllExportTabs()" id="toggleAllExportBtn">
+            <i class="bi bi-check2-all me-1"></i>Seleccionar todo
         </button>
     </div>
 
-    <div class="list-group list-group-flush border rounded-3 overflow-hidden shadow-sm">
+    <div class="d-flex flex-column gap-1 p-2 rounded-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);">
         <!-- 1. Mantenimiento -->
-        <div class="list-group-item bg-dark bg-opacity-50 py-1 px-3 border-bottom text-uppercase fw-bold text-muted extra-small d-flex align-items-center gap-1">
+        <div class="text-uppercase fw-bold text-secondary extra-small px-3 pt-2 pb-1 d-flex align-items-center gap-1">
             <i class="bi bi-tools text-warning"></i>
             <span>Mantenimiento</span>
         </div>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportGasRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportGasRecord">
             <input class="form-check-input mt-0" type="checkbox" value="GasRecord" id="exportGasRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-fuel-pump-fill" style="color: #35D298 !important;"></i>
                 <span>@translator.Translate(userLanguage, "Fuel")</span>
             </span>
         </label>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportServiceRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportServiceRecord">
             <input class="form-check-input mt-0" type="checkbox" value="ServiceRecord" id="exportServiceRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-tools text-warning"></i>
                 <span>@translator.Translate(userLanguage, "Service Records")</span>
             </span>
         </label>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportOdometerRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportOdometerRecord">
             <input class="form-check-input mt-0" type="checkbox" value="OdometerRecord" id="exportOdometerRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-speedometer2 text-info"></i>
                 <span>@translator.Translate(userLanguage, "Odometer")</span>
             </span>
         </label>
 
         <!-- 2. Planificación -->
-        <div class="list-group-item bg-dark bg-opacity-50 py-1 px-3 border-top border-bottom text-uppercase fw-bold text-muted extra-small d-flex align-items-center gap-1">
+        <div class="text-uppercase fw-bold text-secondary extra-small px-3 pt-2 pb-1 d-flex align-items-center gap-1">
             <i class="bi bi-calendar-check text-primary"></i>
             <span>Planificación</span>
         </div>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportPlanRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportPlanRecord">
             <input class="form-check-input mt-0" type="checkbox" value="PlanRecord" id="exportPlanRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-bar-chart-steps text-primary"></i>
                 <span>@translator.Translate(userLanguage, "Planner")</span>
             </span>
         </label>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportInspectionRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportInspectionRecord">
             <input class="form-check-input mt-0" type="checkbox" value="InspectionRecord" id="exportInspectionRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-card-checklist text-warning"></i>
                 <span>@translator.Translate(userLanguage, "Inspections")</span>
             </span>
         </label>
 
         <!-- 3. Ficha y notas -->
-        <div class="list-group-item bg-dark bg-opacity-50 py-1 px-3 border-top border-bottom text-uppercase fw-bold text-muted extra-small d-flex align-items-center gap-1">
+        <div class="text-uppercase fw-bold text-secondary extra-small px-3 pt-2 pb-1 d-flex align-items-center gap-1">
             <i class="bi bi-card-heading text-secondary"></i>
             <span>Ficha y notas</span>
         </div>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportNoteRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportNoteRecord">
             <input class="form-check-input mt-0" type="checkbox" value="NoteRecord" id="exportNoteRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-journal-text text-secondary"></i>
                 <span>@translator.Translate(userLanguage, "Notes")</span>
             </span>
         </label>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportUpgradeRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportUpgradeRecord">
             <input class="form-check-input mt-0" type="checkbox" value="UpgradeRecord" id="exportUpgradeRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-stars text-info"></i>
                 <span>@translator.Translate(userLanguage, "Upgrades")</span>
             </span>
         </label>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportEquipmentRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportEquipmentRecord">
             <input class="form-check-input mt-0" type="checkbox" value="EquipmentRecord" id="exportEquipmentRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-shield-check text-primary"></i>
                 <span>@translator.Translate(userLanguage, "Equipment")</span>
             </span>
         </label>
 
         <!-- 4. Tasas -->
-        <div class="list-group-item bg-dark bg-opacity-50 py-1 px-3 border-top border-bottom text-uppercase fw-bold text-muted extra-small d-flex align-items-center gap-1">
+        <div class="text-uppercase fw-bold text-secondary extra-small px-3 pt-2 pb-1 d-flex align-items-center gap-1">
             <i class="bi bi-receipt text-success"></i>
             <span>Tasas</span>
         </div>
-        <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportTaxRecord">
+        <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportTaxRecord">
             <input class="form-check-input mt-0" type="checkbox" value="TaxRecord" id="exportTaxRecord">
-            <span class="d-flex align-items-center gap-2 flex-grow-1">
+            <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                 <i class="bi bi-receipt text-success"></i>
                 <span>@translator.Translate(userLanguage, "Taxes")</span>
             </span>
@@ -105,13 +105,13 @@
 
         @if (userConfig.EnableShopSupplies)
         {
-            <div class="list-group-item bg-dark bg-opacity-50 py-1 px-3 border-top border-bottom text-uppercase fw-bold text-muted extra-small d-flex align-items-center gap-1">
+            <div class="text-uppercase fw-bold text-secondary extra-small px-3 pt-2 pb-1 d-flex align-items-center gap-1">
                 <i class="bi bi-box-seam text-secondary"></i>
                 <span>Suministros</span>
             </div>
-            <label class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 cursor-pointer" for="exportSupplyRecord">
+            <label class="d-flex align-items-center gap-3 py-2 px-3 rounded-2 cursor-pointer user-select-none option-row" for="exportSupplyRecord">
                 <input class="form-check-input mt-0" type="checkbox" value="SupplyRecord" id="exportSupplyRecord">
-                <span class="d-flex align-items-center gap-2 flex-grow-1">
+                <span class="d-flex align-items-center gap-2 flex-grow-1 text-light">
                     <i class="bi bi-box-seam text-secondary"></i>
                     <span>@translator.Translate(userLanguage, "Supplies")</span>
                 </span>
@@ -125,6 +125,6 @@
         var checkboxes = $("#attachmentTabs input[type='checkbox']");
         var allChecked = checkboxes.length === checkboxes.filter(':checked').length;
         checkboxes.prop('checked', !allChecked);
-        $("#toggleAllExportBtn").text(allChecked ? 'Seleccionar todo' : 'Deseleccionar todo');
+        $("#toggleAllExportBtn").html(allChecked ? '<i class="bi bi-check2-all me-1"></i>Seleccionar todo' : '<i class="bi bi-x-lg me-1"></i>Deseleccionar todo');
     }
 </script>

@@ -3525,3 +3525,28 @@ a:has(.bi-qr-code) {
     content: "\00a0";
     display: inline-block;
 }
+
+/* Filas de opciones modernas en diálogos SweetAlert (Exportar e Informe) */
+.option-row {
+    transition: background 0.15s ease, transform 0.15s ease;
+    cursor: pointer;
+}
+
+.option-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.option-row .form-check-input {
+    cursor: pointer;
+}
+
+#toggleAllExportBtn:focus,
+#toggleAllExportBtn:focus-visible,
+#toggleAllExportBtn:active,
+#toggleAllColumnsBtn:focus,
+#toggleAllColumnsBtn:focus-visible,
+#toggleAllColumnsBtn:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
