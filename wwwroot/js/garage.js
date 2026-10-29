@@ -249,8 +249,10 @@ function initCalendar() {
         }
     });
 
-    // Renderizar hoy por defecto al cargar
-    renderSelectedDayEvents(new Date());
+    // Preseleccionar y renderizar hoy por defecto al cargar
+    var today = new Date();
+    $container.datepicker('setDate', today);
+    renderSelectedDayEvents(today);
 }
 
 function renderSelectedDayEvents(date) {

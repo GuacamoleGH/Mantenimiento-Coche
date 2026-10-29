@@ -606,20 +606,8 @@ input[type="file"] {
     cursor: pointer !important;
 }
 
-.reminderCalendarViewContent .datepicker table tr td.day.today:not(.active) {
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-    background-color: rgba(251, 196, 30, 0.15) !important;
-    color: #FBC41E !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-}
-
-.reminderCalendarViewContent .datepicker table tr td.day.today:not(.active) .day-num {
-    color: #FBC41E !important;
-}
-
+.reminderCalendarViewContent .datepicker table tr td.day.today,
+.reminderCalendarViewContent .datepicker table tr td.day.today:hover,
 .reminderCalendarViewContent .datepicker table tr td.day.active,
 .reminderCalendarViewContent .datepicker table tr td.day.active:hover,
 .reminderCalendarViewContent .datepicker table tr td.day.today.active,
@@ -634,10 +622,13 @@ input[type="file"] {
     font-weight: bold !important;
 }
 
+.reminderCalendarViewContent .datepicker table tr td.day.today .day-num,
+.reminderCalendarViewContent .datepicker table tr td.day.today:hover .day-num,
 .reminderCalendarViewContent .datepicker table tr td.day.active .day-num,
 .reminderCalendarViewContent .datepicker table tr td.day.active:hover .day-num,
 .reminderCalendarViewContent .datepicker table tr td.day.today.active .day-num,
 .reminderCalendarViewContent .datepicker table tr td.day.today.active:hover .day-num,
+.reminderCalendarViewContent .datepicker table tr td.day.today .calendar-day-cell,
 .reminderCalendarViewContent .datepicker table tr td.day.active .calendar-day-cell,
 .reminderCalendarViewContent .datepicker table tr td.day.today.active .calendar-day-cell {
     color: #000000 !important;
