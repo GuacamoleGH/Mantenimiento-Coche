@@ -70,7 +70,7 @@
                     </div>
                     <div>
                         <label for="gasRecordGallons" class="form-label mb-1">@($"{translator.Translate(userLanguage, "Fuel Consumption")} ({consumptionUnit})")</label>
-                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimalsConsumption ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)")" id="gasRecordGallons" class="form-control" placeholder="@translator.Translate(userLanguage,"Amount of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Gallons)">
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimalsConsumption ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" id="gasRecordGallons" class="form-control" placeholder="@translator.Translate(userLanguage,"Amount of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Gallons)">
                     </div>
                     <!-- Depósito lleno mantenido activo en segundo plano para cálculo automático de consumo -->
                     <input class="form-check-input d-none" type="checkbox" id="gasIsFillToFull" checked="checked">
@@ -97,9 +97,9 @@
                         @if (isNew)
                         {
                             <div class="input-group mb-2">
-                                <input type="text" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)")" inputmode="decimal" id="gasRecordCost" class="form-control" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
+                                <input type="text" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" inputmode="decimal" id="gasRecordCost" class="form-control" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
                                 <div class="input-group-text">
-                                    <select class="form-select form-select-sm" id="gasCostType">
+                                    <select class="form-select form-select-sm" id="gasCostType" onchange="updateGasCostPreview()">
                                         <!option @(useUnitFuelCost ? "" : "selected") value="total">@translator.Translate(userLanguage,"Total")</!option>
                                         <!option @(useUnitFuelCost ? "selected" : "") value="unit">@translator.Translate(userLanguage,"Unit")</!option>
                                     </select>
@@ -107,8 +107,12 @@
                             </div>
                         } else
                         {
-                            <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)")" id="gasRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
+                            <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" id="gasRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
                         }
+                        <div id="gasCostCalculationPreview" class="p-2 rounded bg-body-tertiary border d-flex justify-content-between align-items-center mb-2 d-none" style="font-size: 0.88rem;">
+                            <span class="text-body-secondary"><i class="bi bi-fuel-pump me-1"></i><span id="gasCostPreviewLabel">Precio por @(consumptionUnit == "litros" ? "litro" : consumptionUnit):</span></span>
+                            <span id="gasCostPreviewValue" class="fw-bold text-success"></span>
+                        </div>
                         @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "GasRecord", AdditionalSupplies = Model.GasRecord.RequisitionHistory.Any() })
                     </div>
                     <div>
@@ -163,6 +167,39 @@
     function getGasRecordModelData(){
         return { id: @Model.GasRecord.Id}
     }
+    function updateGasCostPreview() {
+        var gallonsVal = $("#gasRecordGallons").val();
+        var costVal = $("#gasRecordCost").val();
+        var costType = $("#gasCostType").val() || 'total';
+
+        if (!gallonsVal || !costVal) {
+            $("#gasCostCalculationPreview").addClass("d-none");
+            return;
+        }
+
+        var gallons = globalParseFloat(gallonsVal);
+        var cost = globalParseFloat(costVal);
+
+        if (isNaN(gallons) || gallons <= 0 || isNaN(cost) || cost <= 0) {
+            $("#gasCostCalculationPreview").addClass("d-none");
+            return;
+        }
+
+        var singleUnit = decodeHTMLEntities('@(consumptionUnit == "litros" ? "litro" : (consumptionUnit == "gallons" ? "galón" : consumptionUnit))');
+
+        if (costType === 'unit') {
+            var total = (gallons * cost).toFixed(2);
+            $("#gasCostPreviewLabel").text("Coste total estimado:");
+            $("#gasCostPreviewValue").text(globalAppendCurrency(globalFloatToString(total)));
+            $("#gasCostCalculationPreview").removeClass("d-none");
+        } else {
+            var unitPrice = (cost / gallons).toFixed(3);
+            $("#gasCostPreviewLabel").text("Precio por " + singleUnit + ":");
+            $("#gasCostPreviewValue").text(globalAppendCurrency(globalFloatToString(unitPrice)) + " / " + singleUnit);
+            $("#gasCostCalculationPreview").removeClass("d-none");
+        }
+    }
+    setTimeout(updateGasCostPreview, 100);
 </script>
 @if (isNew && userConfig.EnableAutoFillOdometer)
 {
