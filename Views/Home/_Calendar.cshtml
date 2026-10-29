@@ -28,7 +28,7 @@
                     </span>
                 </div>
 
-                <div class="flex-grow-1 overflow-auto" style="max-height: 540px;">
+                <div class="flex-grow-1 overflow-auto pt-2 pb-2 px-1" style="max-height: 540px;">
                     @if (sortedReminders.Any())
                     {
                         @foreach (var task in sortedReminders)
@@ -116,7 +116,7 @@
                     <span id="calendarSelectedDateText" class="fw-semibold text-light"></span>
                 </div>
 
-                <div id="calendarDayEventsList" class="flex-grow-1 overflow-auto" style="max-height: 480px;">
+                <div id="calendarDayEventsList" class="flex-grow-1 overflow-auto pt-2 pb-2 px-1" style="max-height: 480px;">
                     <!-- Se rellena dinámicamente mediante JS -->
                 </div>
             </div>

@@ -575,6 +575,11 @@ input[type="file"] {
         margin: 0;
     }
 
+.reminderCalendarViewContent .datepicker table {
+    border-collapse: separate !important;
+    border-spacing: 2px !important;
+}
+
 .reminderCalendarViewContent .datepicker table tr td.day {
     cursor: pointer !important;
     border-radius: 8px !important;
@@ -583,6 +588,17 @@ input[type="file"] {
     vertical-align: middle;
     text-align: center;
     position: relative;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.reminderCalendarViewContent .datepicker table tr td.day:focus,
+.reminderCalendarViewContent .datepicker table tr td.day:focus-visible,
+.reminderCalendarViewContent .datepicker table tr td.day:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 .reminderCalendarViewContent .datepicker table tr td.day:hover {
@@ -591,15 +607,22 @@ input[type="file"] {
 }
 
 .reminderCalendarViewContent .datepicker table tr td.day.today {
-    border: 1px solid #FBC41E !important;
-    background-color: rgba(251, 196, 30, 0.1) !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: rgba(251, 196, 30, 0.12) !important;
+    color: #FBC41E !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
 }
 
 .reminderCalendarViewContent .datepicker table tr td.day.active,
-.reminderCalendarViewContent .datepicker table tr td.day.active:hover {
-    background-color: #FBC41E !important;
-    color: #111622 !important;
-    font-weight: bold !important;
+.reminderCalendarViewContent .datepicker table tr td.day.active:hover,
+.reminderCalendarViewContent .datepicker table tr td.day.today.active {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
 }
 
 .reminderCalendarViewContent .datepicker table tr td.day.active .day-dot {
@@ -2225,13 +2248,24 @@ a:hover {
     padding: 1.25rem;
     height: 100%;
 }
+.calendar-pending-tasks .overflow-auto,
+.calendar-day-details .overflow-auto,
+#calendarDayEventsList {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
 .calendar-task-card {
     background: #111722;
     border: 1px solid #30394A;
     border-radius: 0.75rem;
     padding: 0.85rem 1rem;
     margin-bottom: 0.75rem;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.calendar-task-card:first-child {
+    margin-top: 2px;
 }
 .calendar-task-card:hover {
     transform: translateY(-2px);
@@ -2802,6 +2836,15 @@ a:hover {
 
 [data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day {
     color: #0F172A !important;
+    border: none !important;
+    outline: none !important;
+}
+
+[data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day.today {
+    border: none !important;
+    outline: none !important;
+    background-color: rgba(217, 119, 6, 0.15) !important;
+    color: #D97706 !important;
 }
 
 [data-bs-theme="light"] .reminderCalendarViewContent .datepicker table tr td.day:hover {
