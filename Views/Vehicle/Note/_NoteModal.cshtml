@@ -27,7 +27,7 @@
                     </div>
                     <div>
                         <label for="noteRecordTag" class="form-label mb-1">@translator.Translate(userLanguage,"Tags(optional)")</label>
-                        <select multiple class="form-select" id="noteRecordTag">
+                        <select multiple class="form-select" id="noteRecordTag" placeholder="Escribe una etiqueta y pulsa Enter...">
                             @foreach (string tag in Model.Tags)
                             {
                                 <!option value="@tag">@tag</!option>

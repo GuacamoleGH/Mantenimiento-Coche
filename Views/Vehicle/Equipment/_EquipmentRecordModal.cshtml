@@ -20,7 +20,7 @@
                     <label for="equipmentRecordDescription">@translator.Translate(userLanguage, "Description")</label>
                     <input type="text" id="equipmentRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of equipment")" value="@Model.Description">
                     <label for="equipmentRecordTag">@translator.Translate(userLanguage, "Tags(optional)")</label>
-                    <select multiple class="form-select" id="equipmentRecordTag">
+                    <select multiple class="form-select" id="equipmentRecordTag" placeholder="Escribe una etiqueta y pulsa Enter...">
                         @foreach (string tag in Model.Tags)
                         {
                             <!option value="@tag">@tag</!option>

@@ -1,19 +1,14 @@
 .bootstrap-tagsinput {
   cursor: text;
 }
-.bootstrap-tagsinput input {
-  border: none;
-  box-shadow: none;
-  outline: none;
-  background-color: transparent;
-  padding: 0 6px;
-  margin: 0;
-  width: auto;
-  max-width: inherit;
-}
-.bootstrap-tagsinput input:focus {
-  border: none;
-  box-shadow: none;
+.bootstrap-tagsinput input,
+.bootstrap-tagsinput input:focus,
+.bootstrap-tagsinput input:focus-visible {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  background-color: transparent !important;
 }
 .bootstrap-tagsinput .tag [data-role="remove"] {
   margin-left: 8px;
