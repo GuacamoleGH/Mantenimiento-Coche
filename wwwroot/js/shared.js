@@ -1582,7 +1582,7 @@ function updateAggregateLabels() {
 
         }
 
-        sumDistanceLabel.text(`${sumDistanceLabel.text().split(':')[0]}: ${newDistanceSum}`)
+        sumDistanceLabel.text(`${sumDistanceLabel.text().split(':')[0]}: ${parseInt(newDistanceSum).toLocaleString()} km`)
 
     }
 

@@ -65,7 +65,15 @@
                             title: {
                                 display: true,
                                 color: useDarkMode ? "#fff" : "#000",
-                                text: decodeHTMLEntities('@($"{translator.Translate(userLanguage, "Fuel Mileage by Month")}({Model.Unit})")')
+                                text: decodeHTMLEntities('@($"{translator.Translate(userLanguage, "Fuel Mileage by Month")} ({Model.Unit})")')
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        let val = context.parsed.y !== null ? context.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '';
+                                        return ` @translator.Translate(userLanguage, "Average Fuel Economy"): ${val} @Model.Unit`;
+                                    }
+                                }
                             },
                             legend: {
                                 display: false,
