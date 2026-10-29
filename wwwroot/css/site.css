@@ -2250,11 +2250,11 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
     align-items: center;
 
-    background: #ffffff;
+    background: #19202E;
 
-    color: #111111;
+    color: #F1F5F9;
 
-    border: 1.5px solid #222222;
+    border: 1px solid rgba(255, 255, 255, 0.18);
 
     border-radius: 4px;
 
@@ -2266,7 +2266,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
     letter-spacing: 0.08em;
 
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 
 }
 
@@ -2644,11 +2644,11 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
     align-items: center;
 
-    background: #ffffff !important;
+    background: #19202E !important;
 
-    color: #111111 !important;
+    color: #F1F5F9 !important;
 
-    border: 1.5px solid #111111;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
 
     border-radius: 5px;
 
@@ -2662,7 +2662,7 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
     font-family: "Consolas", "Courier New", monospace;
 
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 
 }
 
@@ -2670,9 +2670,9 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 .garage-plate-badge .plate-eu-strip {
 
-    background: #003399;
+    background: #1D4ED8;
 
-    color: #ffcc00;
+    color: #FBBF24;
 
     font-size: 0.65rem;
 
@@ -2683,6 +2683,26 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     margin-right: 6px;
 
     border-radius: 2px;
+
+}
+
+[data-bs-theme="light"] .garage-plate-badge {
+
+    background: #F1F5F9 !important;
+
+    color: #111111 !important;
+
+    border: 1px solid #CBD5E1 !important;
+
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+
+}
+
+[data-bs-theme="light"] .garage-plate-badge .plate-eu-strip {
+
+    background: #003399;
+
+    color: #FFCC00;
 
 }
 
