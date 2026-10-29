@@ -94,26 +94,12 @@
                     </div>
                     <div>
                         <label for="GasRecordCost" class="form-label mb-1">@translator.Translate(userLanguage,"Cost")</label>
-                        @if (isNew)
-                        {
-                            <div class="input-group mb-2">
-                                <input type="text" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" inputmode="decimal" id="gasRecordCost" class="form-control" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
-                                <div class="input-group-text">
-                                    <select class="form-select form-select-sm" id="gasCostType" onchange="updateGasCostPreview()">
-                                        <!option @(useUnitFuelCost ? "" : "selected") value="total">@translator.Translate(userLanguage,"Total")</!option>
-                                        <!option @(useUnitFuelCost ? "selected" : "") value="unit">@translator.Translate(userLanguage,"Unit")</!option>
-                                    </select>
-                                </div>
-                            </div>
-                        } else
-                        {
-                            <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" id="gasRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
-                        }
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" id="gasRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
+                        <input type="hidden" id="gasCostType" value="total">
                         <div id="gasCostCalculationPreview" class="p-2 rounded bg-body-tertiary border d-flex justify-content-between align-items-center mb-2 d-none" style="font-size: 0.88rem;">
                             <span class="text-body-secondary"><i class="bi bi-fuel-pump me-1"></i><span id="gasCostPreviewLabel">Precio por @(consumptionUnit == "litros" ? "litro" : consumptionUnit):</span></span>
                             <span id="gasCostPreviewValue" class="fw-bold text-success"></span>
                         </div>
-                        @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "GasRecord", AdditionalSupplies = Model.GasRecord.RequisitionHistory.Any() })
                     </div>
                     <div>
                         <label for="gasRecordTag" class="form-label mb-1">@translator.Translate(userLanguage,"Tags(optional)")</label>
@@ -144,10 +130,7 @@
 <div class="modal-footer">
     @if (!isNew)
     {
-        @if (Model.GasRecord.RequisitionHistory.Any())
-        {
-            <button type="button" class="btn btn-warning" onclick="toggleSupplyUsageHistory()"><i class="bi bi-shop"></i></button>
-        }
+        
         <button type="button" class="btn btn-danger" onclick="deleteGasRecord(@Model.GasRecord.Id)" style="margin-right:auto;">@translator.Translate(userLanguage,"Delete")</button>
     }
     <button type="button" class="btn btn-secondary" onclick="hideAddGasRecordModal()">@translator.Translate(userLanguage,"Cancel")</button>
@@ -160,7 +143,7 @@
         <button type="button" class="btn btn-primary" onclick="saveGasRecordToVehicle(true)">@translator.Translate(userLanguage,"Edit Gas Record")</button>
     }
 </div>
-@await Html.PartialAsync("Supply/_SupplyRequisitionHistory", new SupplyRequisitionHistory { RequisitionHistory = Model.GasRecord.RequisitionHistory, CostInputId = "gasRecordCost" })
+
 <script>
     var selectedSupplies = [];
     var copySuppliesAttachments = false;

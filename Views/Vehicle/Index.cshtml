@@ -133,24 +133,12 @@
                         </ul>
                     </li>
 
-                    <!-- 5. Gastos y Stock -->
-                    <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" id="group-expenses-tab">
-                            <i class="bi bi-wallet2 text-success"></i>
-                            <span class="ms-1">Gastos y Stock</span>
+                    <!-- 5. Gastos e Impuestos -->
+                    <li class="nav-item" role="presentation">
+                        <button type="button" class="nav-link resizable-nav-link d-flex align-items-center gap-1 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" role="tab" aria-selected="false">
+                            <i class="bi bi-receipt text-success"></i>
+                            <span class="ms-1">@translator.Translate(userLanguage, "Taxes")</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-currency-dollar text-success"></i><span>@translator.Translate(userLanguage, "Taxes")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.SupplyRecord)" id="supply-tab" data-bs-toggle="tab" data-bs-target="#supply-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-shop text-success"></i><span>@translator.Translate(userLanguage, "Supplies")</span>
-                                </button>
-                            </li>
-                        </ul>
                     </li>
 
                     <!-- 6. Buscar -->
@@ -253,9 +241,7 @@
         <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.GasRecord)">
             <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.GasRecord)" id="gas-tab" data-bs-toggle="tab" data-bs-target="#gas-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-fuel-pump me-2"></i>@translator.Translate(userLanguage, "Fuel")</span></button>
         </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.SupplyRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.SupplyRecord)" id="supply-tab" data-bs-toggle="tab" data-bs-target="#supply-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-shop me-2"></i>@translator.Translate(userLanguage, "Supplies")</span></button>
-        </li>
+        
         <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.TaxRecord)">
             <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-currency-dollar me-2"></i>@translator.Translate(userLanguage, "Taxes")</span></button>
         </li>

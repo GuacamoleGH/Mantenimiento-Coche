@@ -48,8 +48,7 @@
                     </div>
                     <div>
                         <label for="collisionRecordCost" class="form-label mb-1">@translator.Translate(userLanguage, "Cost")</label>
-                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="collisionRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the repair")" value="@(isNew ? "" : Model.Cost)">
-                        @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "RepairRecord", AdditionalSupplies = Model.RequisitionHistory.Any() })
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="collisionRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the repair")" value="@(isNew ? "" : Model.Cost)"> })
                     </div>
                     <div>
                         <label for="collisionRecordTag" class="form-label mb-1">@translator.Translate(userLanguage, "Tags(optional)")</label>
@@ -89,10 +88,7 @@
 <div class="modal-footer">
     @if (!isNew)
     {
-        @if (Model.RequisitionHistory.Any())
-        {
-            <button type="button" class="btn btn-warning" onclick="toggleSupplyUsageHistory()"><i class="bi bi-shop"></i></button>
-        }
+        
         <div class="btn-group" style="margin-right:auto;">
             <button type="button" class="btn btn-md mt-1 mb-1 btn-danger" onclick="deleteCollisionRecord(@Model.Id)">@translator.Translate(userLanguage, "Delete")</button>
             <button type="button" class="btn btn-md btn-danger btn-md mt-1 mb-1 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
@@ -115,7 +111,7 @@
         <button type="button" class="btn btn-primary" onclick="saveCollisionRecordToVehicle(true)">@translator.Translate(userLanguage, "Edit Repair Record")</button>
     }
 </div>
-@await Html.PartialAsync("Supply/_SupplyRequisitionHistory", new SupplyRequisitionHistory { RequisitionHistory = Model.RequisitionHistory, CostInputId = "collisionRecordCost" })
+
 <script>
     var selectedSupplies = [];
     var copySuppliesAttachments = false;

@@ -29,8 +29,7 @@
                     </div>
                     <div>
                         <label for="planRecordCost" class="form-label mb-1">@translator.Translate(userLanguage, "Cost")</label>
-                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="planRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage, "Cost of the Plan")" value="@Model.Cost">
-                        @await Html.PartialAsync("Supply/_SupplyStore", new SupplyStore { Tab = "PlanRecord", AdditionalSupplies = Model.RequisitionHistory.Any() })
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="planRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage, "Cost of the Plan")" value="@Model.Cost"> })
                     </div>
                     <div>
                         <label for="planRecordType" class="form-label mb-1">@translator.Translate(userLanguage, "Type")</label>
@@ -83,10 +82,7 @@
 <div class="modal-footer">
     @if (!isNew)
     {
-        @if (Model.RequisitionHistory.Any())
-        {
-            <button type="button" class="btn btn-warning" onclick="toggleSupplyUsageHistory()"><i class="bi bi-shop"></i></button>
-        }
+        
         <button type="button" class="btn btn-danger" onclick="deletePlanRecord(@Model.Id)" style="margin-right:auto;">@translator.Translate(userLanguage, "Delete")</button>
     }
     <button type="button" class="btn btn-secondary" onclick="hideAddPlanRecordModal()">@translator.Translate(userLanguage, "Cancel")</button>
@@ -107,7 +103,7 @@
         <button type="button" class="btn btn-primary" onclick="savePlanRecordToVehicle(true)">@translator.Translate(userLanguage, "Edit Plan Record")</button>
     }
 </div>
-@await Html.PartialAsync("Supply/_SupplyRequisitionHistory", new SupplyRequisitionHistory { RequisitionHistory = Model.RequisitionHistory, CostInputId = "planRecordCost" })
+
 <script>
     var selectedSupplies = [];
     var recurringReminderRecordId = [];
