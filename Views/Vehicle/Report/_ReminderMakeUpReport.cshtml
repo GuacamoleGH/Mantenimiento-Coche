@@ -44,9 +44,16 @@
                             boxPadding: 6,
                             boxWidth: 10,
                             boxHeight: 10,
-                            usePointStyle: true,
+                            usePointStyle: false,
                             bodyFont: {
                                 size: 13
+                            },
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    let val = context.parsed || 0;
+                                    return ' ' + (label ? label + ': ' : '') + val;
+                                }
                             }
                         },
                         legend: {
