@@ -3102,9 +3102,36 @@ a:has(.bi-qr-code) {
     color: #f87171 !important;
 }
 
-#serviceTypeDropdownTrigger:focus {
-    border-color: #fbc41e;
-    box-shadow: 0 0 0 0.25rem rgba(251, 196, 30, 0.25);
+/* Quitar recuadro amarillo en buscador y selector de tipo de servicio */
+#serviceTypeSearch,
+#serviceTypeSearch:focus,
+#serviceTypeSearch:focus-visible,
+.service-type-dropdown .form-control,
+.service-type-dropdown .form-control:focus,
+.service-type-dropdown .form-control:focus-visible,
+.service-type-dropdown input,
+.service-type-dropdown input:focus,
+.service-type-dropdown input:focus-visible,
+#serviceTypeDropdownTrigger:focus,
+#serviceTypeDropdownTrigger:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+    border-color: #475569 !important;
+    box-shadow: none !important;
+}
+
+/* Modal de servicio con overflow visible para permitir que el desplegable baje mas alla de la ventana */
+#serviceRecordModal .modal-content,
+.modal:has(.service-type-dropdown) .modal-content {
+    overflow: visible !important;
+}
+
+.service-type-dropdown {
+    max-height: 480px !important;
+    background-color: #1a2232 !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.7), 0 10px 15px -5px rgba(0, 0, 0, 0.5) !important;
+    z-index: 1080 !important;
 }
 
 /* Contenedor principal ultra amplio y responsive para eliminar huecos laterales en pantallas medianas y grandes */
