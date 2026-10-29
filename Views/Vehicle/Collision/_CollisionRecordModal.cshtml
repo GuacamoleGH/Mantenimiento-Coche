@@ -46,7 +46,7 @@
                     </div>
                     <div>
                         <label for="collisionRecordCost" class="form-label mb-1">@translator.Translate(userLanguage, "Cost")</label>
-                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="collisionRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the repair")" value="@(isNew ? "" : Model.Cost)"> })
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="collisionRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the repair")" value="@(isNew ? "" : Model.Cost)">
                     </div>
                     <div>
                         <label for="collisionRecordTag" class="form-label mb-1">@translator.Translate(userLanguage, "Tags(optional)")</label>
