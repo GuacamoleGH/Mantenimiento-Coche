@@ -1,259 +1,235 @@
-@using CarCareTracker.Helper
-@inject IConfigHelper config
-@inject ITranslationHelper translator
-@{
-    var userConfig = config.GetUserConfig(User);
-    var userLanguage = userConfig.UserLanguage;
-}
-@model ReportViewModel
-<script>
-    var availableMetrics = [];
-    @foreach (ImportMode importMode in Model.AvailableMetrics)
-    {
-            @:availableMetrics.push('@importMode');
-    }
-</script>
-<div class="d-flex flex-column vehicleTabPane vehicleReportPane">
-    <div class="reportTabContainer flex-grow-1">
-        <!-- Fila Superior de Métricas KPI -->
-        <div class="hideOnPrint mb-3" id="reportHeaderContent">
-            @await Html.PartialAsync("Report/_ReportHeader", Model.ReportHeaderForVehicle)
-        </div>
-
-        <!-- Cuadrícula Principal del Panel (Sin líneas divisorias bruscas) -->
-        <div class="row hideOnPrint g-3 mb-3">
-            <!-- Columna 1: Desglose de Gastos por Categoría -->
-            <div class="col-12 col-lg-4">
-                <div class="dashboard-card h-100 d-flex flex-column">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="dashboard-card-title"><i class="bi bi-pie-chart-fill text-warning me-1"></i>Gastos por Categoría</span>
-                        <select class="form-select form-select-sm dashboard-select w-auto py-1 px-2" id="yearOption" onchange="yearUpdated()">
-                            <option value="0">@translator.Translate(userLanguage, "All Time")</option>
-                            @foreach (int year in Model.Years)
-                            {
-                                <option value="@year">@year</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="costMakeUpReportContent">
-                        @await Html.PartialAsync("Report/_CostMakeUpReport", Model.CostMakeUpForVehicle)
-                    </div>
-                </div>
-            </div>
-
-            <!-- Columna 2: Historial Mensual de Gastos y Distancia -->
-            <div class="col-12 col-lg-5">
-                <div class="dashboard-card h-100 d-flex flex-column">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="dashboard-card-title"><i class="bi bi-bar-chart-fill text-primary me-1"></i>Evolución Mensual</span>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1 px-3 rounded-pill" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" @(Model.AvailableMetrics.Any() ? "" : "disabled")>
-                                <i class="bi bi-sliders me-1"></i>@translator.Translate(userLanguage, "Metrics")
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-dark shadow-lg" style="min-width: 200px;">
-                                <li class="dropdown-item">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input" onChange="updateCheckAll()" type="checkbox" id="selectAllExpenseCheck" value="0" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="selectAllExpenseCheck">@translator.Translate(userLanguage, "Select All")</label>
-                                    </div>
-                                </li>
-                                <li><hr class="dropdown-divider opacity-25"></li>
-                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.OdometerRecord) ? "" : "d-none")">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="odometerExpenseCheck" value="6" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="odometerExpenseCheck">@translator.Translate(userLanguage, "Odometer")</label>
-                                    </div>
-                                </li>
-                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.ServiceRecord) ? "" : "d-none")">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="serviceExpenseCheck" value="1" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="serviceExpenseCheck">@translator.Translate(userLanguage, "Service")</label>
-                                    </div>
-                                </li>
-                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.RepairRecord) ? "" : "d-none")">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="repairExpenseCheck" value="2" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="repairExpenseCheck">@translator.Translate(userLanguage, "Repairs")</label>
-                                    </div>
-                                </li>
-                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.UpgradeRecord) ? "" : "d-none")">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="upgradeExpenseCheck" value="3" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="upgradeExpenseCheck">@translator.Translate(userLanguage, "Upgrades")</label>
-                                    </div>
-                                </li>
-                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.GasRecord) ? "" : "d-none")">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="gasExpenseCheck" value="4" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="gasExpenseCheck">@translator.Translate(userLanguage, "Fuel")</label>
-                                    </div>
-                                </li>
-                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.TaxRecord) ? "" : "d-none")">
-                                    <div class="list-group-item">
-                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="taxExpenseCheck" value="5" checked>
-                                        <label class="form-check-label stretched-link ms-2" for="taxExpenseCheck">@translator.Translate(userLanguage, "Taxes")</label>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="gasCostByMonthReportContent">
-                        @await Html.PartialAsync("Report/_GasCostByMonthReport", Model.CostForVehicleByMonth)
-                    </div>
-                </div>
-            </div>
-
-            <!-- Columna 3: Herramientas e Informes -->
-            <div class="col-12 col-lg-3">
-                <div class="dashboard-card h-100 d-flex flex-column justify-content-between p-3" id="reportControls">
-                    <div>
-                        <div class="dashboard-card-title mb-3">
-                            <i class="bi bi-file-earmark-bar-graph-fill text-success me-1"></i>Informes y Herramientas
-                        </div>
-                        <div class="d-flex flex-column gap-2">
-                            <button onclick="generateVehicleHistoryReport()" class="btn btn-report-action btn-report-history">
-                                <i class="bi bi-file-earmark-pdf-fill me-2 fs-5 text-danger"></i>
-                                <div class="text-start">
-                                    <div class="fw-semibold small">Informe de Mantenimiento</div>
-                                    <div class="extra-small text-muted">Historial completo imprimible</div>
-                                </div>
-                            </button>
-                            <button onclick="exportAttachments()" class="btn btn-report-action btn-report-export">
-                                <i class="bi bi-folder-symlink-fill me-2 fs-5 text-info"></i>
-                                <div class="text-start">
-                                    <div class="fw-semibold small">Exportar Adjuntos</div>
-                                    <div class="extra-small text-muted">Facturas, recibos y fotos</div>
-                                </div>
-                            </button>
-                            <button onclick="exportVehicleData('All')" class="btn btn-report-action btn-report-csv">
-                                <i class="bi bi-filetype-csv me-2 fs-5 text-success"></i>
-                                <div class="text-start">
-                                    <div class="fw-semibold small">Exportar Datos (CSV)</div>
-                                    <div class="extra-small text-muted">Descargar registros completos</div>
-                                </div>
-                            </button>
-                            <button onclick="showGlobalSearch()" class="btn btn-report-action btn-report-search">
-                                <i class="bi bi-search me-2 fs-5 text-warning"></i>
-                                <div class="text-start">
-                                    <div class="fw-semibold small">Búsqueda Global</div>
-                                    <div class="extra-small text-muted">Buscar en todos los registros</div>
-                                </div>
-                            </button>
-                            @if (Model.HasVehicleImageMap)
-                            {
-                                <button onclick="loadVehicleImageMap()" class="btn btn-report-action btn-report-map">
-                                    <i class="bi bi-map-fill me-2 fs-5 text-primary"></i>
-                                    <div class="text-start">
-                                        <div class="fw-semibold small">Mapa del Vehículo</div>
-                                        <div class="extra-small text-muted">Puntos de inspección</div>
-                                    </div>
-                                </button>
-                            }
-                            @if (Model.CustomWidgetsConfigured)
-                            {
-                                <button onclick="showCustomWidgets()" class="btn btn-report-action btn-report-widgets">
-                                    <i class="bi bi-grid-3x3-gap-fill me-2 fs-5 text-secondary"></i>
-                                    <div class="text-start">
-                                        <div class="fw-semibold small">Widgets Adicionales</div>
-                                        <div class="extra-small text-muted">Métricas personalizadas</div>
-                                    </div>
-                                </button>
-                            }
-                        </div>
-                    </div>
-                    <div class="user-edit-only mt-3 pt-3 border-top border-secondary border-opacity-25">
-                        <div class="extra-small text-muted text-uppercase fw-semibold mb-2" style="letter-spacing: 0.05em;">Acceso Rápido</div>
-                        <div class="d-grid gap-2">
-                            <button onclick="showAddGasRecordModal()" class="btn btn-sm d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 btn-quick-gas">
-                                <i class="bi bi-fuel-pump-fill" style="color: #35D298 !important;"></i>
-                                <span class="small fw-semibold" style="color: #35D298 !important;">Registrar Repostaje</span>
-                            </button>
-                            <button onclick="showAddServiceRecordModal()" class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center gap-2 py-2 rounded-3">
-                                <i class="bi bi-tools"></i>
-                                <span class="small fw-semibold">Registrar Servicio</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Fila Inferior: Recordatorios y Curva de Consumo -->
-        <div class="row hideOnPrint g-3">
-            <!-- Fila Inferior 1: Recordatorios por Urgencia -->
-            <div class="col-12 col-lg-4">
-                <div class="dashboard-card h-100 d-flex flex-column">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="dashboard-card-title"><i class="bi bi-bell-fill text-danger me-1"></i>Recordatorios</span>
-                        <select class="form-select form-select-sm dashboard-select w-auto py-1 px-2" onchange="updateReminderPie()" id="reminderOption">
-                            <option value="0">@translator.Translate(userLanguage, "As of Today")</option>
-                            <option value="30">@translator.Translate(userLanguage, "+30 Days")</option>
-                            <option value="60">@translator.Translate(userLanguage, "+60 Days")</option>
-                            <option value="90">@translator.Translate(userLanguage, "+90 Days")</option>
-                        </select>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="reminderMakeUpReportContent">
-                        @await Html.PartialAsync("Report/_ReminderMakeUpReport", Model.ReminderMakeUpForVehicle)
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fila Inferior 2: Consumo Medio Mensual -->
-            <div class="col-12 col-lg-8">
-                <div class="dashboard-card h-100 d-flex flex-column">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="dashboard-card-title"><i class="bi bi-fuel-pump-fill text-info me-1"></i>Curva de Consumo (l/100km)</span>
-                    </div>
-                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="monthFuelMileageReportContent">
-                        @await Html.PartialAsync("Report/_MPGByMonthReport", Model.FuelMileageForVehicleByMonth)
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Barra flotante para móviles -->
-    <div class="row lubelogger-record-nav pt-1 hideOnPrint">
-        <div class="d-flex justify-content-between">
-            <button onclick="showGlobalSearch()" class="btn btn-outline-primary btn-md mt-1 mb-1"><i class="bi bi-search"></i></button>
-            <div>
-                <button class="btn btn-outline-secondary btn-md mt-1 mb-1" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" onclick="generateVehicleHistoryReport()">@translator.Translate(userLanguage, "Vehicle Maintenance Report")</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="exportAttachments()">@translator.Translate(userLanguage, "Export Attachments")</a></li>
-                    @if (Model.HasVehicleImageMap || Model.CustomWidgetsConfigured)
-                    {
-                        <li><hr class="dropdown-divider"></li>
-                    }
-                    @if (Model.HasVehicleImageMap)
-                    {
-                        <li><a class="dropdown-item" href="#" onclick="loadVehicleImageMap()">@translator.Translate(userLanguage, "Vehicle Map")</a></li>
-                    }
-                    @if (Model.CustomWidgetsConfigured)
-                    {
-                        <li><a class="dropdown-item" href="#" onclick="showCustomWidgets()">@translator.Translate(userLanguage, "Additional Widgets")</a></li>
-                    }
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" data-bs-focus="false" id="vehicleDataTableModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" id="vehicleDataTableModalContent"></div>
-    </div>
-</div>
-@if (Model.CustomWidgetsConfigured)
-{
-    <div class="modal fade" data-bs-focus="false" id="vehicleCustomWidgetsModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content" id="vehicleCustomWidgetsModalContent"></div>
-        </div>
-    </div>
-    <script>loadCustomWidgets()</script>
-}
-
-<script>
-    getSelectedMetrics();
-</script>
+@using CarCareTracker.Helper
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+@model ReportViewModel
+<script>
+    var availableMetrics = [];
+    @foreach (ImportMode importMode in Model.AvailableMetrics)
+    {
+            @:availableMetrics.push('@importMode');
+    }
+</script>
+<div class="d-flex flex-column vehicleTabPane vehicleReportPane">
+    <div class="reportTabContainer flex-grow-1">
+        <!-- Fila Superior de Métricas KPI -->
+        <div class="hideOnPrint mb-3" id="reportHeaderContent">
+            @await Html.PartialAsync("Report/_ReportHeader", Model.ReportHeaderForVehicle)
+        </div>
+
+        <!-- Cuadrícula Principal del Panel (Sin líneas divisorias bruscas) -->
+        <div class="row hideOnPrint g-3 mb-3">
+            <!-- Columna 1: Desglose de Gastos por Categoría -->
+            <div class="col-12 col-lg-4">
+                <div class="dashboard-card h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="dashboard-card-title"><i class="bi bi-pie-chart-fill text-warning me-1"></i>Gastos por Categoría</span>
+                        <select class="form-select form-select-sm dashboard-select w-auto py-1 px-2" id="yearOption" onchange="yearUpdated()">
+                            <option value="0">@translator.Translate(userLanguage, "All Time")</option>
+                            @foreach (int year in Model.Years)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="costMakeUpReportContent">
+                        @await Html.PartialAsync("Report/_CostMakeUpReport", Model.CostMakeUpForVehicle)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna 2: Historial Mensual de Gastos y Distancia -->
+            <div class="col-12 col-lg-5">
+                <div class="dashboard-card h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="dashboard-card-title"><i class="bi bi-bar-chart-fill text-primary me-1"></i>Evolución Mensual</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-1 px-3 rounded-pill" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" @(Model.AvailableMetrics.Any() ? "" : "disabled")>
+                                <i class="bi bi-sliders me-1"></i>@translator.Translate(userLanguage, "Metrics")
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark shadow-lg" style="min-width: 200px;">
+                                <li class="dropdown-item">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input" onChange="updateCheckAll()" type="checkbox" id="selectAllExpenseCheck" value="0" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="selectAllExpenseCheck">@translator.Translate(userLanguage, "Select All")</label>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider opacity-25"></li>
+                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.OdometerRecord) ? "" : "d-none")">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="odometerExpenseCheck" value="6" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="odometerExpenseCheck">@translator.Translate(userLanguage, "Odometer")</label>
+                                    </div>
+                                </li>
+                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.ServiceRecord) ? "" : "d-none")">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="serviceExpenseCheck" value="1" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="serviceExpenseCheck">@translator.Translate(userLanguage, "Service")</label>
+                                    </div>
+                                </li>
+                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.RepairRecord) ? "" : "d-none")">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="repairExpenseCheck" value="2" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="repairExpenseCheck">@translator.Translate(userLanguage, "Repairs")</label>
+                                    </div>
+                                </li>
+                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.UpgradeRecord) ? "" : "d-none")">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="upgradeExpenseCheck" value="3" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="upgradeExpenseCheck">@translator.Translate(userLanguage, "Upgrades")</label>
+                                    </div>
+                                </li>
+                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.GasRecord) ? "" : "d-none")">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="gasExpenseCheck" value="4" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="gasExpenseCheck">@translator.Translate(userLanguage, "Fuel")</label>
+                                    </div>
+                                </li>
+                                <li class="dropdown-item @(Model.AvailableMetrics.Contains(ImportMode.TaxRecord) ? "" : "d-none")">
+                                    <div class="list-group-item">
+                                        <input class="form-check-input reportCheckBox" onChange="updateCheck()" type="checkbox" id="taxExpenseCheck" value="5" checked>
+                                        <label class="form-check-label stretched-link ms-2" for="taxExpenseCheck">@translator.Translate(userLanguage, "Taxes")</label>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="gasCostByMonthReportContent">
+                        @await Html.PartialAsync("Report/_GasCostByMonthReport", Model.CostForVehicleByMonth)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna 3: Herramientas e Informes -->
+            <div class="col-12 col-lg-3">
+                <div class="dashboard-card h-100 d-flex flex-column justify-content-between p-3" id="reportControls">
+                    <div>
+                        <div class="dashboard-card-title mb-3">
+                            <i class="bi bi-file-earmark-bar-graph-fill text-success me-1"></i>Informes y Herramientas
+                        </div>
+                        <div class="d-flex flex-column gap-2">
+                            <button onclick="generateVehicleHistoryReport()" class="btn btn-report-action btn-report-history">
+                                <i class="bi bi-file-earmark-pdf-fill me-2 fs-5 text-danger"></i>
+                                <div class="text-start">
+                                    <div class="fw-semibold small">Informe de Mantenimiento</div>
+                                    <div class="extra-small text-muted">Historial completo imprimible</div>
+                                </div>
+                            </button>
+                            <button onclick="exportAttachments()" class="btn btn-report-action btn-report-export">
+                                <i class="bi bi-folder-symlink-fill me-2 fs-5 text-info"></i>
+                                <div class="text-start">
+                                    <div class="fw-semibold small">Exportar Adjuntos</div>
+                                    <div class="extra-small text-muted">Facturas, recibos y fotos</div>
+                                </div>
+                            </button>
+                            <button onclick="exportVehicleData('All')" class="btn btn-report-action btn-report-csv">
+                                <i class="bi bi-filetype-csv me-2 fs-5 text-success"></i>
+                                <div class="text-start">
+                                    <div class="fw-semibold small">Exportar Datos (CSV)</div>
+                                    <div class="extra-small text-muted">Descargar registros completos</div>
+                                </div>
+                            </button>
+                            <button onclick="showGlobalSearch()" class="btn btn-report-action btn-report-search">
+                                <i class="bi bi-search me-2 fs-5 text-warning"></i>
+                                <div class="text-start">
+                                    <div class="fw-semibold small">Búsqueda Global</div>
+                                    <div class="extra-small text-muted">Buscar en todos los registros</div>
+                                </div>
+                            </button>
+                            @if (Model.HasVehicleImageMap)
+                            {
+                                <button onclick="loadVehicleImageMap()" class="btn btn-report-action btn-report-map">
+                                    <i class="bi bi-map-fill me-2 fs-5 text-primary"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold small">Mapa del Vehículo</div>
+                                        <div class="extra-small text-muted">Puntos de inspección</div>
+                                    </div>
+                                </button>
+                            }
+                            @if (Model.CustomWidgetsConfigured)
+                            {
+                                <button onclick="showCustomWidgets()" class="btn btn-report-action btn-report-widgets">
+                                    <i class="bi bi-grid-3x3-gap-fill me-2 fs-5 text-secondary"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold small">Widgets Adicionales</div>
+                                        <div class="extra-small text-muted">Métricas personalizadas</div>
+                                    </div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <div class="user-edit-only mt-3 pt-3 border-top border-secondary border-opacity-25">
+                        <div class="extra-small text-muted text-uppercase fw-semibold mb-2" style="letter-spacing: 0.05em;">Acceso Rápido</div>
+                        <div class="d-grid gap-2">
+                            <button onclick="showAddGasRecordModal()" class="btn btn-sm d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 btn-quick-gas">
+                                <i class="bi bi-fuel-pump-fill" style="color: #35D298 !important;"></i>
+                                <span class="small fw-semibold" style="color: #35D298 !important;">Registrar Repostaje</span>
+                            </button>
+                            <button onclick="showAddServiceRecordModal()" class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center gap-2 py-2 rounded-3">
+                                <i class="bi bi-tools"></i>
+                                <span class="small fw-semibold">Registrar Servicio</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila Inferior: Recordatorios y Curva de Consumo -->
+        <div class="row hideOnPrint g-3">
+            <!-- Fila Inferior 1: Recordatorios por Urgencia -->
+            <div class="col-12 col-lg-4">
+                <div class="dashboard-card h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="dashboard-card-title"><i class="bi bi-bell-fill text-danger me-1"></i>Recordatorios</span>
+                        <select class="form-select form-select-sm dashboard-select w-auto py-1 px-2" onchange="updateReminderPie()" id="reminderOption">
+                            <option value="0">@translator.Translate(userLanguage, "As of Today")</option>
+                            <option value="30">@translator.Translate(userLanguage, "+30 Days")</option>
+                            <option value="60">@translator.Translate(userLanguage, "+60 Days")</option>
+                            <option value="90">@translator.Translate(userLanguage, "+90 Days")</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="reminderMakeUpReportContent">
+                        @await Html.PartialAsync("Report/_ReminderMakeUpReport", Model.ReminderMakeUpForVehicle)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fila Inferior 2: Consumo Medio Mensual -->
+            <div class="col-12 col-lg-8">
+                <div class="dashboard-card h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="dashboard-card-title"><i class="bi bi-fuel-pump-fill text-info me-1"></i>Curva de Consumo (l/100km)</span>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center flex-grow-1 chartContainer" id="monthFuelMileageReportContent">
+                        @await Html.PartialAsync("Report/_MPGByMonthReport", Model.FuelMileageForVehicleByMonth)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="vehicleDataTableModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" id="vehicleDataTableModalContent"></div>
+    </div>
+</div>
+@if (Model.CustomWidgetsConfigured)
+{
+    <div class="modal fade" data-bs-focus="false" id="vehicleCustomWidgetsModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="vehicleCustomWidgetsModalContent"></div>
+        </div>
+    </div>
+    <script>loadCustomWidgets()</script>
+}
+
+<script>
+    getSelectedMetrics();
+</script>

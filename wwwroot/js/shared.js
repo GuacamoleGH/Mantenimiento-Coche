@@ -2769,3 +2769,37 @@ $(document).on('input', 'input[inputmode="decimal"], input[id*="Cost"], input[id
         }
     }
 });
+
+
+// Posicionamiento dinámico de menús desplegables en la barra de navegación con scroll horizontal
+function repositionNavbarDropdown(dropdownElem) {
+    var toggle = $(dropdownElem).find('[data-bs-toggle="dropdown"]')[0];
+    var menu = $(dropdownElem).find('.dropdown-menu')[0];
+    if (toggle && menu) {
+        var rect = toggle.getBoundingClientRect();
+        menu.style.setProperty('position', 'fixed', 'important');
+        menu.style.setProperty('top', (rect.bottom + 4) + 'px', 'important');
+        var menuWidth = menu.offsetWidth || 210;
+        var left = rect.left;
+        if (left + menuWidth > window.innerWidth - 8) {
+            left = window.innerWidth - menuWidth - 8;
+        }
+        if (left < 8) left = 8;
+        menu.style.setProperty('left', left + 'px', 'important');
+        menu.style.setProperty('right', 'auto', 'important');
+        menu.style.setProperty('z-index', '9999', 'important');
+    }
+}
+
+$(document).on('show.bs.dropdown shown.bs.dropdown', '.lubelogger-navbar .dropdown', function () {
+    repositionNavbarDropdown(this);
+});
+
+$(document).on('scroll', '.lubelogger-tabs-scroll-wrapper', function () {
+    $('.lubelogger-navbar .dropdown-menu.show').each(function () {
+        var parentDropdown = $(this).closest('.dropdown')[0];
+        if (parentDropdown) {
+            repositionNavbarDropdown(parentDropdown);
+        }
+    });
+});
