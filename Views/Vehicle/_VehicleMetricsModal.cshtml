@@ -1,0 +1,69 @@
+@using CarCareTracker.Helper
+@using CarCareTracker.Models
+@model Vehicle
+<div class="modal-header">
+    <h5 class="modal-title d-flex align-items-center">
+        <i class="bi bi-card-checklist text-warning me-2 fs-5"></i>
+        <span class="fw-bold">Datos en la tarjeta del Garaje</span>
+    </h5>
+    <button type="button" class="btn-close" onclick="hideMetricsModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body p-3">
+    <div class="alert alert-dark border border-secondary border-opacity-25 text-light py-2 px-3 mb-3 small d-flex align-items-center gap-2">
+        <i class="bi bi-info-circle text-info fs-5"></i>
+        <span>Elige qué información rápida quieres ver en la tarjeta de este vehículo en la pantalla principal:</span>
+    </div>
+
+    <div class="d-flex flex-column gap-2">
+        <label class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-50 user-select-none mb-0" style="cursor: pointer;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded-circle bg-info bg-opacity-10 text-info">
+                    <i class="bi bi-speedometer2 fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-light">Kilometraje actual</div>
+                    <div class="small text-secondary">Muestra el último kilometraje registrado en el chip superior.</div>
+                </div>
+            </div>
+            <div class="form-check form-switch fs-4 mb-0 ms-2">
+                <input class="form-check-input metric-toggle" type="checkbox" role="switch" value="@((int)DashboardMetric.Default)" @(Model.DashboardMetrics.Contains(DashboardMetric.Default) ? "checked" : "")>
+            </div>
+        </label>
+
+        <label class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-50 user-select-none mb-0" style="cursor: pointer;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-graph-up-arrow fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-light">Coste medio por kilómetro</div>
+                    <div class="small text-secondary">Calcula y muestra cuánto te cuesta cada km (€/km).</div>
+                </div>
+            </div>
+            <div class="form-check form-switch fs-4 mb-0 ms-2">
+                <input class="form-check-input metric-toggle" type="checkbox" role="switch" value="@((int)DashboardMetric.CostPerMile)" @(Model.DashboardMetrics.Contains(DashboardMetric.CostPerMile) ? "checked" : "")>
+            </div>
+        </label>
+
+        <label class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-50 user-select-none mb-0" style="cursor: pointer;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 rounded-circle bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-cash-stack fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-light">Gasto total acumulado</div>
+                    <div class="small text-secondary">Suma todo el dinero gastado (combustible, revisiones, averías...).</div>
+                </div>
+            </div>
+            <div class="form-check form-switch fs-4 mb-0 ms-2">
+                <input class="form-check-input metric-toggle" type="checkbox" role="switch" value="@((int)DashboardMetric.TotalCost)" @(Model.DashboardMetrics.Contains(DashboardMetric.TotalCost) ? "checked" : "")>
+            </div>
+        </label>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" onclick="hideMetricsModal()">Cancelar</button>
+    <button type="button" class="btn btn-warning fw-bold text-dark px-3" onclick="saveVehicleMetrics(@Model.Id)">
+        <i class="bi bi-check2-circle me-1"></i>Guardar cambios
+    </button>
+</div>

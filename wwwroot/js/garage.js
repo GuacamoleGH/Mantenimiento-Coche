@@ -1117,3 +1117,8 @@ $(function () {
 function goToAdminPanel() {
     window.location.href = '/Admin';
 }
+function openVehicleMetricsModalFromGarage(selectedVehicles) {
+    if (selectedVehicles && selectedVehicles.length == 1) {
+        openVehicleMetricsModal(selectedVehicles[0]);
+    }
+}

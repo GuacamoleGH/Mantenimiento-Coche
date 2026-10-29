@@ -1,336 +1,677 @@
-@using CarCareTracker.Helper
-@using System.Security.Claims
-@inject CarCareTracker.Logic.IUserLogic userLogic
-@inject IConfigHelper config
-@inject ITranslationHelper translator
-@{
-    var userConfig = config.GetUserConfig(User);
-    var userLanguage = userConfig.UserLanguage;
-    var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    int currentUserId = -1;
-    if (!string.IsNullOrEmpty(currentUserIdClaim)) int.TryParse(currentUserIdClaim, out currentUserId);
-    bool canEdit = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin)) || userLogic.UserCanDirectlyEditVehicle(currentUserId, Model.Id);
-}
-@model Vehicle
-@{
-    ViewData["Title"] = $"{Model.Year} {Model.Make} {Model.Model} ({StaticHelper.GetVehicleIdentifier(Model)})";
-}
-@section Scripts {
-    <script src="~/js/vehicle.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/servicerecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/gasrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/collisionrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/taxrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/reminderrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/upgraderecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/note.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/reports.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/supplyrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/planrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/odometerrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/inspectionrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/js/equipmentrecord.js?v=@StaticHelper.VersionNumber"></script>
-    <script src="~/lib/chart-js/chart.umd.js"></script>
-    <script src="~/lib/drawdown/drawdown.js"></script>
-    <script src="~/lib/qrcode/qrcode.js"></script>
-    <script src="~/lib/signalr/signalr.min.js"></script>
-}
-@section Nav{
-    <div class="container-fluid lubelogger-navbar-container frosted hideOnPrint">
-        <div class="row">
-            <div class="d-flex align-items-center lubelogger-navbar py-1">
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-3 py-1 me-2 d-flex align-items-center gap-1 border-0 bg-dark bg-opacity-50 text-light" onclick="returnToGarage()" title="Volver al Garaje">
-                    <i class="bi bi-arrow-left"></i>
-                    <span class="small fw-semibold">Garaje</span>
-                </button>
-                <div class="vr mx-2 opacity-25 text-secondary d-none d-md-block" style="height: 22px; align-self: center;"></div>
-                <div class="lubelogger-tabs-scroll-wrapper flex-grow-1">
-                    <ul class="nav nav-tabs lubelogger-tab align-items-center flex-nowrap" id="vehicleTab" role="tablist">
-                    <!-- 1. Panel General -->
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.Dashboard)" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-tab-pane" type="button" role="tab" aria-selected="false">
-                            <i class="bi bi-speedometer2 text-info"></i>
-                            <span class="ms-1">@translator.Translate(userLanguage, "Dashboard")</span>
-                        </button>
-                    </li>
-
-                    <!-- 2. Mantenimiento y Uso -->
-                    <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="group-maintenance-tab">
-                            <i class="bi bi-tools text-warning"></i>
-                            <span class="ms-1">Mantenimiento</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.GasRecord)" id="gas-tab" data-bs-toggle="tab" data-bs-target="#gas-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-fuel-pump text-success" style="color: #35D298 !important;"></i><span>@translator.Translate(userLanguage, "Fuel")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ServiceRecord)" id="servicerecord-tab" data-bs-toggle="tab" data-bs-target="#servicerecord-tab-pane" type="button" role="tab" aria-selected="true">
-                                    <i class="bi bi-tools text-warning"></i><span>@translator.Translate(userLanguage, "Service Records")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.OdometerRecord)" id="odometer-tab" data-bs-toggle="tab" data-bs-target="#odometer-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-signpost-2 text-info"></i><span>@translator.Translate(userLanguage, "Odometer")</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- 3. Planificación -->
-                    <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="group-planning-tab">
-                            <i class="bi bi-calendar-check text-primary"></i>
-                            <span class="ms-1">Planificación</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ReminderRecord)" id="reminder-tab" data-bs-toggle="tab" data-bs-target="#reminder-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-bell text-warning"></i><span>@translator.Translate(userLanguage, "Reminders")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.PlanRecord)" id="plan-tab" data-bs-toggle="tab" data-bs-target="#plan-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-bar-chart-steps text-primary"></i><span>@translator.Translate(userLanguage, "Planner")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.InspectionRecord)" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-clipboard-check text-info"></i><span>@translator.Translate(userLanguage, "Inspections")</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- 4. Ficha y Equipamiento -->
-                    <li class="nav-item dropdown" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="group-details-tab">
-                            <i class="bi bi-card-text text-warning"></i>
-                            <span class="ms-1">Ficha y notas</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.NoteRecord)" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-journal-text text-secondary"></i><span>@translator.Translate(userLanguage, "Notes")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.UpgradeRecord)" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgrade-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-stars text-info"></i><span>@translator.Translate(userLanguage, "Upgrades")</span>
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false">
-                                    <i class="bi bi-disc text-info"></i><span>@translator.Translate(userLanguage, "Equipment")</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </li>
-
-
-                    <!-- 6. Buscar -->
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link resizable-nav-link" type="button" onclick="showGlobalSearch()" title="Buscar">
-                            <i class="bi bi-search"></i>
-                            <span class="ms-1 d-none d-lg-inline">Buscar</span>
-                        </button>
-                    </li>
-
-                    <li class="nav-item ms-auto d-flex align-items-center gap-1" role="presentation" style="order: 99">
-                        <button class="nav-link resizable-nav-link" type="button" onclick="toggleTheme()" title="Cambiar tema">
-                            <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
-                        </button>
-                        <button class="nav-link resizable-nav-link" type="button" id="soundToggleBtnNav" onclick="toggleSoundPreference()" title="Activar/desactivar sonidos">
-                            <i id="soundToggleIconNav" class="bi bi-volume-up-fill"></i>
-                        </button>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <div class="dropdown">
-                                <button class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" type="button" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="userMenuBtn">
-                                    <i class="bi bi-person-circle"></i>
-                                    <span class="small fw-semibold ms-1">@User.Identity.Name</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-1" style="min-width: 170px;">
-                                    @if (User.IsInRole(nameof(UserData.IsAdmin)))
-                                    {
-                                        <li>
-                                            <a class="dropdown-item py-1 px-3 small" href="/Admin"><i class="bi bi-people me-2"></i>@translator.Translate(userLanguage, "Admin Panel")</a>
-                                        </li>
-                                    }
-                                    @if (User.IsInRole(nameof(UserData.IsRootUser)))
-                                    {
-                                        <li>
-                                            <button class="dropdown-item py-1 px-3 small" onclick="showRootAccountInformationModal()"><i class="bi bi-person-gear me-2"></i>@translator.Translate(userLanguage, "Profile")</button>
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <li>
-                                            <button class="dropdown-item py-1 px-3 small" onclick="showAccountInformationModal()"><i class="bi bi-person-gear me-2"></i>@translator.Translate(userLanguage, "Profile")</button>
-                                        </li>
-                                    }
-                                    <li>
-                                        <button class="dropdown-item py-1 px-3 small" onclick="returnToGarage()">
-                                            <i class="bi bi-car-front me-2 text-warning"></i>@translator.Translate(userLanguage, "Garage")
-                                        </button>
-                                    </li>
-                                    <li><hr class="dropdown-divider user-dropdown-divider my-1"></li>
-                                    <li>
-                                        <button class="dropdown-item py-1 px-3 small text-danger" onclick="performLogOut()">
-                                            <i class="bi bi-box-arrow-right me-2 text-danger" style="color: #EF4444 !important;"></i>@translator.Translate(userLanguage, "Logout")
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        }
-                    </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-<div class="lubelogger-mobile-nav" onclick="hideMobileNav()">
-    <ul class="nav navbar-nav" id="vehicleTab" role="tablist">
-        <li class="nav-item d-flex" role="presentation" style="order: -3">
-            <button class="nav-link flex-grow-1 text-start" onclick="returnToGarage()"><span class="display-3 ms-2"><i class="bi bi-arrow-left-square me-2"></i>@translator.Translate(userLanguage,"Garage")</span></button>
-            <button class="nav-link" onclick="hideMobileNav()"><span class="display-3 me-2"><i class="bi bi-x-lg"></i></span></button>
-        </li>
-        @if (canEdit)
-        {
-            <li class="nav-item d-flex" role="presentation" style="order: -2">
-                <button class="nav-link flex-grow-1 text-start" onclick="editVehicle(@Model.Id)"><span class="display-3 ms-2"><i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Edit Vehicle")</span></button>
-            </li>
-        }
-        <li class="nav-item d-flex" role="presentation" style="order: -1">
-            <button class="nav-link flex-grow-1 text-start" onclick="showGlobalSearch()"><span class="display-3 ms-2"><i class="bi bi-search me-2"></i>@translator.Translate(userLanguage, "Search")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.Dashboard)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.Dashboard)" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-file-bar-graph me-2"></i>@translator.Translate(userLanguage, "Dashboard")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.GasRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.GasRecord)" id="gas-tab" data-bs-toggle="tab" data-bs-target="#gas-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-fuel-pump me-2"></i>@translator.Translate(userLanguage, "Fuel")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.ServiceRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ServiceRecord)" id="servicerecord-tab" data-bs-toggle="tab" data-bs-target="#servicerecord-tab-pane" type="button" role="tab" aria-selected="true"><span class="display-3 ms-2"><i class="bi bi-card-checklist me-2"></i>@translator.Translate(userLanguage, "Service Records")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.OdometerRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.OdometerRecord)" id="odometer-tab" data-bs-toggle="tab" data-bs-target="#odometer-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-speedometer me-2"></i>@translator.Translate(userLanguage, "Odometer")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.ReminderRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ReminderRecord)" id="reminder-tab" data-bs-toggle="tab" data-bs-target="#reminder-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><div class="reminderBellDiv" style="display:inline-flex;"><i class="reminderBell bi bi-bell me-2"></i></div>@translator.Translate(userLanguage, "Reminders")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.PlanRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.PlanRecord)" id="plan-tab" data-bs-toggle="tab" data-bs-target="#plan-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-bar-chart-steps me-2"></i>@translator.Translate(userLanguage, "Planner")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.InspectionRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.InspectionRecord)" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-clipboard-check me-2"></i>@translator.Translate(userLanguage, "Inspections")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.NoteRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.NoteRecord)" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-journal-bookmark me-2"></i>@translator.Translate(userLanguage, "Notes")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.UpgradeRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.UpgradeRecord)" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgrade-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-stars me-2"></i>@translator.Translate(userLanguage, "Upgrades")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.EquipmentRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-disc me-2"></i>@translator.Translate(userLanguage, "Equipment")</span></button>
-        </li>
-    </ul>
-</div>
-<div class="container @(canEdit ? "user-can-edit" : "user-read-only")" id="vehicleViewContainer">
-    @await Html.PartialAsync("_VehicleCockpit", Model)
-
-    <div class="tab-content" id="vehicleTabContent">
-        <div class="tab-pane fade" id="servicerecord-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="gas-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="tax-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="notes-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="accident-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="reminder-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="report-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="upgrade-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="supply-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="plan-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="odometer-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="inspection-tab-pane" role="tabpanel" tabindex="0"></div>
-        <div class="tab-pane fade" id="equipment-tab-pane" role="tabpanel" tabindex="0"></div>
-    </div>
-</div>
-<div class="modal fade" data-bs-focus="false" id="editVehicleModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" id="editVehicleModalContent">
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="bulkImportModal" tabindex="-1" role="dialog" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-    <div class="modal-dialog" role="document">
-        <div class="modal-content" id="bulkImportModalContent">
-        </div>
-    </div>
-</div>
-<div class="modal fade" data-bs-focus="false" id="reminderRecordModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" id="reminderRecordModalContent">
-        </div>
-    </div>
-</div>
-<div class="modal fade" data-bs-focus="false" id="genericRecordEditModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" id="genericRecordEditModalContent">
-        </div>
-    </div>
-</div>
-<div class="modal fade" data-bs-focus="false" id="attachmentPreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen" role="document">
-        <div class="modal-content frosted" id="attachmentPreviewModalContent">
-        </div>
-    </div>
-</div>
-<div class="modal fade" data-bs-focus="false" id="inputSuppliesModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" id="inputSuppliesModalContent"></div>
-    </div>
-</div>
-<div class="modal fade" data-bs-focus="false" id="globalSearchModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" id="globalSearchModalContent">
-            <div class="modal-body">
-                <div class="input-group input-group-lg">
-                    <input type="text" id="globalSearchInput" autocomplete="off" onkeyup="handleGlobalSearchKeyPress(event)" class="form-control" placeholder="@translator.Translate(userLanguage, "Search by Keyword")">
-                    <button type="button" class="btn btn-outline-secondary" onclick="performGlobalSearch()"><i class="bi bi-search"></i></button>
-                </div>
-                <div class="form-check form-check-inline form-switch mt-1">
-                    <input class="form-check-input" type="checkbox" role="switch" onchange="saveGlobalSearchSettings()" id="globalSearchAutoSearchCheck" checked>
-                    <label class="form-check-label" for="globalSearchAutoSearchCheck">@translator.Translate(userLanguage, "Incremental Search")</label>
-                </div>
-                <div class="form-check form-check-inline form-switch mt-1">
-                    <input class="form-check-input" type="checkbox" onchange="performGlobalSearch()" role="switch" id="globalSearchCaseSensitiveCheck" checked>
-                    <label class="form-check-label" for="globalSearchCaseSensitiveCheck">@translator.Translate(userLanguage, "Case Sensitive")</label>
-                </div>
-                <div id="globalSearchModalResults"></div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="stickerPrintContainer hideOnPrint">
-</div>
-<script>
-    function GetVehicleId() {
-        return { 
-            vehicleId: @Model.Id, 
-            odometerOptional: @Model.OdometerOptional.ToString().ToLower(),
-            hasOdometerAdjustment: @Model.HasOdometerAdjustment.ToString().ToLower(),
-            useEngineHours: @Model.UseHours.ToString().ToLower(),
-            odometerDifference: decodeHTMLEntities('@Model.OdometerDifference'),
-            odometerMultiplier: decodeHTMLEntities('@Model.OdometerMultiplier')
-        };
-    }
-    function GetDefaultTab() {
-        return { tab: "@userConfig.DefaultTab" };
-    }
-    bindWindowResize();
-    checkRecurringTaxes();
-    bindNavBarResize();
+@using CarCareTracker.Helper
+
+@using System.Security.Claims
+
+@inject CarCareTracker.Logic.IUserLogic userLogic
+
+@inject IConfigHelper config
+
+@inject ITranslationHelper translator
+
+@{
+
+    var userConfig = config.GetUserConfig(User);
+
+    var userLanguage = userConfig.UserLanguage;
+
+    var currentUserIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    int currentUserId = -1;
+
+    if (!string.IsNullOrEmpty(currentUserIdClaim)) int.TryParse(currentUserIdClaim, out currentUserId);
+
+    bool canEdit = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin)) || userLogic.UserCanDirectlyEditVehicle(currentUserId, Model.Id);
+
+}
+
+@model Vehicle
+
+@{
+
+    ViewData["Title"] = $"{Model.Year} {Model.Make} {Model.Model} ({StaticHelper.GetVehicleIdentifier(Model)})";
+
+}
+
+@section Scripts {
+
+    <script src="~/js/vehicle.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/servicerecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/gasrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/collisionrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/taxrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/reminderrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/upgraderecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/note.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/reports.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/supplyrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/planrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/odometerrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/inspectionrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/js/equipmentrecord.js?v=@StaticHelper.VersionNumber"></script>
+
+    <script src="~/lib/chart-js/chart.umd.js"></script>
+
+    <script src="~/lib/drawdown/drawdown.js"></script>
+
+    <script src="~/lib/qrcode/qrcode.js"></script>
+
+    <script src="~/lib/signalr/signalr.min.js"></script>
+
+}
+
+@section Nav{
+
+    <div class="container-fluid lubelogger-navbar-container frosted hideOnPrint">
+
+        <div class="row">
+
+            <div class="d-flex align-items-center lubelogger-navbar py-1">
+
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-3 py-1 me-2 d-flex align-items-center gap-1 border-0 bg-dark bg-opacity-50 text-light" onclick="returnToGarage()" title="Volver al Garaje">
+
+                    <i class="bi bi-arrow-left"></i>
+
+                    <span class="small fw-semibold">Garaje</span>
+
+                </button>
+
+                <div class="vr mx-2 opacity-25 text-secondary d-none d-md-block" style="height: 22px; align-self: center;"></div>
+
+                <div class="lubelogger-tabs-scroll-wrapper flex-grow-1">
+
+                    <ul class="nav nav-tabs lubelogger-tab align-items-center flex-nowrap" id="vehicleTab" role="tablist">
+
+                    <!-- 1. Panel General -->
+
+                    <li class="nav-item" role="presentation">
+
+                        <button class="nav-link resizable-nav-link @StaticHelper.DefaultActiveTab(userConfig, ImportMode.Dashboard)" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-tab-pane" type="button" role="tab" aria-selected="false">
+
+                            <i class="bi bi-speedometer2 text-info"></i>
+
+                            <span class="ms-1">@translator.Translate(userLanguage, "Dashboard")</span>
+
+                        </button>
+
+                    </li>
+
+
+
+                    <!-- 2. Mantenimiento y Uso -->
+
+                    <li class="nav-item dropdown" role="presentation">
+
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="group-maintenance-tab">
+
+                            <i class="bi bi-tools text-warning"></i>
+
+                            <span class="ms-1">Mantenimiento</span>
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.GasRecord)" id="gas-tab" data-bs-toggle="tab" data-bs-target="#gas-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-fuel-pump text-success" style="color: #35D298 !important;"></i><span>@translator.Translate(userLanguage, "Fuel")</span>
+
+                                </button>
+
+                            </li>
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ServiceRecord)" id="servicerecord-tab" data-bs-toggle="tab" data-bs-target="#servicerecord-tab-pane" type="button" role="tab" aria-selected="true">
+
+                                    <i class="bi bi-tools text-warning"></i><span>@translator.Translate(userLanguage, "Service Records")</span>
+
+                                </button>
+
+                            </li>
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.OdometerRecord)" id="odometer-tab" data-bs-toggle="tab" data-bs-target="#odometer-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-signpost-2 text-info"></i><span>@translator.Translate(userLanguage, "Odometer")</span>
+
+                                </button>
+
+                            </li>
+
+                        </ul>
+
+                    </li>
+
+
+
+                    <!-- 3. Planificación -->
+
+                    <li class="nav-item dropdown" role="presentation">
+
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="group-planning-tab">
+
+                            <i class="bi bi-calendar-check text-primary"></i>
+
+                            <span class="ms-1">Planificación</span>
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ReminderRecord)" id="reminder-tab" data-bs-toggle="tab" data-bs-target="#reminder-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-bell text-warning"></i><span>@translator.Translate(userLanguage, "Reminders")</span>
+
+                                </button>
+
+                            </li>
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.PlanRecord)" id="plan-tab" data-bs-toggle="tab" data-bs-target="#plan-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-bar-chart-steps text-primary"></i><span>@translator.Translate(userLanguage, "Planner")</span>
+
+                                </button>
+
+                            </li>
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.InspectionRecord)" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-clipboard-check text-info"></i><span>@translator.Translate(userLanguage, "Inspections")</span>
+
+                                </button>
+
+                            </li>
+
+                        </ul>
+
+                    </li>
+
+
+
+                    <!-- 4. Ficha y Equipamiento -->
+
+                    <li class="nav-item dropdown" role="presentation">
+
+                        <button type="button" class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="group-details-tab">
+
+                            <i class="bi bi-card-text text-warning"></i>
+
+                            <span class="ms-1">Ficha y notas</span>
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary border-opacity-25 py-2">
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.NoteRecord)" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-journal-text text-secondary"></i><span>@translator.Translate(userLanguage, "Notes")</span>
+
+                                </button>
+
+                            </li>
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.UpgradeRecord)" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgrade-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-stars text-info"></i><span>@translator.Translate(userLanguage, "Upgrades")</span>
+
+                                </button>
+
+                            </li>
+
+                            <li>
+
+                                <button class="dropdown-item d-flex align-items-center gap-2 py-2 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false">
+
+                                    <i class="bi bi-disc text-info"></i><span>@translator.Translate(userLanguage, "Equipment")</span>
+
+                                </button>
+
+                            </li>
+
+                        </ul>
+
+                    </li>
+
+
+
+
+
+                    <!-- 6. Buscar -->
+
+                    <li class="nav-item" role="presentation">
+
+                        <button class="nav-link resizable-nav-link" type="button" onclick="showGlobalSearch()" title="Buscar">
+
+                            <i class="bi bi-search"></i>
+
+                            <span class="ms-1 d-none d-lg-inline">Buscar</span>
+
+                        </button>
+
+                    </li>
+
+
+
+                    <li class="nav-item ms-auto d-flex align-items-center gap-1" role="presentation" style="order: 99">
+
+                        <button class="nav-link resizable-nav-link" type="button" onclick="toggleTheme()" title="Cambiar tema">
+
+                            <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
+
+                        </button>
+
+                        <button class="nav-link resizable-nav-link" type="button" id="soundToggleBtnNav" onclick="toggleSoundPreference()" title="Activar/desactivar sonidos">
+
+                            <i id="soundToggleIconNav" class="bi bi-volume-up-fill"></i>
+
+                        </button>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+
+                        {
+
+                            <div class="dropdown">
+
+                                <button class="nav-link resizable-nav-link dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" type="button" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' id="userMenuBtn">
+
+                                    <i class="bi bi-person-circle"></i>
+
+                                    <span class="small fw-semibold ms-1">@User.Identity.Name</span>
+
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg py-1" style="min-width: 170px;">
+
+                                    @if (User.IsInRole(nameof(UserData.IsAdmin)))
+
+                                    {
+
+                                        <li>
+
+                                            <a class="dropdown-item py-1 px-3 small" href="/Admin"><i class="bi bi-people me-2"></i>@translator.Translate(userLanguage, "Admin Panel")</a>
+
+                                        </li>
+
+                                    }
+
+                                    @if (User.IsInRole(nameof(UserData.IsRootUser)))
+
+                                    {
+
+                                        <li>
+
+                                            <button class="dropdown-item py-1 px-3 small" onclick="showRootAccountInformationModal()"><i class="bi bi-person-gear me-2"></i>@translator.Translate(userLanguage, "Profile")</button>
+
+                                        </li>
+
+                                    }
+
+                                    else
+
+                                    {
+
+                                        <li>
+
+                                            <button class="dropdown-item py-1 px-3 small" onclick="showAccountInformationModal()"><i class="bi bi-person-gear me-2"></i>@translator.Translate(userLanguage, "Profile")</button>
+
+                                        </li>
+
+                                    }
+
+                                    <li>
+
+                                        <button class="dropdown-item py-1 px-3 small" onclick="returnToGarage()">
+
+                                            <i class="bi bi-car-front me-2 text-warning"></i>@translator.Translate(userLanguage, "Garage")
+
+                                        </button>
+
+                                    </li>
+
+                                    <li><hr class="dropdown-divider user-dropdown-divider my-1"></li>
+
+                                    <li>
+
+                                        <button class="dropdown-item py-1 px-3 small text-danger" onclick="performLogOut()">
+
+                                            <i class="bi bi-box-arrow-right me-2 text-danger" style="color: #EF4444 !important;"></i>@translator.Translate(userLanguage, "Logout")
+
+                                        </button>
+
+                                    </li>
+
+                                </ul>
+
+                            </div>
+
+                        }
+
+                    </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+}
+
+<div class="lubelogger-mobile-nav" onclick="hideMobileNav()">
+
+    <ul class="nav navbar-nav" id="vehicleTab" role="tablist">
+
+        <li class="nav-item d-flex" role="presentation" style="order: -3">
+
+            <button class="nav-link flex-grow-1 text-start" onclick="returnToGarage()"><span class="display-3 ms-2"><i class="bi bi-arrow-left-square me-2"></i>@translator.Translate(userLanguage,"Garage")</span></button>
+
+            <button class="nav-link" onclick="hideMobileNav()"><span class="display-3 me-2"><i class="bi bi-x-lg"></i></span></button>
+
+        </li>
+
+        @if (canEdit)
+
+        {
+
+            <li class="nav-item d-flex" role="presentation" style="order: -2">
+
+                <button class="nav-link flex-grow-1 text-start" onclick="editVehicle(@Model.Id)"><span class="display-3 ms-2"><i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Edit Vehicle")</span></button>
+
+            </li>
+
+        }
+
+        <li class="nav-item d-flex" role="presentation" style="order: -1">
+
+            <button class="nav-link flex-grow-1 text-start" onclick="showGlobalSearch()"><span class="display-3 ms-2"><i class="bi bi-search me-2"></i>@translator.Translate(userLanguage, "Search")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.Dashboard)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.Dashboard)" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-file-bar-graph me-2"></i>@translator.Translate(userLanguage, "Dashboard")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.GasRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.GasRecord)" id="gas-tab" data-bs-toggle="tab" data-bs-target="#gas-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-fuel-pump me-2"></i>@translator.Translate(userLanguage, "Fuel")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.ServiceRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ServiceRecord)" id="servicerecord-tab" data-bs-toggle="tab" data-bs-target="#servicerecord-tab-pane" type="button" role="tab" aria-selected="true"><span class="display-3 ms-2"><i class="bi bi-card-checklist me-2"></i>@translator.Translate(userLanguage, "Service Records")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.OdometerRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.OdometerRecord)" id="odometer-tab" data-bs-toggle="tab" data-bs-target="#odometer-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-speedometer me-2"></i>@translator.Translate(userLanguage, "Odometer")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.ReminderRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.ReminderRecord)" id="reminder-tab" data-bs-toggle="tab" data-bs-target="#reminder-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><div class="reminderBellDiv" style="display:inline-flex;"><i class="reminderBell bi bi-bell me-2"></i></div>@translator.Translate(userLanguage, "Reminders")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.PlanRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.PlanRecord)" id="plan-tab" data-bs-toggle="tab" data-bs-target="#plan-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-bar-chart-steps me-2"></i>@translator.Translate(userLanguage, "Planner")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.InspectionRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.InspectionRecord)" id="inspection-tab" data-bs-toggle="tab" data-bs-target="#inspection-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-clipboard-check me-2"></i>@translator.Translate(userLanguage, "Inspections")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.NoteRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.NoteRecord)" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-journal-bookmark me-2"></i>@translator.Translate(userLanguage, "Notes")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.UpgradeRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.UpgradeRecord)" id="upgrade-tab" data-bs-toggle="tab" data-bs-target="#upgrade-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-stars me-2"></i>@translator.Translate(userLanguage, "Upgrades")</span></button>
+
+        </li>
+
+        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.EquipmentRecord)">
+
+            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-disc me-2"></i>@translator.Translate(userLanguage, "Equipment")</span></button>
+
+        </li>
+
+    </ul>
+
+</div>
+
+<div class="container @(canEdit ? "user-can-edit" : "user-read-only")" id="vehicleViewContainer">
+
+    @await Html.PartialAsync("_VehicleCockpit", Model)
+
+
+
+    <div class="tab-content" id="vehicleTabContent">
+
+        <div class="tab-pane fade" id="servicerecord-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="gas-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="tax-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="notes-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="accident-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="reminder-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="report-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="upgrade-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="supply-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="plan-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="odometer-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="inspection-tab-pane" role="tabpanel" tabindex="0"></div>
+
+        <div class="tab-pane fade" id="equipment-tab-pane" role="tabpanel" tabindex="0"></div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="editVehicleModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+
+    <div class="modal-dialog modal-lg" role="document">
+
+        <div class="modal-content" id="editVehicleModalContent">
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="vehicleMetricsModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" id="vehicleMetricsModalContent">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="bulkImportModal" tabindex="-1" role="dialog" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+
+    <div class="modal-dialog" role="document">
+
+        <div class="modal-content" id="bulkImportModalContent">
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="reminderRecordModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+
+    <div class="modal-dialog modal-lg" role="document">
+
+        <div class="modal-content" id="reminderRecordModalContent">
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="genericRecordEditModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+
+    <div class="modal-dialog modal-lg" role="document">
+
+        <div class="modal-content" id="genericRecordEditModalContent">
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="attachmentPreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <div class="modal-dialog modal-fullscreen" role="document">
+
+        <div class="modal-content frosted" id="attachmentPreviewModalContent">
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="inputSuppliesModal" tabindex="-1" role="dialog" aria-hidden="true" @StaticHelper.GetStaticModalAttribute(userConfig.EnablePersistentDialog)>
+
+    <div class="modal-dialog modal-lg" role="document">
+
+        <div class="modal-content" id="inputSuppliesModalContent"></div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" data-bs-focus="false" id="globalSearchModal" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg" role="document">
+
+        <div class="modal-content" id="globalSearchModalContent">
+
+            <div class="modal-body">
+
+                <div class="input-group input-group-lg">
+
+                    <input type="text" id="globalSearchInput" autocomplete="off" onkeyup="handleGlobalSearchKeyPress(event)" class="form-control" placeholder="@translator.Translate(userLanguage, "Search by Keyword")">
+
+                    <button type="button" class="btn btn-outline-secondary" onclick="performGlobalSearch()"><i class="bi bi-search"></i></button>
+
+                </div>
+
+                <div class="form-check form-check-inline form-switch mt-1">
+
+                    <input class="form-check-input" type="checkbox" role="switch" onchange="saveGlobalSearchSettings()" id="globalSearchAutoSearchCheck" checked>
+
+                    <label class="form-check-label" for="globalSearchAutoSearchCheck">@translator.Translate(userLanguage, "Incremental Search")</label>
+
+                </div>
+
+                <div class="form-check form-check-inline form-switch mt-1">
+
+                    <input class="form-check-input" type="checkbox" onchange="performGlobalSearch()" role="switch" id="globalSearchCaseSensitiveCheck" checked>
+
+                    <label class="form-check-label" for="globalSearchCaseSensitiveCheck">@translator.Translate(userLanguage, "Case Sensitive")</label>
+
+                </div>
+
+                <div id="globalSearchModalResults"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="stickerPrintContainer hideOnPrint">
+
+</div>
+
+<script>
+
+    function GetVehicleId() {
+
+        return { 
+
+            vehicleId: @Model.Id, 
+
+            odometerOptional: @Model.OdometerOptional.ToString().ToLower(),
+
+            hasOdometerAdjustment: @Model.HasOdometerAdjustment.ToString().ToLower(),
+
+            useEngineHours: @Model.UseHours.ToString().ToLower(),
+
+            odometerDifference: decodeHTMLEntities('@Model.OdometerDifference'),
+
+            odometerMultiplier: decodeHTMLEntities('@Model.OdometerMultiplier')
+
+        };
+
+    }
+
+    function GetDefaultTab() {
+
+        return { tab: "@userConfig.DefaultTab" };
+
+    }
+
+    bindWindowResize();
+
+    checkRecurringTaxes();
+
+    bindNavBarResize();
+
 </script>

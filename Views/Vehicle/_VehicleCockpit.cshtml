@@ -131,6 +131,9 @@
                 <button type="button" class="btn btn-sm badge @(Model.IsPublic ? "bg-info text-dark" : "bg-secondary text-light") border border-secondary px-2 py-1 font-monospace d-inline-flex align-items-center" onclick="toggleVehiclePublicStatus(@Model.Id)" title="@(Model.IsPublic ? "Vehículo público (clic para cambiar a Privado)" : "Vehículo privado (clic para cambiar a Público)")" style="cursor: pointer;">
                     <i class="bi @(Model.IsPublic ? "bi-globe2" : "bi-lock-fill") me-1"></i>@(Model.IsPublic ? "Público" : "Privado")
                 </button>
+                <button type="button" class="btn btn-sm badge bg-dark bg-opacity-75 text-light border border-secondary px-2 py-1 font-monospace d-inline-flex align-items-center" onclick="openVehicleMetricsModal(@Model.Id)" title="Configurar qué datos rápidos se muestran en la tarjeta del Garaje" style="cursor: pointer;">
+                    <i class="bi bi-card-checklist text-warning me-1"></i>Tarjeta Garaje
+                </button>
             }
             else
             {

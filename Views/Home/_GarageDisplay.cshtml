@@ -155,6 +155,7 @@
     <li><a class="context-menu-multiple dropdown-item" href="#" onclick="sortGarage()"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Sort")</span><i class="garage-sort-icon bi bi-arrow-down-up"></i></div></a></li>
     <li><a class="context-menu-extra-field dropdown-item" href="#" onclick="showVehicleExtraFields(selectedVehicles)"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Extra Fields")</span><i class="bi bi-list-ul"></i></div></a></li>
     <li><a class="dropdown-item" href="#" onclick="manageCollaborators(selectedVehicles)"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Manage Collaborators")</span><i class="bi bi-people"></i></div></a></li>
+    <li><a class="context-menu-active-single dropdown-item" href="#" onclick="openVehicleMetricsModalFromGarage(selectedVehicles)"><div class="d-flex justify-content-between"><span class="me-5">Datos tarjeta Garaje</span><i class="bi bi-card-checklist text-warning"></i></div></a></li>
     <li><hr class="context-menu-active-single dropdown-divider"></li>
     <li><h6 class="context-menu-active-single dropdown-header">@translator.Translate(userLanguage, "Navigate To")</h6></li>
     @foreach(ImportMode importMode in userConfig.TabOrder)

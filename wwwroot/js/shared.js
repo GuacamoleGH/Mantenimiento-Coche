@@ -2803,3 +2803,42 @@ $(document).on('scroll', '.lubelogger-tabs-scroll-wrapper', function () {
         }
     });
 });
+
+function openVehicleMetricsModal(vehicleId) {
+    sloader.show();
+    $.get('/Vehicle/GetVehicleMetricsModal', { vehicleId: vehicleId }, function (data) {
+        sloader.hide();
+        $('#vehicleMetricsModalContent').html(data);
+        $('#vehicleMetricsModal').modal('show');
+    }).fail(function () {
+        sloader.hide();
+        errorToast('Error al cargar la configuración de datos.');
+    });
+}
+
+function hideMetricsModal() {
+    $('#vehicleMetricsModal').modal('hide');
+}
+
+function saveVehicleMetrics(vehicleId) {
+    var selectedMetrics = [];
+    $('#vehicleMetricsModalContent .metric-toggle:checked').each(function () {
+        selectedMetrics.push(parseInt($(this).val()));
+    });
+    sloader.show();
+    $.post('/Vehicle/SaveVehicleMetrics', { vehicleId: vehicleId, metrics: selectedMetrics }, function (data) {
+        sloader.hide();
+        if (data.success) {
+            successToast(data.message);
+            hideMetricsModal();
+            setTimeout(function () {
+                window.location.reload();
+            }, 300);
+        } else {
+            errorToast(data.message);
+        }
+    }).fail(function () {
+        sloader.hide();
+        errorToast('Error al guardar los cambios.');
+    });
+}

@@ -248,6 +248,46 @@ namespace CarCareTracker.Controllers
                 return Json(OperationResponse.Failed(StaticHelper.GenericErrorMessage));
             }
         }
+        [HttpGet]
+        public IActionResult GetVehicleMetricsModal(int vehicleId)
+        {
+            var vehicle = _dataAccess.GetVehicleById(vehicleId);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+            return PartialView("_VehicleMetricsModal", vehicle);
+        }
+        [HttpPost]
+        [TypeFilter(typeof(StrictCollaboratorFilter), Arguments = new object[] { false, false })]
+        public IActionResult SaveVehicleMetrics(int vehicleId, List<DashboardMetric> metrics)
+        {
+            try
+            {
+                var vehicle = _dataAccess.GetVehicleById(vehicleId);
+                if (vehicle == null)
+                {
+                    return Json(OperationResponse.Failed("Vehículo no encontrado."));
+                }
+                int currentUserId = GetUserID();
+                bool isAdmin = User.IsInRole(nameof(UserData.IsRootUser)) || User.IsInRole(nameof(UserData.IsAdmin));
+                bool canEdit = isAdmin || vehicle.OwnerUserId == currentUserId || vehicle.OwnerUserId <= 0 || _userLogic.GetVehicleOwnerUserId(vehicleId) == currentUserId || _userLogic.UserCanEditVehicle(currentUserId, vehicleId, HouseholdPermission.Edit);
+
+                if (!canEdit)
+                {
+                    return Json(OperationResponse.Failed("No tienes permisos para modificar este vehículo."));
+                }
+
+                vehicle.DashboardMetrics = metrics ?? new List<DashboardMetric>();
+                var result = _dataAccess.SaveVehicle(vehicle);
+                return Json(OperationResponse.Conditional(result, "Datos de la tarjeta del garaje guardados correctamente.", StaticHelper.GenericErrorMessage));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving vehicle dashboard metrics");
+                return Json(OperationResponse.Failed(StaticHelper.GenericErrorMessage));
+            }
+        }
         [HttpPost]
         [TypeFilter(typeof(StrictCollaboratorFilter), Arguments = new object[] { false, true })]
         public IActionResult DeleteVehicle(int vehicleId)
