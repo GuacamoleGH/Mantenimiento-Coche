@@ -24,8 +24,8 @@ namespace CarCareTracker.Controllers
         public IActionResult GetOdometerRecordsByVehicleId(int vehicleId)
         {
             var result = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(vehicleId);
-            //determine if conversion is needed.
-            if (result.All(x => x.InitialMileage == default))
+            //determine if conversion is needed or if distances need chronological reconciliation.
+            if (result.All(x => x.InitialMileage == default) || result.Any(x => x.DistanceTraveled < 0))
             {
                 result = _odometerLogic.AutoConvertOdometerRecord(result);
             }
@@ -54,6 +54,8 @@ namespace CarCareTracker.Controllers
             var result = _odometerRecordDataAccess.SaveOdometerRecordToVehicle(convertedRecord);
             if (result)
             {
+                var allRecords = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(odometerRecord.VehicleId);
+                _odometerLogic.AutoConvertOdometerRecord(allRecords);
                 _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromOdometerRecord(convertedRecord, odometerRecord.Id == default ? "odometerrecord.add" : "odometerrecord.update", User.Identity?.Name ?? string.Empty));
             }
             return Json(OperationResponse.Conditional(result, string.Empty, StaticHelper.GenericErrorMessage));
@@ -197,6 +199,8 @@ namespace CarCareTracker.Controllers
             var result = _odometerRecordDataAccess.DeleteOdometerRecordById(existingRecord.Id);
             if (result)
             {
+                var allRecords = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(existingRecord.VehicleId);
+                _odometerLogic.AutoConvertOdometerRecord(allRecords);
                 _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromOdometerRecord(existingRecord, "odometerrecord.delete", User.Identity?.Name ?? string.Empty));
             }
             return OperationResponse.Conditional(result, string.Empty, StaticHelper.GenericErrorMessage);

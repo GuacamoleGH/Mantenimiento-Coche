@@ -267,6 +267,13 @@
                     <span class="text-nowrap me-1">Próxima fecha:</span>
                     <strong class="font-monospace text-light text-nowrap">@(string.IsNullOrWhiteSpace(Model.ItvExpiry) ? "---" : Model.ItvExpiry)</strong>
                 </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ItvMileage))
+                {
+                    <div class="small text-secondary d-flex justify-content-between align-items-center pt-1">
+                        <span class="text-nowrap me-1">Km en ITV:</span>
+                        <strong class="font-monospace text-light text-nowrap">@(int.TryParse(Model.ItvMileage, out var kmVal) ? $"{kmVal:N0} km" : $"{Model.ItvMileage} km")</strong>
+                    </div>
+                }
             </div>
         </div>
 

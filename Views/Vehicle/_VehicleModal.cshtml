@@ -148,6 +148,9 @@
                                     <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                                 </div>
 
+                                <label for="inputItvMileage"><i class="bi bi-speedometer2 text-info me-1"></i> Kilometraje en ITV (km)</label>
+                                <input type="number" inputmode="numeric" id="inputItvMileage" class="form-control mb-2" placeholder="Ej: 145000" value="@Model.ItvMileage">
+
                                 <label for="inputInsuranceExpiry"><i class="bi bi-shield-lock text-info me-1"></i> @translator.Translate(userLanguage, "Insurance_Expiration")</label>
                                 <div class="input-group mb-2">
                                     <input type="text" id="inputInsuranceExpiry" class="form-control" autocomplete="off" placeholder="DD/MM/YYYY" value="@Model.InsuranceExpiry">

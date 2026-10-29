@@ -50,6 +50,9 @@ namespace CarCareTracker.Models
         [JsonConverter(typeof(FromDateOptional))]
         public string ItvExpiry { get; set; } = string.Empty;
 
+        [JsonConverter(typeof(FromIntOptional))]
+        public string ItvMileage { get; set; } = string.Empty;
+
         [JsonConverter(typeof(FromDateOptional))]
         public string InsuranceExpiry { get; set; } = string.Empty;
         public string InsuranceCompany { get; set; } = string.Empty;
