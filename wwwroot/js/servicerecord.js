@@ -343,8 +343,9 @@ function renderServiceTypeCategories() {
 
     serviceCategoriesData.forEach((cat, catIdx) => {
         var catId = `st_cat_${catIdx}`;
+        var catSearch = normalizeSearchText(cat.name);
         var catHtml = `
-            <div class="service-type-category mb-1 border-bottom border-secondary-subtle pb-1" data-category-id="${catId}">
+            <div class="service-type-category mb-1 border-bottom border-secondary-subtle pb-1" data-category-id="${catId}" data-search-category="${catSearch}">
                 <div class="category-header d-flex justify-content-between align-items-center py-1 px-2 rounded cursor-pointer user-select-none" onclick="toggleServiceCategory('${catId}')">
                     <span class="fw-semibold small d-flex align-items-center gap-2">
                         <i class="bi bi-chevron-right category-chevron" id="${catId}_chevron" style="transition: transform 0.2s;"></i>
@@ -358,7 +359,7 @@ function renderServiceTypeCategories() {
                         var itemId = `st_item_${catIdx}_${itemIdx}`;
                         var isChecked = selectedServiceTypesState.includes(item);
                         return `
-                            <div class="form-check py-1 service-type-item" data-search-name="${item.toLowerCase()}">
+                            <div class="form-check py-1 service-type-item" data-search-name="${normalizeSearchText(item)}">
                                 <input class="form-check-input service-type-checkbox" type="checkbox" value="${item.replace(/"/g, '&quot;')}" id="${itemId}" ${isChecked ? 'checked' : ''} onchange="handleServiceTypeCheck(this)">
                                 <label class="form-check-label small cursor-pointer user-select-none w-100" for="${itemId}">
                                     ${item}
@@ -413,9 +414,18 @@ function toggleAllServiceCategories(expand) {
     }
 }
 
+function normalizeSearchText(str) {
+    if (!str) return '';
+    return str.toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
 function filterServiceTypes(query) {
-    query = (query || '').toLowerCase().trim();
-    if (query === '') {
+    var queryNorm = normalizeSearchText(query);
+    if (queryNorm === '') {
         $(".service-type-category").show();
         $(".service-type-item").show();
         toggleAllServiceCategories(false);
@@ -425,13 +435,15 @@ function filterServiceTypes(query) {
     $(".service-type-category").each(function() {
         var cat = $(this);
         var catId = cat.attr("data-category-id");
+        var catSearch = cat.attr("data-search-category") || '';
         var items = cat.find(".service-type-item");
         var matchCount = 0;
+        var catMatches = catSearch.includes(queryNorm);
 
         items.each(function() {
             var item = $(this);
-            var itemName = item.attr("data-search-name") || '';
-            if (itemName.includes(query)) {
+            var itemName = item.attr("data-search-name") || normalizeSearchText(item.text());
+            if (catMatches || itemName.includes(queryNorm)) {
                 item.show();
                 matchCount++;
             } else {

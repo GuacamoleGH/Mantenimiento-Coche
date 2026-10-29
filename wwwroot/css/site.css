@@ -3126,7 +3126,10 @@ a:has(.bi-qr-code) {
     overflow: visible !important;
 }
 
-.service-type-dropdown {
+.service-type-dropdown,
+.service-type-dropdown:hover {
+    transform: none !important;
+    transition: none !important;
     max-height: 480px !important;
     background-color: #1a2232 !important;
     border: 1px solid #334155 !important;
