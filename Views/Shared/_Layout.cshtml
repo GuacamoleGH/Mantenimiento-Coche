@@ -112,6 +112,48 @@
                 pattern: "@shortDatePattern"
             }
         }
+        // Hook global a bootstrap-datepicker para que Enter y Escape cierren el desplegable
+        if (typeof $.fn.datepicker !== 'undefined' && $.fn.datepicker.Constructor) {
+            var origDatepickerKeydown = $.fn.datepicker.Constructor.prototype.keydown;
+            $.fn.datepicker.Constructor.prototype.keydown = function (e) {
+                if (e.keyCode === 13 || e.key === 'Enter' || e.keyCode === 27 || e.key === 'Escape') {
+                    try {
+                        this.update();
+                        this.hide();
+                        if (this.element) {
+                            this.element.blur();
+                        }
+                    } catch (err) {}
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                return origDatepickerKeydown.apply(this, arguments);
+            };
+        }
+        // Cerrar calendario al pulsar Intro (Enter) o Escape en cualquier campo de fecha
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13 || e.key === 'Escape' || e.keyCode === 27) {
+                var active = document.activeElement;
+                if (active && (
+                    active.classList.contains('has-date-mask') ||
+                    active.classList.contains('datepicker-input') ||
+                    (active.id && active.id.toLowerCase().indexOf('date') > -1) ||
+                    (active.name && active.name.toLowerCase().indexOf('date') > -1)
+                )) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof $(active).datepicker === 'function') {
+                        try {
+                            $(active).datepicker('update');
+                            $(active).datepicker('hide');
+                        } catch (err) {}
+                    }
+                    $('.datepicker.datepicker-dropdown, .datepicker').hide();
+                    active.blur();
+                }
+            }
+        }, true);
         function getDecimalSeparator() {
             return decodeHTMLEntities("@numberFormat.NumberDecimalSeparator") || ',';
         }
