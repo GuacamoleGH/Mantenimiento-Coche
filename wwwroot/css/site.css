@@ -2273,21 +2273,22 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 
 .garage-plate-badge .plate-eu-strip {
-
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    aspect-ratio: 1 / 1;
     background: #003399;
-
-    color: #ffcc00;
-
+    color: #ffffff !important;
     font-size: 0.6rem;
-
     font-weight: 800;
-
-    padding: 0 3px;
-
-    margin-right: 5px;
-
+    line-height: 1;
+    margin-right: 6px;
     border-radius: 2px;
-
+    text-align: center;
+    flex-shrink: 0;
 }
 
 
@@ -2669,21 +2670,22 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 
 
 .garage-plate-badge .plate-eu-strip {
-
-    background: #1D4ED8;
-
-    color: #FBBF24;
-
-    font-size: 0.65rem;
-
-    font-weight: 900;
-
-    padding: 1px 4px;
-
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    aspect-ratio: 1 / 1;
+    background: #003399;
+    color: #ffffff !important;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 1;
     margin-right: 6px;
-
     border-radius: 2px;
-
+    text-align: center;
+    flex-shrink: 0;
 }
 
 [data-bs-theme="light"] .garage-plate-badge {
@@ -2699,11 +2701,8 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 [data-bs-theme="light"] .garage-plate-badge .plate-eu-strip {
-
     background: #003399;
-
-    color: #FFCC00;
-
+    color: #ffffff !important;
 }
 
 
