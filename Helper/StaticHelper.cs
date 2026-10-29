@@ -1,3 +1,4 @@
+using CarCareTracker.External.Interfaces;
 using CarCareTracker.Models;
 using CsvHelper;
 using System.Globalization;
@@ -14,7 +15,7 @@ namespace CarCareTracker.Helper
     /// </summary>
     public static class StaticHelper
     {
-        public const string VersionNumber = "1.8.9.15";
+        public const string VersionNumber = "1.8.9.16";
         public const string DbName = "data/cartracker.db";
         public const string UserConfigPath = "data/config/userConfig.json";
         public const string ServerConfigPath = "data/config/serverConfig.json";
@@ -432,6 +433,62 @@ namespace CarCareTracker.Helper
                     File.Move(fileToMove, newFilePath, true);
                     Console.WriteLine($"Migrated Temp File: {Path.GetFileName(fileToMove)}");
                 }
+            }
+        }
+        public static void MigrateCollisionsToServices(
+            ICollisionRecordDataAccess collisionRecordDataAccess,
+            IServiceRecordDataAccess serviceRecordDataAccess,
+            IVehicleDataAccess vehicleDataAccess)
+        {
+            try
+            {
+                var vehicles = vehicleDataAccess.GetVehicles();
+                int totalMigrated = 0;
+                foreach (var vehicle in vehicles)
+                {
+                    var collisionRecords = collisionRecordDataAccess.GetCollisionRecordsByVehicleId(vehicle.Id);
+                    if (collisionRecords != null && collisionRecords.Any())
+                    {
+                        foreach (var collision in collisionRecords)
+                        {
+                            var serviceRecord = GenericToServiceRecord(collision);
+                            serviceRecord.Id = 0;
+
+                            if (serviceRecord.Tags == null)
+                            {
+                                serviceRecord.Tags = new List<string>();
+                            }
+                            if (!serviceRecord.Tags.Any(t => t.Equals("Reparación", StringComparison.OrdinalIgnoreCase) || t.Equals("Reparacion", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                serviceRecord.Tags.Add("Reparación");
+                            }
+
+                            if (serviceRecord.ServiceTypes == null)
+                            {
+                                serviceRecord.ServiceTypes = new List<string>();
+                            }
+                            if (!serviceRecord.ServiceTypes.Any())
+                            {
+                                serviceRecord.ServiceTypes.Add("Reparación");
+                            }
+
+                            bool saved = serviceRecordDataAccess.SaveServiceRecordToVehicle(serviceRecord);
+                            if (saved)
+                            {
+                                collisionRecordDataAccess.DeleteCollisionRecordById(collision.Id);
+                                totalMigrated++;
+                            }
+                        }
+                    }
+                }
+                if (totalMigrated > 0)
+                {
+                    Console.WriteLine($"[MIGRATION] Migrated {totalMigrated} repair records into unified service history.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[MIGRATION ERROR] Failed to migrate repair records: {ex.Message}");
             }
         }
         public static bool CheckConfigBoolean(IConfiguration config, string configKey)

@@ -1,4 +1,4 @@
-﻿$(function () {
+$(function () {
     //bind functions on page load
     var vehicleId = GetVehicleId().vehicleId;
     //bind tabs y prevenir que los dropdowns se queden abiertos
@@ -933,8 +933,10 @@ function quickAddRecord(recordType) {
             waitForElement('#serviceRecordModalContent', showAddServiceRecordModal);
             break;
         case "RepairRecord":
-            $('#accident-tab').tab('show');
-            waitForElement('#collisionRecordModalContent', showAddCollisionRecordModal);
+            $('#servicerecord-tab').tab('show');
+            waitForElement('#serviceRecordModalContent', function() {
+                showAddServiceRecordModal('Reparación');
+            });
             break;
         case "OdometerRecord":
             $('#odometer-tab').tab('show');

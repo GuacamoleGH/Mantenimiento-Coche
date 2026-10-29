@@ -1,10 +1,17 @@
-﻿function showAddServiceRecordModal() {
+function showAddServiceRecordModal(defaultTag) {
     $.get('/Vehicle/GetAddServiceRecordPartialView', function (data) {
         if (data) {
             $("#serviceRecordModalContent").html(data);
             //initiate datepicker
             initDatePicker($('#serviceRecordDate'));
             initTagSelector($("#serviceRecordTag"));
+            if (defaultTag && typeof defaultTag === 'string') {
+                var tagEl = $("#serviceRecordTag")[0];
+                if (tagEl && tagEl.tomselect) {
+                    tagEl.tomselect.addOption({ value: defaultTag, text: defaultTag });
+                    tagEl.tomselect.addItem(defaultTag);
+                }
+            }
             $('#serviceRecordModal').modal('show');
         }
     });

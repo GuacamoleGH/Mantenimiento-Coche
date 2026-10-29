@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @model ServiceRecordInput
@@ -125,7 +125,6 @@
             </button>
             <ul class="dropdown-menu">
                 <li><h6 class="dropdown-header">@translator.Translate(userLanguage,"Move To")</h6></li>
-                <li><a class="dropdown-item" href="#" onclick="moveRecord(@Model.Id, 'ServiceRecord', 'RepairRecord')">@translator.Translate(userLanguage,"Repairs")</a></li>
                 <li><a class="dropdown-item" href="#" onclick="moveRecord(@Model.Id, 'ServiceRecord', 'UpgradeRecord')">@translator.Translate(userLanguage,"Upgrades")</a></li>
             </ul>
         </div>

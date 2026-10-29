@@ -1,4 +1,4 @@
-﻿function showAddUpgradeRecordModal() {
+function showAddUpgradeRecordModal() {
     $.get('/Vehicle/GetAddUpgradeRecordPartialView', function (data) {
         if (data) {
             $("#upgradeRecordModalContent").html(data);
@@ -43,12 +43,12 @@ function hideAddUpgradeRecordModal() {
 }
 function deleteUpgradeRecord(upgradeRecordId) {
     $("#workAroundInput").show();
-    confirmDelete("Deleted Upgrade Records cannot be restored.", (result) => {
+    confirmDelete("¿Deseas eliminar esta modificación? Esta acción no se puede deshacer.", (result) => {
         if (result.isConfirmed) {
             $.post(`/Vehicle/DeleteUpgradeRecordById?upgradeRecordId=${upgradeRecordId}`, function (data) {
                 if (data.success) {
                     hideAddUpgradeRecordModal();
-                    successToast("Upgrade Record Deleted");
+                    successToast("Modificación eliminada");
                     var vehicleId = GetVehicleId().vehicleId;
                     getVehicleUpgradeRecords(vehicleId);
                 } else {
@@ -69,13 +69,36 @@ function saveUpgradeRecordToVehicle(isEdit) {
         errorToast("Please check the form data");
         return;
     }
+    var shouldSyncToEquipment = $('#syncToEquipmentCheck').is(':checked');
+    var eqDescription = $('#syncEquipmentDesc').val() ? $('#syncEquipmentDesc').val().trim() : '';
+    var eqNotes = $('#syncEquipmentNotes').val() ? $('#syncEquipmentNotes').val().trim() : '';
+
     //save to db.
     $.post('/Vehicle/SaveUpgradeRecordToVehicleId', { upgradeRecord: formValues }, function (data) {
         if (data.success) {
-            successToast(isEdit ? "Upgrade Record Updated" : "Upgrade Record Added.");
+            successToast(isEdit ? "Modificación actualizada" : "Modificación guardada");
             hideAddUpgradeRecordModal();
             saveScrollPosition();
             getVehicleUpgradeRecords(formValues.vehicleId);
+            if (shouldSyncToEquipment) {
+                var equipmentData = {
+                    id: 0,
+                    vehicleId: formValues.vehicleId,
+                    description: eqDescription || formValues.description,
+                    isEquipped: true,
+                    notes: eqNotes || ('Instalado el ' + formValues.date + ' (Modificación: ' + formValues.description + ')'),
+                    tags: formValues.tags || [],
+                    files: []
+                };
+                $.post('/Vehicle/SaveEquipmentRecordToVehicleId', { equipmentRecord: equipmentData }, function (eqRes) {
+                    if (eqRes && eqRes.success) {
+                        successToast("Añadido también al Equipamiento actual");
+                        if (typeof getVehicleEquipmentRecords === 'function') {
+                            getVehicleEquipmentRecords(formValues.vehicleId);
+                        }
+                    }
+                });
+            }
             if (formValues.addReminderRecord) {
                 setTimeout(function () { showAddReminderModal(formValues); }, 500);
             }

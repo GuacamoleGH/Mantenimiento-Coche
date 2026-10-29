@@ -65,9 +65,9 @@ StaticHelper.InitMessage(builder.Configuration);
 StaticHelper.CheckMigration(builder.Environment.WebRootPath, builder.Environment.ContentRootPath);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews(options =>
-{
-    options.ModelBinderProviders.Insert(0, new CarCareTracker.Helper.CustomDecimalModelBinderProvider());
+builder.Services.AddControllersWithViews(options =>
+{
+    options.ModelBinderProviders.Insert(0, new CarCareTracker.Helper.CustomDecimalModelBinderProvider());
 });
 
 //LiteDB is always injected even if user uses Postgres.
@@ -175,6 +175,15 @@ builder.Services.Configure<FormOptions>(options =>
 });
 
 var app = builder.Build();
+
+// Run startup data migrations
+using (var scope = app.Services.CreateScope())
+{
+    var collisionDataAccess = scope.ServiceProvider.GetRequiredService<ICollisionRecordDataAccess>();
+    var serviceDataAccess = scope.ServiceProvider.GetRequiredService<IServiceRecordDataAccess>();
+    var vehicleDataAccess = scope.ServiceProvider.GetRequiredService<IVehicleDataAccess>();
+    StaticHelper.MigrateCollisionsToServices(collisionDataAccess, serviceDataAccess, vehicleDataAccess);
+}
 
 //configure the HTTP request pipeline.
 app.UseExceptionHandler("/Error");

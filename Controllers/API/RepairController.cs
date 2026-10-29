@@ -1,4 +1,4 @@
-﻿using CarCareTracker.Filter;
+using CarCareTracker.Filter;
 using CarCareTracker.Helper;
 using CarCareTracker.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +22,16 @@ namespace CarCareTracker.Controllers
             foreach (int vehicleId in vehicleIds)
             {
                 vehicleRecords.AddRange(_collisionRecordDataAccess.GetCollisionRecordsByVehicleId(vehicleId));
+            }
+            if (!vehicleRecords.Any())
+            {
+                foreach (int vehicleId in vehicleIds)
+                {
+                    var serviceRepairs = _serviceRecordDataAccess.GetServiceRecordsByVehicleId(vehicleId)
+                        .Where(x => x.Tags.Any(t => t.Equals("Reparación", StringComparison.OrdinalIgnoreCase) || t.Equals("Reparacion", StringComparison.OrdinalIgnoreCase)))
+                        .Select(x => StaticHelper.GenericToRepairRecord(x));
+                    vehicleRecords.AddRange(serviceRepairs);
+                }
             }
             if (parameters.Id != default)
             {
@@ -62,6 +72,13 @@ namespace CarCareTracker.Controllers
                 return Json(response);
             }
             var vehicleRecords = _collisionRecordDataAccess.GetCollisionRecordsByVehicleId(vehicleId);
+            if (!vehicleRecords.Any())
+            {
+                var serviceRepairs = _serviceRecordDataAccess.GetServiceRecordsByVehicleId(vehicleId)
+                    .Where(x => x.Tags.Any(t => t.Equals("Reparación", StringComparison.OrdinalIgnoreCase) || t.Equals("Reparacion", StringComparison.OrdinalIgnoreCase)))
+                    .Select(x => StaticHelper.GenericToRepairRecord(x));
+                vehicleRecords.AddRange(serviceRepairs);
+            }
             if (parameters.Id != default)
             {
                 vehicleRecords.RemoveAll(x => x.Id != parameters.Id);
@@ -137,7 +154,17 @@ namespace CarCareTracker.Controllers
                     Files = input.Files,
                     Tags = string.IsNullOrWhiteSpace(input.Tags) ? new List<string>() : input.Tags.Split(' ').Distinct().ToList()
                 };
-                _collisionRecordDataAccess.SaveCollisionRecordToVehicle(repairRecord);
+                var serviceRecord = StaticHelper.GenericToServiceRecord(repairRecord);
+                if (!serviceRecord.Tags.Any(t => t.Equals("Reparación", StringComparison.OrdinalIgnoreCase) || t.Equals("Reparacion", StringComparison.OrdinalIgnoreCase)))
+                {
+                    serviceRecord.Tags.Add("Reparación");
+                }
+                if (!serviceRecord.ServiceTypes.Any())
+                {
+                    serviceRecord.ServiceTypes.Add("Reparación");
+                }
+                _serviceRecordDataAccess.SaveServiceRecordToVehicle(serviceRecord);
+                repairRecord.Id = serviceRecord.Id;
                 if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
                 {
                     var odometerRecord = new OdometerRecord()
@@ -220,6 +247,14 @@ namespace CarCareTracker.Controllers
             {
                 //retrieve existing record
                 var existingRecord = _collisionRecordDataAccess.GetCollisionRecordById(int.Parse(input.Id));
+                if (existingRecord == null || existingRecord.Id == default)
+                {
+                    var serviceCheck = _serviceRecordDataAccess.GetServiceRecordById(int.Parse(input.Id));
+                    if (serviceCheck != null && serviceCheck.Id == int.Parse(input.Id))
+                    {
+                        existingRecord = StaticHelper.GenericToRepairRecord(serviceCheck);
+                    }
+                }
                 if (existingRecord != null && existingRecord.Id == int.Parse(input.Id))
                 {
                     //check if user has access to the vehicleId
@@ -236,7 +271,13 @@ namespace CarCareTracker.Controllers
                     existingRecord.ExtraFields = input.ExtraFields;
                     existingRecord.Files = input.Files;
                     existingRecord.Tags = string.IsNullOrWhiteSpace(input.Tags) ? new List<string>() : input.Tags.Split(' ').Distinct().ToList();
-                    _collisionRecordDataAccess.SaveCollisionRecordToVehicle(existingRecord);
+                    if (!existingRecord.Tags.Any(t => t.Equals("Reparación", StringComparison.OrdinalIgnoreCase) || t.Equals("Reparacion", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        existingRecord.Tags.Add("Reparación");
+                    }
+                    var serviceRec = StaticHelper.GenericToServiceRecord(existingRecord);
+                    _serviceRecordDataAccess.SaveServiceRecordToVehicle(serviceRec);
+                    _collisionRecordDataAccess.DeleteCollisionRecordById(existingRecord.Id);
                     _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromGenericRecord(existingRecord, "repairrecord.update.api", User.Identity?.Name ?? string.Empty));
                 }
                 else

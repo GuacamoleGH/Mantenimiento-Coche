@@ -1,4 +1,4 @@
-﻿using CarCareTracker.Filter;
+using CarCareTracker.Filter;
 using CarCareTracker.Helper;
 using CarCareTracker.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +54,23 @@ namespace CarCareTracker.Controllers
                 }
             }
             var convertedRecord = collisionRecord.ToCollisionRecord();
-            var result = _collisionRecordDataAccess.SaveCollisionRecordToVehicle(convertedRecord);
+            var serviceRecord = StaticHelper.GenericToServiceRecord(convertedRecord);
+            if (serviceRecord.Tags == null) serviceRecord.Tags = new List<string>();
+            if (!serviceRecord.Tags.Any(t => t.Equals("Reparación", StringComparison.OrdinalIgnoreCase) || t.Equals("Reparacion", StringComparison.OrdinalIgnoreCase)))
+            {
+                serviceRecord.Tags.Add("Reparación");
+            }
+            if (serviceRecord.ServiceTypes == null) serviceRecord.ServiceTypes = new List<string>();
+            if (!serviceRecord.ServiceTypes.Any())
+            {
+                serviceRecord.ServiceTypes.Add("Reparación");
+            }
+            if (collisionRecord.Id != default)
+            {
+                _collisionRecordDataAccess.DeleteCollisionRecordById(collisionRecord.Id);
+                serviceRecord.Id = 0;
+            }
+            var result = _serviceRecordDataAccess.SaveServiceRecordToVehicle(serviceRecord);
             if (result)
             {
                 _eventLogic.PublishEvent(GetUserID(), WebHookPayload.FromGenericRecord(convertedRecord, collisionRecord.Id == default ? "repairrecord.add" : "repairrecord.update", User.Identity?.Name ?? string.Empty));

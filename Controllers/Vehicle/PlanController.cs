@@ -1,4 +1,4 @@
-﻿using CarCareTracker.Filter;
+using CarCareTracker.Filter;
 using CarCareTracker.Helper;
 using CarCareTracker.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -313,7 +313,7 @@ namespace CarCareTracker.Controllers
                 }
                 else if (existingRecord.ImportMode == ImportMode.RepairRecord)
                 {
-                    var newRecord = new CollisionRecord()
+                    var newRecord = new ServiceRecord()
                     {
                         VehicleId = existingRecord.VehicleId,
                         Date = DateTime.Now.Date,
@@ -321,11 +321,13 @@ namespace CarCareTracker.Controllers
                         Description = existingRecord.Description,
                         Cost = existingRecord.Cost,
                         Notes = existingRecord.Notes,
+                        Tags = new List<string> { "Reparación" },
+                        ServiceTypes = new List<string> { "Reparación" },
                         Files = existingRecord.Files,
                         RequisitionHistory = existingRecord.RequisitionHistory,
                         ExtraFields = existingRecord.ExtraFields
                     };
-                    _collisionRecordDataAccess.SaveCollisionRecordToVehicle(newRecord);
+                    _serviceRecordDataAccess.SaveServiceRecordToVehicle(newRecord);
                     newRecordId = newRecord.Id;
                 }
                 else if (existingRecord.ImportMode == ImportMode.UpgradeRecord)
