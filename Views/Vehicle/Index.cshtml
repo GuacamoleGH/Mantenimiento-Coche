@@ -62,12 +62,12 @@
 
     <script src="~/js/equipmentrecord.js?v=@StaticHelper.VersionNumber"></script>
 
-    <script src="~/lib/chart-js/chart.umd.js"></script>
+    <script src="~/lib/chart-js/chart.umd.js?v=@StaticHelper.VersionNumber"></script>
     <script>
         if (typeof Chart !== 'undefined') {
             Chart.defaults.plugins.tooltip.boxWidth = 10;
             Chart.defaults.plugins.tooltip.boxHeight = 10;
-            Chart.defaults.plugins.tooltip.boxPadding = 6;
+            Chart.defaults.plugins.tooltip.boxPadding = 2;
             Chart.defaults.plugins.tooltip.padding = 10;
             Chart.defaults.plugins.tooltip.usePointStyle = false;
             Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };

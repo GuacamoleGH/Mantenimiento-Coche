@@ -69,7 +69,7 @@
                             },
                             tooltip: {
                                 padding: 10,
-                                boxPadding: 6,
+                                boxPadding: 2,
                                 boxWidth: 10,
                                 boxHeight: 10,
                                 usePointStyle: false,
@@ -79,7 +79,7 @@
                                 callbacks: {
                                     label: function (context) {
                                         let val = context.parsed.y !== null ? context.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '';
-                                        return ` @translator.Translate(userLanguage, "Average Fuel Economy"): ${val} @Model.Unit`;
+                                        return `@translator.Translate(userLanguage, "Average Fuel Economy"): ${val} @Model.Unit`;
                                     }
                                 }
                             },
