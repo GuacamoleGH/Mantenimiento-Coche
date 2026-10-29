@@ -65,7 +65,10 @@ StaticHelper.InitMessage(builder.Configuration);
 StaticHelper.CheckMigration(builder.Environment.WebRootPath, builder.Environment.ContentRootPath);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.ModelBinderProviders.Insert(0, new CarCareTracker.Helper.CustomDecimalModelBinderProvider());
+});
 
 //LiteDB is always injected even if user uses Postgres.
 builder.Services.AddSingleton<ILiteDBHelper, LiteDBHelper>();
