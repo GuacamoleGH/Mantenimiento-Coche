@@ -2295,7 +2295,6 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     display: inline-flex;
     align-items: center;
     line-height: 1;
-    transform: translateY(1.4px);
 }
 
 
@@ -2701,7 +2700,6 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     display: inline-flex;
     align-items: center;
     line-height: 1;
-    transform: translateY(1.4px);
 }
 
 [data-bs-theme="light"] .garage-plate-badge {
