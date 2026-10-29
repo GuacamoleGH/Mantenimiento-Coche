@@ -355,33 +355,30 @@ function updateMPGLabels() {
         var totalMilesTraveledUnaggregated = rowsUnaggregated.length > 0 ? rowsUnaggregated.children('[data-gas-type="mileage"]').toArray().map(x => globalParseFloat($(x).attr("data-gas-aggregate"))).reduce((a, b) => a + b) : 0;
         var fullGasConsumed = totalGasConsumedFV + totalUnaggregatedGasConsumedFV;
         var fullDistanceTraveled = totalMilesTraveled + totalMilesTraveledUnaggregated;
+        var economyUnit = $("[data-gas='fueleconomy']").attr("data-unit") || '';
         if (totalGasConsumed > 0 && rowNonZeroMPG.length > 0) {
             var averageMPG = totalMilesTraveled / totalGasConsumed;
             if (!getGlobalConfig().useMPG && $("[data-gas='fueleconomy']").attr("data-unit") != 'km/l' && averageMPG > 0) {
                 averageMPG = 100 / averageMPG;
             }
-            averageLabel.text(`${averageLabel.text().split(':')[0]}: ${globalFloatToString(averageMPG.toFixed(2))}`);
+            averageLabel.text(`${averageLabel.text().split(':')[0]}: ${globalFloatToString(averageMPG.toFixed(2))} ${economyUnit}`.trim());
         } else {
-            averageLabel.text(`${averageLabel.text().split(':')[0]}: ${globalFloatToString('0.00')}`);
+            averageLabel.text(`${averageLabel.text().split(':')[0]}: ${globalFloatToString('0.00')} ${economyUnit}`.trim());
         }
         if (fullDistanceTraveled > 0) {
-            totalDistanceLabel.text(`${totalDistanceLabel.text().split(':')[0]}: ${fullDistanceTraveled} ${getGasModelData().distanceUnit}`);
+            var formattedDistance = Number(fullDistanceTraveled).toLocaleString('es-ES');
+            totalDistanceLabel.text(`${totalDistanceLabel.text().split(':')[0]}: ${formattedDistance} ${getGasModelData().distanceUnit}`);
         } else {
             totalDistanceLabel.text(`${totalDistanceLabel.text().split(':')[0]}: 0 ${getGasModelData().distanceUnit}`);
         }
+        var gasUnit = getGasModelData().consumptionUnit ? getGasModelData().consumptionUnit.toUpperCase() : 'L';
         if (fullGasConsumed > 0) {
-            totalConsumedLabel.text(`${totalConsumedLabel.text().split(':')[0]}: ${globalFloatToString(fullGasConsumed.toFixed(2))}`);
+            totalConsumedLabel.text(`${totalConsumedLabel.text().split(':')[0]}: ${globalFloatToString(fullGasConsumed.toFixed(2))} ${gasUnit}`);
         } else {
-            totalConsumedLabel.text(`${totalConsumedLabel.text().split(':')[0]}: ${globalFloatToString('0.00')}`);
+            totalConsumedLabel.text(`${totalConsumedLabel.text().split(':')[0]}: ${globalFloatToString('0.00')} ${gasUnit}`);
         }
-        if (!getGlobalConfig().useMPG && $("[data-gas='fueleconomy']").attr("data-unit") != 'km/l') {
-            maxLabel.text(`${maxLabel.text().split(':')[0]}: ${globalFloatToString(minMPG.toFixed(2))}`);
-            minLabel.text(`${minLabel.text().split(':')[0]}: ${globalFloatToString(maxMPG.toFixed(2))}`);
-        }
-        else {
-            minLabel.text(`${minLabel.text().split(':')[0]}: ${globalFloatToString(minMPG.toFixed(2))}`);
-            maxLabel.text(`${maxLabel.text().split(':')[0]}: ${globalFloatToString(maxMPG.toFixed(2))}`);
-        }
+        minLabel.text(`${minLabel.text().split(':')[0]}: ${globalFloatToString(minMPG.toFixed(2))} ${economyUnit}`.trim());
+        maxLabel.text(`${maxLabel.text().split(':')[0]}: ${globalFloatToString(maxMPG.toFixed(2))} ${economyUnit}`.trim());
     }
 }
 

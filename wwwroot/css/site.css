@@ -2038,31 +2038,57 @@ a:hover {
 /* Badges de agregados y resumen en las pestañas */
 .badge[data-aggregate-type],
 [data-aggregate-type],
+#averageFuelMileageLabel,
+#minFuelMileageLabel,
+#maxFuelMileageLabel,
+#totalDistanceLabel,
 #totalFuelConsumedLabel {
-    padding: 0.4rem 0.85rem !important;
+    padding: 0.42rem 0.85rem !important;
     font-size: 0.82rem !important;
     font-weight: 600 !important;
-    border-radius: 6px !important;
-    display: inline-flex;
-    align-items: center;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
     letter-spacing: 0.015em;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    margin-right: 0.45rem !important;
+    margin-right: 0.35rem !important;
     margin-bottom: 0.35rem !important;
+    backdrop-filter: blur(4px);
 }
 
 .badge[data-aggregate-type="count"],
-.badge[data-aggregate-type="noturgent-count"],
+.badge[data-aggregate-type="noturgent-count"] {
+    background-color: rgba(148, 163, 184, 0.14) !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+
+.badge[data-aggregate-type="economy"],
+#averageFuelMileageLabel,
+#minFuelMileageLabel,
+#maxFuelMileageLabel {
+    background-color: rgba(14, 165, 233, 0.15) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+}
+
+.badge[data-aggregate-type="distance"],
+.badge[data-aggregate-type="sum-distance"],
+#totalDistanceLabel {
+    background-color: rgba(168, 85, 247, 0.15) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
 .badge[data-aggregate-type="consumption"],
 #totalFuelConsumedLabel {
-    background-color: rgba(34, 197, 94, 0.16) !important;
+    background-color: rgba(34, 197, 94, 0.15) !important;
     color: #4ade80 !important;
     border: 1px solid rgba(34, 197, 94, 0.35) !important;
 }
 
-.badge[data-aggregate-type="sum"],
-.badge[data-aggregate-type="sum-distance"] {
-    background-color: rgba(251, 196, 30, 0.16) !important;
+.badge[data-aggregate-type="sum"] {
+    background-color: rgba(251, 196, 30, 0.15) !important;
     color: #fbc41e !important;
     border: 1px solid rgba(251, 196, 30, 0.45) !important;
 }

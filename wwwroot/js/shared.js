@@ -640,73 +640,102 @@ function setDebounce(callBack) {
     }, 1000);
 }
 function toggleSort(tabName, sender) {
-    var sortColumn = sender.textContent;
-    var sortAscIcon = '<i class="bi bi-sort-numeric-down ms-2"></i>';
-    var sortDescIcon = '<i class="bi bi-sort-numeric-down-alt ms-2"></i>';
     sender = $(sender);
-    //order of sort - asc, desc, reset
+    var colName = sender.attr('data-column');
+    var sortAscIcon = '<i class="sort-icon bi bi-sort-down ms-2"></i>';
+    var sortDescIcon = '<i class="sort-icon bi bi-sort-down-alt ms-2"></i>';
+
+    // Remove sort icons and classes from all OTHER headers in this table
+    $(`#${tabName} table th`).not(sender).each(function() {
+        $(this).removeClass('sort-asc sort-desc');
+        $(this).find('.sort-icon').remove();
+    });
+
+    // Save default sort index on rows if not yet done
+    if ($(`#${tabName} table tbody tr[default-sort]`).length == 0) {
+        $(`#${tabName} table tbody tr`).each((index, elem) => {
+            $(elem).attr("default-sort", index);
+        });
+    }
+
     if (sender.hasClass('sort-asc')) {
-        sender.removeClass('sort-asc');
-        sender.addClass('sort-desc');
-        sender.html(`${sortColumn}${sortDescIcon}`);
-        sortTable(tabName, sortColumn, true);
+        // Toggle to descending
+        sender.removeClass('sort-asc').addClass('sort-desc');
+        sender.find('.sort-icon').remove();
+        sender.append(sortDescIcon);
+        sortTable(tabName, sender, true);
     } else if (sender.hasClass('sort-desc')) {
-        //restore table
-        sender.removeClass('sort-desc');
-        sender.html(`${sortColumn}`);
-        resetSortTable(tabName);
+        // Toggle back to ascending
+        sender.removeClass('sort-desc').addClass('sort-asc');
+        sender.find('.sort-icon').remove();
+        sender.append(sortAscIcon);
+        sortTable(tabName, sender, false);
     } else {
-        //first time sorting.
-        //check if table was sorted before by a different column(only relevant to fuel tab)
-        if ($("[default-sort]").length > 0 && ($(".sort-asc").length > 0 || $(".sort-desc").length > 0)) {
-            //restore table state.
-            resetSortTable(tabName);
-            //reset other sorted columns
-            if ($(".sort-asc").length > 0) {
-                $(".sort-asc").html($(".sort-asc").html().replace(sortAscIcon, ""));
-                $(".sort-asc").removeClass("sort-asc");
-            }
-            if ($(".sort-desc").length > 0) {
-                $(".sort-desc").html($(".sort-desc").html().replace(sortDescIcon, ""));
-                $(".sort-desc").removeClass("sort-desc");
-            }
-        }
+        // First time sorting this column -> ascending
         sender.addClass('sort-asc');
-        sender.html(`${sortColumn}${sortAscIcon}`);
-        //append sortRowId to the table rows if nothing has been appended yet.
-        if ($("[default-sort]").length == 0) {
-            $(`#${tabName} table tbody tr`).map((index, elem) => {
-                $(elem).attr("default-sort", index);
-            });
-        }
-        sortTable(tabName, sortColumn, false);
+        sender.find('.sort-icon').remove();
+        sender.append(sortAscIcon);
+        sortTable(tabName, sender, false);
     }
 }
-function sortTable(tabName, columnName, desc) {
-    //get column index.
-    var columns = $(`#${tabName} table th`).toArray().map(x => x.innerText);
-    var colIndex = columns.findIndex(x => x == columnName);
-    //get row data
-    var rowData = $(`#${tabName} table tbody tr`);
-    var sortedRow = rowData.toArray().sort((a, b) => {
-        var currentVal = globalParseFloat(a.children[colIndex].textContent);
-        var nextVal = globalParseFloat(b.children[colIndex].textContent);
-        if (desc) {
-            return nextVal - currentVal;
+function sortTable(tabName, columnSender, desc) {
+    var sender = $(columnSender);
+    var colName = sender.attr('data-column');
+    var colIndex = sender.index();
+    var rows = $(`#${tabName} table tbody tr`).toArray();
+
+    rows.sort((a, b) => {
+        var cellA = colName ? a.querySelector(`[data-column='${colName}']`) : a.children[colIndex];
+        var cellB = colName ? b.querySelector(`[data-column='${colName}']`) : b.children[colIndex];
+        if (!cellA && !cellB) return 0;
+        if (!cellA) return desc ? -1 : 1;
+        if (!cellB) return desc ? 1 : -1;
+
+        var rawA = cellA.getAttribute('data-sort-value');
+        var rawB = cellB.getAttribute('data-sort-value');
+
+        var numA, numB;
+        if (rawA !== null && rawA !== undefined && rawA !== '') {
+            numA = Number(rawA);
         } else {
-            return currentVal - nextVal;
+            numA = globalParseFloat(cellA.textContent);
         }
+
+        if (rawB !== null && rawB !== undefined && rawB !== '') {
+            numB = Number(rawB);
+        } else {
+            numB = globalParseFloat(cellB.textContent);
+        }
+
+        var isNumA = !isNaN(numA);
+        var isNumB = !isNaN(numB);
+
+        var comparison = 0;
+        if (isNumA && isNumB) {
+            comparison = numA - numB;
+        } else if (isNumA) {
+            comparison = -1;
+        } else if (isNumB) {
+            comparison = 1;
+        } else {
+            var textA = (cellA.textContent || '').trim();
+            var textB = (cellB.textContent || '').trim();
+            comparison = textA.localeCompare(textB, undefined, { numeric: true, sensitivity: 'base' });
+        }
+
+        return desc ? -comparison : comparison;
     });
-    $(`#${tabName} table tbody`).html(sortedRow);
+
+    $(`#${tabName} table tbody`).append(rows);
 }
 function resetSortTable(tabName) {
     var rowData = $(`#${tabName} table tbody tr`);
     var sortedRow = rowData.toArray().sort((a, b) => {
-        var currentVal = $(a).attr('default-sort');
-        var nextVal = $(b).attr('default-sort');
+        var currentVal = Number($(a).attr('default-sort') || 0);
+        var nextVal = Number($(b).attr('default-sort') || 0);
         return currentVal - nextVal;
     });
-    $(`#${tabName} table tbody`).html(sortedRow);
+    $(`#${tabName} table tbody`).append(sortedRow);
 }
 function filterTable(tabName, sender) {
     var rowData = $(`#${tabName} table tbody tr`);
