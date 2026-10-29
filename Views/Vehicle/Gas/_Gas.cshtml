@@ -43,6 +43,8 @@
         consumptionUnit = useMPG ? "US gal" : "l";
         fuelEconomyUnit = useHours ? (useMPG ? "h/g" : "l/100h") : (useMPG ? "mpg" : "l/100km");
     }
+    var currencySymbol = System.Globalization.CultureInfo.CurrentCulture.NumberFormat.CurrencySymbol;
+    var unitCostHeader = $"{currencySymbol}/{consumptionUnit.ToUpper()}";
     var extraFields = new List<string>();
     if (userConfig.EnableExtraFieldColumns)
     {
@@ -70,10 +72,10 @@
                     <span class="badge bg-primary" id="minFuelMileageLabel">@($"{translator.Translate(userLanguage, "Min Fuel Economy")}: {Model.GasRecords.Max(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
                     <span class="badge bg-primary" id="maxFuelMileageLabel">@($"{translator.Translate(userLanguage, "Max Fuel Economy")}: {Model.GasRecords.Where(y => y.MilesPerGallon > 0)?.Min(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
                 }
-                <span class="badge bg-success" id="totalDistanceLabel">@($"{translator.Translate(userLanguage, "Total Distance")}: {Model.GasRecords.Sum(x => x.DeltaMileage).ToString() ?? "0"} {distanceUnit}")</span>
+                <span class="badge bg-success" id="totalDistanceLabel">@($"{translator.Translate(userLanguage, "Total Distance")}: {Model.GasRecords.Sum(x => x.DeltaMileage).ToString("N0") ?? "0"} {distanceUnit}")</span>
             }
-            <span class="badge bg-success" id="totalFuelConsumedLabel">@($"{translator.Translate(userLanguage, "Total Fuel Consumed")}: {Model.GasRecords.Sum(x => x.Gallons).ToString("F")}")</span>
-            <span class="badge bg-success" data-aggregate-type="sum">@($"{translator.Translate(userLanguage, "Total Cost")}: {Model.GasRecords.Sum(x => x.Cost).ToString(gasCostFormat)}")</span>
+            <span class="badge bg-success" id="totalFuelConsumedLabel">@($"{translator.Translate(userLanguage, "Total Fuel Consumed")}: {Model.GasRecords.Sum(x => x.Gallons).ToString("F2")} {consumptionUnit.ToUpper()}")</span>
+            <span class="badge bg-success" data-aggregate-type="sum">@($"{translator.Translate(userLanguage, "Total Cost")}: {Model.GasRecords.Sum(x => x.Cost).ToString("C2")}")</span>
             @foreach (string recordTag in recordTags)
             {
                 <span onclick="toggleGasFilter(this)" class="user-select-none rounded-pill badge bg-secondary tagfilter" style="cursor:pointer;">@recordTag</span>
@@ -160,7 +162,7 @@
                     <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
                         <div class="list-group-item">
                             <input class="form-check-input col-visible-toggle" data-column-toggle='unitcost' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_UnitCost" checked>
-                            <label class="form-check-label stretched-link" for="chkCol_UnitCost">@translator.Translate(userLanguage, "Unit Cost")</label>
+                            <label class="form-check-label stretched-link" for="chkCol_UnitCost">@unitCostHeader</label>
                         </div>
                     </li>
                     <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
@@ -201,14 +203,14 @@
             <thead class="sticky-top">
                 <tr class="d-flex">
                     <th scope="col" class="col-2 flex-grow-1 text-truncate" data-column="daterefueled">@translator.Translate(userLanguage, "Date Refueled")</th>
-                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@($"{translator.Translate(userLanguage, "Odometer")}({distanceUnit})")</th>
-                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="delta" style="cursor:pointer;" onclick="toggleSort('gas-tab-pane', this)">@($"Δ({distanceUnit})")</th>
-                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="consumption" data-gas="consumption" data-unit="@consumptionUnit" onclick="toggleSort('gas-tab-pane', this)" oncontextmenu="toggleUnits(this)" style="cursor:pointer;">@($"{translator.Translate(userLanguage, "Consumption")}({consumptionUnit})")</th>
+                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@($"{translator.Translate(userLanguage, "Odometer")} ({distanceUnit})")</th>
+                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="delta" style="cursor:pointer;" onclick="toggleSort('gas-tab-pane', this)">@($"Δ ({distanceUnit})")</th>
+                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="consumption" data-gas="consumption" data-unit="@consumptionUnit" onclick="toggleSort('gas-tab-pane', this)" oncontextmenu="toggleUnits(this)" style="cursor:pointer;">@($"{translator.Translate(userLanguage, "Consumption")} ({consumptionUnit.ToUpper()})")</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate @(Model.UseKwh ? "" : "d-none")" style='display:none;' data-column="startsoc">@translator.Translate(userLanguage, "Start SoC")</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate @(Model.UseKwh ? "" : "d-none")" style='display:none;' data-column="endsoc">@translator.Translate(userLanguage, "End SoC")</th>
-                    <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="fueleconomy" data-gas="fueleconomy" data-unit="@fuelEconomyUnit" onclick="toggleSort('gas-tab-pane', this)" oncontextmenu="toggleUnits(this)" style="cursor:pointer;">@($"{@translator.Translate(userLanguage, "Fuel Economy")}({fuelEconomyUnit})")</th>
+                    <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="fueleconomy" data-gas="fueleconomy" data-unit="@fuelEconomyUnit" onclick="toggleSort('gas-tab-pane', this)" oncontextmenu="toggleUnits(this)" style="cursor:pointer;">@($"{@translator.Translate(userLanguage, "Fuel Economy")} ({fuelEconomyUnit})")</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" onclick="toggleSort('gas-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
-                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="unitcost" onclick="toggleSort('gas-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Unit Cost")</th>
+                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="unitcost" onclick="toggleSort('gas-tab-pane', this)" style="cursor:pointer;">@unitCostHeader</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                     <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                     @foreach (string extraFieldColumn in extraFields)
@@ -222,14 +224,14 @@
                 {
                     <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@gasRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditGasRecordModal,@gasRecord.Id)" data-tags='@string.Join(" ", gasRecord.Tags)'>
                         <td data-label="@translator.Translate(userLanguage, "Date Refueled")" class="col-2 flex-grow-1 text-truncate" data-column="daterefueled">@gasRecord.Date</td>
-                        <td data-label="@($"{translator.Translate(userLanguage, "Odometer")}({distanceUnit})")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer" data-gas-type="mileage" data-gas-aggregate="@gasRecord.DeltaMileage" data-gas-original="@gasRecord.Mileage">@(gasRecord.Mileage == default ? "---" : gasRecord.Mileage.ToString())</td>
-                        <td data-label="@($"Δ({distanceUnit})")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="delta" data-gas-type="totaldistance">@(gasRecord.DeltaMileage == default ? "---" : gasRecord.DeltaMileage)</td>
-                        <td data-label="@($"{translator.Translate(userLanguage, "Consumption")}({consumptionUnit})")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="consumption" data-gas-type="consumption" data-gas-aggregate="@gasRecord.Gallons">@gasRecord.Gallons.ToString(gasConsumptionFormat)</td>
+                        <td data-label="@($"{translator.Translate(userLanguage, "Odometer")} ({distanceUnit})")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer" data-gas-type="mileage" data-gas-aggregate="@gasRecord.DeltaMileage" data-gas-original="@gasRecord.Mileage">@(gasRecord.Mileage == default ? "---" : gasRecord.Mileage.ToString("N0"))</td>
+                        <td data-label="@($"Δ ({distanceUnit})")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="delta" data-gas-type="totaldistance">@(gasRecord.DeltaMileage == default ? "---" : gasRecord.DeltaMileage.ToString("N0"))</td>
+                        <td data-label="@($"{translator.Translate(userLanguage, "Consumption")} ({consumptionUnit.ToUpper()})")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="consumption" data-gas-type="consumption" data-gas-aggregate="@gasRecord.Gallons">@($"{gasRecord.Gallons.ToString("F2")} {consumptionUnit.ToUpper()}")</td>
                         <td data-label="@translator.Translate(userLanguage, "Start SoC")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate @(Model.UseKwh ? "" : "d-none")" style='display:none;' data-column="startsoc">@gasRecord.StartingSoc.ToString("0'%'")</td>
                         <td data-label="@translator.Translate(userLanguage, "End SoC")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate @(Model.UseKwh ? "" : "d-none")" style='display:none;' data-column="endsoc">@gasRecord.EndingSoc.ToString("0'%'")</td>
-                        <td data-label="@($"{@translator.Translate(userLanguage, "Fuel Economy")}({fuelEconomyUnit})")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="fueleconomy" data-gas-type="fueleconomy" data-aggregated='@(gasRecord.IncludeInAverage.ToString().ToLower())'>@(gasRecord.MilesPerGallon == 0 ? "---" : gasRecord.MilesPerGallon.ToString("F"))</td>
-                        <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" data-record-type="cost">@((hideZero && gasRecord.Cost == default) ? "---" : gasRecord.Cost.ToString(gasCostFormat))</td>
-                        <td data-label="@translator.Translate(userLanguage, "Unit Cost")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="unitcost" data-gas-type="unitcost">@((hideZero && gasRecord.CostPerGallon == default) ? "---" : gasRecord.CostPerGallon.ToString(gasCostFormat))</td>
+                        <td data-label="@($"{@translator.Translate(userLanguage, "Fuel Economy")} ({fuelEconomyUnit})")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="fueleconomy" data-gas-type="fueleconomy" data-aggregated='@(gasRecord.IncludeInAverage.ToString().ToLower())'>@(gasRecord.MilesPerGallon == 0 ? "---" : gasRecord.MilesPerGallon.ToString("F"))</td>
+                        <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" data-record-type="cost">@((hideZero && gasRecord.Cost == default) ? "---" : gasRecord.Cost.ToString("C2"))</td>
+                        <td data-label="@unitCostHeader" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="unitcost" data-gas-type="unitcost">@((hideZero && gasRecord.CostPerGallon == default) ? "---" : gasRecord.CostPerGallon.ToString("C3"))</td>
                         <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", gasRecord.Files)</td>
                         <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 @noteColumnStyle" style='display:none;' data-column="notes">@StaticHelper.TruncateStrings(gasRecord.Notes, noteColumnLength)</td>
                         @foreach (string extraFieldColumn in extraFields)
