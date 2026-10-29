@@ -149,6 +149,14 @@ namespace CarCareTracker.Controllers
             if (!string.IsNullOrWhiteSpace(fullFilePath))
             {
                 var fileBytes = await _fileHelper.GetFileBytesAsync(fullFilePath);
+                if (Request.Path.Value != null && (Request.Path.Value.StartsWith("/temp/") || fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (_mimeTypeProvider.TryGetContentType(fileName, out string? zipContentType))
+                    {
+                        return File(fileBytes, zipContentType, fileName);
+                    }
+                    return File(fileBytes, "application/zip", fileName);
+                }
                 if (_mimeTypeProvider.TryGetContentType(fileName, out string? contentType))
                 {
                     return File(fileBytes, contentType);

@@ -1,4 +1,4 @@
-﻿using CarCareTracker.Models;
+using CarCareTracker.Models;
 using CsvHelper;
 using System.Globalization;
 using System.IO.Compression;
@@ -15,7 +15,7 @@ namespace CarCareTracker.Helper
         bool DeleteFile(string currentFilePath);
         string MakeBackup();
         bool RestoreBackup(string fileName, bool clearExisting = false);
-        string MakeAttachmentsExport(List<GenericReportModel> exportData);
+        string MakeAttachmentsExport(List<GenericReportModel> exportData, string customFileName = "");
         List<string> GetLanguages();
         List<string> GetThemes();
         Task<string> GetTheme(string themeName);
@@ -306,23 +306,37 @@ namespace CarCareTracker.Helper
                 return false;
             }
         }
-        public string MakeAttachmentsExport(List<GenericReportModel> exportData)
+        public string MakeAttachmentsExport(List<GenericReportModel> exportData, string customFileName = "")
         {
-            var folderName = Guid.NewGuid();
+            var folderName = !string.IsNullOrWhiteSpace(customFileName) ? StaticHelper.SanitizeFileName(customFileName) : Guid.NewGuid().ToString();
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                folderName = Guid.NewGuid().ToString();
+            }
             var tempPath = Path.Combine(_webEnv.ContentRootPath, "data", $"temp/{folderName}");
-            if (!Directory.Exists(tempPath))
-                Directory.CreateDirectory(tempPath);
+            if (Directory.Exists(tempPath))
+            {
+                try { Directory.Delete(tempPath, true); } catch { }
+            }
+            Directory.CreateDirectory(tempPath);
             int fileIndex = 0;
             List<AttachmentExportModel> urlAttachments = new List<AttachmentExportModel>();
+            var invalidChars = Path.GetInvalidFileNameChars();
             foreach (GenericReportModel reportModel in exportData)
             {
                 foreach (UploadedFiles file in reportModel.Files)
                 {
                     var fileToCopy = GetFullFilePath(file.Location);
-                    var destFileName = $"{tempPath}/{fileIndex}_{reportModel.DataType}_{reportModel.Date.ToString("yyyy-MM-dd")}_{file.Name}{Path.GetExtension(file.Location)}";
+                    var ext = Path.GetExtension(file.Location);
+                    var rawName = string.Concat(file.Name.Select(c => invalidChars.Contains(c) ? '_' : c)).Trim();
+                    if (!string.IsNullOrWhiteSpace(ext) && rawName.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                    {
+                        rawName = rawName.Substring(0, rawName.Length - ext.Length);
+                    }
+                    var destFileName = $"{tempPath}/{fileIndex}_{reportModel.DataType}_{reportModel.Date:yyyy-MM-dd}_{rawName}{ext}";
                     if (File.Exists(fileToCopy))
                     {
-                        File.Copy(fileToCopy, destFileName);
+                        File.Copy(fileToCopy, destFileName, true);
                         fileIndex++;
                     } else
                     {
@@ -351,9 +365,13 @@ namespace CarCareTracker.Helper
                 }
             }
             var destFilePath = $"{tempPath}.zip";
+            if (File.Exists(destFilePath))
+            {
+                try { File.Delete(destFilePath); } catch { }
+            }
             ZipFile.CreateFromDirectory(tempPath, destFilePath);
             //delete temp directory
-            Directory.Delete(tempPath, true);
+            try { Directory.Delete(tempPath, true); } catch { }
             var zipFileName = $"/temp/{folderName}.zip";
             return zipFileName;
         }
