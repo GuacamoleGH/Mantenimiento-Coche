@@ -3198,3 +3198,22 @@ a:has(.bi-qr-code) {
         width: 92vw !important;
     }
 }
+
+/* Centrado vertical en filas de tablas con d-flex */
+.table tr.d-flex {
+    align-items: center !important;
+}
+
+.table tr.d-flex > td,
+.table tr.d-flex > th {
+    display: flex;
+    align-items: center;
+}
+
+.table tr.d-flex > td[data-column="description"],
+.table tr.d-flex > th[data-column="description"] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}

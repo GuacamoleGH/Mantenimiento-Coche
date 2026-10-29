@@ -118,11 +118,11 @@
         </div>
         <table class="table table-hover @(userConfig.UseGridInMobile ? "" : "ll-responsive-table")">
             <thead class="sticky-top">
-                <tr class="d-flex">
-                    <th scope="col" class="col-2 col-xl-1 flex-grow-1 text-truncate" data-column="date">@translator.Translate(userLanguage, "Date")</th>
-                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@translator.Translate(userLanguage, "Odometer")</th>
-                    <th scope="col" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description">@translator.Translate(userLanguage, "Description")</th>
-                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" onclick="toggleSort('servicerecord-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
+                <tr class="d-flex align-items-center">
+                    <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 95px;" data-column="date">@translator.Translate(userLanguage, "Date")</th>
+                    <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 105px;" data-column="odometer">@translator.Translate(userLanguage, "Odometer")</th>
+                    <th scope="col" class="col-5 col-xl-6 flex-grow-1 text-truncate" data-column="description">@translator.Translate(userLanguage, "Description")</th>
+                    <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate text-end" style="min-width: 95px;" data-column="cost" onclick="toggleSort('servicerecord-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                     <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                     @foreach (string extraFieldColumn in extraFields)
@@ -134,11 +134,11 @@
             <tbody>
                 @foreach (ServiceRecord serviceRecord in Model)
                 {
-                    <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@serviceRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditServiceRecordModal,@serviceRecord.Id)" data-tags='@string.Join(" ", serviceRecord.Tags)'>
-                            <td data-label="@translator.Translate(userLanguage, "Date")" class="col-2 col-xl-1 flex-grow-1 text-truncate" data-column="date" data-date="@StaticHelper.GetEpochFromDateTime(serviceRecord.Date)">@serviceRecord.Date.ToShortDateString()</td>
-                            <td data-label="@translator.Translate(userLanguage, "Odometer")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@(serviceRecord.Mileage == default ? "---" : serviceRecord.Mileage.ToString("N0"))</td>
-                            <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1" data-column="description">
-                                <div class="text-truncate fw-semibold">@serviceRecord.Description</div>
+                    <tr class="d-flex align-items-center user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@serviceRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditServiceRecordModal,@serviceRecord.Id)" data-tags='@string.Join(" ", serviceRecord.Tags)'>
+                            <td data-label="@translator.Translate(userLanguage, "Date")" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 95px;" data-column="date" data-date="@StaticHelper.GetEpochFromDateTime(serviceRecord.Date)">@serviceRecord.Date.ToShortDateString()</td>
+                            <td data-label="@translator.Translate(userLanguage, "Odometer")" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 105px;" data-column="odometer">@(serviceRecord.Mileage == default ? "---" : serviceRecord.Mileage.ToString("N0"))</td>
+                            <td data-label="@translator.Translate(userLanguage, "Description")" class="col-5 col-xl-6 flex-grow-1" data-column="description">
+                                <div class="fw-semibold text-break">@serviceRecord.Description</div>
                                 @if (serviceRecord.ServiceTypes != null && serviceRecord.ServiceTypes.Any())
                                 {
                                     <div class="d-flex flex-wrap gap-1 mt-1">
@@ -153,7 +153,7 @@
                                     </div>
                                 }
                             </td>
-                            <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" data-record-type="cost">@(StaticHelper.HideZeroCost(serviceRecord.Cost, hideZero))</td>
+                            <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-2 col-xl-1 flex-grow-0 text-truncate text-end" style="min-width: 95px;" data-column="cost" data-record-type="cost">@(StaticHelper.HideZeroCost(serviceRecord.Cost, hideZero))</td>
                             <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", serviceRecord.Files)</td>
                             <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 @noteColumnStyle" data-column="notes">@StaticHelper.TruncateStrings(serviceRecord.Notes, noteColumnLength)</td>
                         @foreach (string extraFieldColumn in extraFields)
