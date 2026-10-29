@@ -1,302 +1,305 @@
-@using CarCareTracker.Helper
-@inject IConfigHelper config
-@inject ITranslationHelper translator
-@model string
-@{
-    var userLanguage = config.GetServerLanguage();
-    var registrationDisabled = config.GetServerDisabledRegistration();
-    var openIdConfigName = config.GetOpenIDConfig().Name;
-    var googleConfig = config.GetGoogleAuthConfig();
-    var discordConfig = config.GetDiscordAuthConfig();
-}
-@{
-    ViewData["Title"] = "Iniciar Sesión";
-}
-@section Scripts {
-    <script src="~/js/login.js?v=@StaticHelper.VersionNumber"></script>
-}
-<style>
-    body {
-        background-color: #111722 !important;
-        background: #111722 !important;
-    }
-    .card.login-card,
-    .card.login-card:hover,
-    [data-bs-theme="dark"] .card.login-card,
-    [data-bs-theme="dark"] .card.login-card:hover {
-        transform: none !important;
-        transition: none !important;
-        cursor: default !important;
-        background-color: #191F2C !important;
-        border: 1px solid #30394A !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
-    }
-
-    /* Caja de campo sin ninguna línea o división interna */
-    .login-field-box {
-        background-color: #252E3F !important;
-        border: 1px solid #30394A !important;
-        border-radius: 8px !important;
-        display: flex !important;
-        align-items: center !important;
-        height: 46px !important;
-        overflow: hidden !important;
-        padding: 0 !important;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
-    }
-    .login-field-box:focus-within {
-        border-color: #FBC41E !important;
-        box-shadow: 0 0 0 0.2rem rgba(251, 196, 30, 0.25) !important;
-    }
-    .login-field-icon {
-        width: 44px !important;
-        min-width: 44px !important;
-        height: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        color: #A0AABD !important;
-        font-size: 1.15rem !important;
-        border: none !important;
-        background: transparent !important;
-        flex-shrink: 0 !important;
-    }
-    .login-field-icon i {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        line-height: 1 !important;
-    }
-    .login-field-input {
-        flex: 1 !important;
-        height: 100% !important;
-        background: transparent !important;
-        background-color: transparent !important;
-        border: none !important;
-        border-color: transparent !important;
-        box-shadow: none !important;
-        outline: none !important;
-        color: #F1F5F9 !important;
-        font-size: 0.95rem !important;
-        padding: 0 0.75rem 0 0.25rem !important;
-    }
-    .login-field-input::placeholder {
-        color: #64748b !important;
-    }
-    .login-field-toggle {
-        width: 44px !important;
-        min-width: 44px !important;
-        height: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        color: #A0AABD !important;
-        font-size: 1.15rem !important;
-        border: none !important;
-        background: transparent !important;
-        cursor: pointer !important;
-        outline: none !important;
-        box-shadow: none !important;
-        flex-shrink: 0 !important;
-        transition: color 0.15s ease !important;
-    }
-    .login-field-toggle:hover {
-        color: #F1F5F9 !important;
-    }
-
-    /* Botones de Inicio de Sesión Social */
-    .btn-auth-social {
-        background-color: #252E3F !important;
-        border: 1px solid #30394A !important;
-        border-radius: 8px !important;
-        color: #A0AABD !important;
-        font-size: 0.92rem !important;
-        font-weight: 600 !important;
-        height: 44px !important;
-        padding: 0 1rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 0.65rem !important;
-        text-decoration: none !important;
-        transform: none !important;
-        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
-    }
-
-    /* Iconos monocromáticos por defecto (sin color, fijos sin desplazamiento) */
-    .btn-auth-social .social-icon {
-        width: 18px !important;
-        height: 18px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        filter: grayscale(100%) opacity(0.65);
-        color: #A0AABD !important;
-        flex-shrink: 0 !important;
-        transform: none !important;
-        transition: filter 0.2s ease, color 0.2s ease !important;
-    }
-
-    .btn-auth-social .social-icon svg {
-        display: block !important;
-        width: 18px !important;
-        height: 18px !important;
-        transform: none !important;
-    }
-
-    /* Al pasar el ratón: cobra sus colores oficiales SIN desplazarse ni cambiar de tamaño */
-    .btn-auth-google:hover {
-        background-color: #30394A !important;
-        border-color: #4A5568 !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
-        transform: none !important;
-    }
-    .btn-auth-google:hover .social-icon {
-        filter: grayscale(0%) opacity(1) !important;
-        transform: none !important;
-    }
-
-    .btn-auth-discord:hover {
-        background-color: #30394A !important;
-        border-color: #5865F2 !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35) !important;
-        transform: none !important;
-    }
-    .btn-auth-discord:hover .social-icon {
-        filter: grayscale(0%) opacity(1) !important;
-        color: #5865F2 !important;
-        transform: none !important;
-    }
-</style>
-
-<!-- Botón flotante para activar/desactivar sonido -->
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-    <button type="button" id="soundToggleBtn" onclick="toggleSoundPreference()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 py-1 px-2 border-0" style="background: rgba(37, 46, 63, 0.7); color: #A0AABD; border-radius: 8px;" title="Activar/desactivar sonidos">
-        <i id="soundToggleIcon" class="bi bi-volume-up-fill fs-6"></i>
-    </button>
-</div>
-
-<div class="no-top-pad container d-flex align-items-center justify-content-center" style="min-height: 100dvh; padding-top: 2rem; padding-bottom: 2rem;">
-    <div class="card login-card shadow p-4 p-sm-5" style="width: 100%; max-width: 420px; border-radius: 16px; border: 1px solid #30394A !important; background-color: #191F2C !important; transform: none !important; transition: none !important; cursor: default !important;">
-        <!-- Logo y Cabecera -->
-        <div class="text-center mb-4">
-            <img src="@config.GetLogoUrl()" class="lubelogger-logo mb-2" style="max-height: 52px; width: auto;" />
-            <h4 class="fw-bold mb-1 text-light">Mantenimiento Coche</h4>
-            <small class="text-secondary">Inicia sesión para gestionar tus vehículos</small>
-        </div>
-
-        <!-- Formulario Local -->
-        <div class="mb-3">
-            <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Usuario o correo</label>
-            <div class="login-field-box">
-                <div class="login-field-icon"><i class="bi bi-person"></i></div>
-                <input type="text" id="inputUserName" class="login-field-input" placeholder="usuario o email" autocomplete="username">
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <label for="inputUserPassword" class="form-label small fw-semibold text-secondary mb-0">Contraseña</label>
-                <a href="/Login/ForgotPassword" class="small text-decoration-none text-primary fw-semibold">¿Contraseña olvidada?</a>
-            </div>
-            <div class="login-field-box">
-                <div class="login-field-icon"><i class="bi bi-lock"></i></div>
-                <input type="password" id="inputUserPassword" onkeyup="callBackOnEnter(event, performLogin)" class="login-field-input" placeholder="••••••••" autocomplete="current-password">
-                <button type="button" class="login-field-toggle" onclick="togglePasswordVisibility(this)" tabindex="-1" title="Mostrar/ocultar contraseña">
-                    <i class="bi bi-eye"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" role="switch" id="inputPersistent" checked>
-            <label class="form-check-label small text-secondary" for="inputPersistent">Recordar sesión</label>
-        </div>
-
-        <div class="d-grid mb-3">
-            <button type="button" class="btn btn-primary py-2 fw-semibold shadow-sm" onclick="performLogin()">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
-            </button>
-        </div>
-
-        <!-- Divisor Social -->
-        <div class="d-flex align-items-center my-3">
-            <hr class="flex-grow-1 my-0 opacity-25">
-            <span class="px-2 text-secondary small user-select-none text-uppercase fw-semibold" style="font-size: 0.75rem;">o accede con</span>
-            <hr class="flex-grow-1 my-0 opacity-25">
-        </div>
-
-        <!-- Botones de Inicio de Sesión Social -->
-        <div class="d-grid gap-2">
-            <!-- Google -->
-            <a href="/Login/GoogleLogin" class="btn btn-auth-social btn-auth-google">
-                <span class="social-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                    </svg>
-                </span>
-                <span>Google</span>
-            </a>
-
-            <!-- Discord -->
-            <a href="/Login/DiscordLogin" class="btn btn-auth-social btn-auth-discord">
-                <span class="social-icon">
-                    <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
-                        <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
-                    </svg>
-                </span>
-                <span>Discord</span>
-            </a>
-
-            @if (!string.IsNullOrWhiteSpace(openIdConfigName))
-            {
-                <button type="button" class="btn btn-secondary py-2" onclick="remoteLogin()">
-                    <i class="bi bi-shield-lock me-2"></i>@($"{translator.Translate(userLanguage, "Login via")} {openIdConfigName}")
-                </button>
-            }
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(config.GetMOTD()))
-        {
-            <div class="text-center mt-3">
-                <small class="text-secondary">@config.GetMOTD()</small>
-            </div>
-        }
-
-        @if (!registrationDisabled)
-        {
-            <div class="text-center mt-4 pt-2 border-top border-secondary border-opacity-10">
-                <span class="small text-secondary">¿No tienes cuenta?</span>
-                <a href="/Login/Registration" class="small fw-semibold text-primary text-decoration-none ms-1">Regístrate aquí</a>
-            </div>
-        }
-    </div>
-</div>
-<script>
-    var returnUrl = "@Model";
-    function getReturnUrl() {
-        return { url: decodeHTMLEntities('@Model') };
-    }
-    checkPersistLoginState();
-
-    function togglePasswordVisibility(elem) {
-        var group = $(elem).closest('.login-field-box, .login-input-group, .input-group');
-        var passwordField = group.find('input');
-        if (!passwordField.length) {
-            passwordField = $(elem).parent().siblings("input");
-        }
-        var passwordButton = $(elem).find('.bi');
-        if (passwordField.attr("type") === "password") {
-            passwordField.attr("type", "text");
-            passwordButton.removeClass('bi-eye').addClass('bi-eye-slash');
-        } else {
-            passwordField.attr("type", "password");
-            passwordButton.removeClass('bi-eye-slash').addClass('bi-eye');
-        }
-    }
-</script>
+@using CarCareTracker.Helper
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@model string
+@{
+    var userLanguage = config.GetServerLanguage();
+    var registrationDisabled = config.GetServerDisabledRegistration();
+    var openIdConfigName = config.GetOpenIDConfig().Name;
+    var googleConfig = config.GetGoogleAuthConfig();
+    var discordConfig = config.GetDiscordAuthConfig();
+}
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+@section Scripts {
+    <script src="~/js/login.js?v=@StaticHelper.VersionNumber"></script>
+}
+<style>
+    body {
+        background-color: #111722 !important;
+        background: #111722 !important;
+    }
+    .card.login-card,
+    .card.login-card:hover,
+    [data-bs-theme="dark"] .card.login-card,
+    [data-bs-theme="dark"] .card.login-card:hover {
+        transform: none !important;
+        transition: none !important;
+        cursor: default !important;
+        background-color: #191F2C !important;
+        border: 1px solid #30394A !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
+    }
+
+    /* Caja de campo sin ninguna línea o división interna */
+    .login-field-box {
+        background-color: #252E3F !important;
+        border: 1px solid #30394A !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        height: 46px !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    }
+    .login-field-box:focus-within {
+        border-color: #FBC41E !important;
+        box-shadow: 0 0 0 0.2rem rgba(251, 196, 30, 0.25) !important;
+    }
+    .login-field-icon {
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #A0AABD !important;
+        font-size: 1.15rem !important;
+        border: none !important;
+        background: transparent !important;
+        flex-shrink: 0 !important;
+    }
+    .login-field-icon i {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+    }
+    .login-field-input {
+        flex: 1 !important;
+        height: 100% !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        color: #F1F5F9 !important;
+        font-size: 0.95rem !important;
+        padding: 0 0.75rem 0 0.25rem !important;
+    }
+    .login-field-input::placeholder {
+        color: #64748b !important;
+    }
+    .login-field-toggle {
+        width: 44px !important;
+        min-width: 44px !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #A0AABD !important;
+        font-size: 1.15rem !important;
+        border: none !important;
+        background: transparent !important;
+        cursor: pointer !important;
+        outline: none !important;
+        box-shadow: none !important;
+        flex-shrink: 0 !important;
+        transition: color 0.15s ease !important;
+    }
+    .login-field-toggle:hover {
+        color: #F1F5F9 !important;
+    }
+
+    /* Botones de Inicio de Sesión Social */
+    .btn-auth-social {
+        background-color: #252E3F !important;
+        border: 1px solid #30394A !important;
+        border-radius: 8px !important;
+        color: #A0AABD !important;
+        font-size: 0.92rem !important;
+        font-weight: 600 !important;
+        height: 44px !important;
+        padding: 0 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.65rem !important;
+        text-decoration: none !important;
+        transform: none !important;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    /* Iconos monocromáticos por defecto (sin color, fijos sin desplazamiento) */
+    .btn-auth-social .social-icon {
+        width: 18px !important;
+        height: 18px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        filter: grayscale(100%) opacity(0.65);
+        color: #A0AABD !important;
+        flex-shrink: 0 !important;
+        transform: none !important;
+        transition: filter 0.2s ease, color 0.2s ease !important;
+    }
+
+    .btn-auth-social .social-icon svg {
+        display: block !important;
+        width: 18px !important;
+        height: 18px !important;
+        transform: none !important;
+    }
+
+    /* Al pasar el ratón: cobra sus colores oficiales SIN desplazarse ni cambiar de tamaño */
+    .btn-auth-google:hover {
+        background-color: #30394A !important;
+        border-color: #4A5568 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+        transform: none !important;
+    }
+    .btn-auth-google:hover .social-icon {
+        filter: grayscale(0%) opacity(1) !important;
+        transform: none !important;
+    }
+
+    .btn-auth-discord:hover {
+        background-color: #30394A !important;
+        border-color: #5865F2 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(88, 101, 242, 0.35) !important;
+        transform: none !important;
+    }
+    .btn-auth-discord:hover .social-icon {
+        filter: grayscale(0%) opacity(1) !important;
+        color: #5865F2 !important;
+        transform: none !important;
+    }
+</style>
+
+<!-- Botón flotante para activar/desactivar sonido -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    <button type="button" id="soundToggleBtn" onclick="toggleSoundPreference()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 py-1 px-2 border-0" style="background: rgba(37, 46, 63, 0.7); color: #A0AABD; border-radius: 8px;" title="Activar/desactivar sonidos">
+        <i id="soundToggleIcon" class="bi bi-volume-up-fill fs-6"></i>
+    </button>
+</div>
+
+<div class="no-top-pad container d-flex align-items-center justify-content-center" style="min-height: 100dvh; padding-top: 2rem; padding-bottom: 2rem;">
+    <div class="card login-card shadow p-4 p-sm-5" style="width: 100%; max-width: 420px; border-radius: 16px; border: 1px solid #30394A !important; background-color: #191F2C !important; transform: none !important; transition: none !important; cursor: default !important;">
+        <!-- Logo y Cabecera -->
+        <div class="text-center mb-4">
+            <img src="@config.GetLogoUrl()" class="lubelogger-logo mb-2" style="max-height: 52px; width: auto;" />
+            <h4 class="fw-bold mb-1 text-light">Mantenimiento Coche</h4>
+            <small class="text-secondary">Inicia sesión para gestionar tus vehículos</small>
+        </div>
+
+        <!-- Formulario Local -->
+        <div class="mb-3">
+            <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Usuario o correo</label>
+            <div class="login-field-box">
+                <div class="login-field-icon"><i class="bi bi-person"></i></div>
+                <input type="text" id="inputUserName" class="login-field-input" placeholder="usuario o email" autocomplete="username">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="inputUserPassword" class="form-label small fw-semibold text-secondary mb-0">Contraseña</label>
+                <a href="/Login/ForgotPassword" class="small text-decoration-none text-primary fw-semibold">¿Contraseña olvidada?</a>
+            </div>
+            <div class="login-field-box">
+                <div class="login-field-icon"><i class="bi bi-lock"></i></div>
+                <input type="password" id="inputUserPassword" onkeyup="callBackOnEnter(event, performLogin)" class="login-field-input" placeholder="••••••••" autocomplete="current-password">
+                <button type="button" class="login-field-toggle" onclick="togglePasswordVisibility(this)" tabindex="-1" title="Mostrar/ocultar contraseña">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="inputPersistent" checked>
+            <label class="form-check-label small text-secondary" for="inputPersistent">Recordar sesión</label>
+        </div>
+
+        <div class="d-grid mb-3">
+            <button type="button" class="btn btn-primary py-2 fw-semibold shadow-sm" onclick="performLogin()">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+            </button>
+        </div>
+
+        <!-- Divisor Social -->
+        <div class="d-flex align-items-center my-3">
+            <hr class="flex-grow-1 my-0 opacity-25">
+            <span class="px-2 text-secondary small user-select-none text-uppercase fw-semibold" style="font-size: 0.75rem;">o accede con</span>
+            <hr class="flex-grow-1 my-0 opacity-25">
+        </div>
+
+        <!-- Botones de Inicio de Sesión Social -->
+        <div class="d-grid gap-2">
+            <!-- Google -->
+            <a href="/Login/GoogleLogin" class="btn btn-auth-social btn-auth-google">
+                <span class="social-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                </span>
+                <span>Google</span>
+            </a>
+
+            <!-- Discord -->
+            <a href="/Login/DiscordLogin" class="btn btn-auth-social btn-auth-discord">
+                <span class="social-icon">
+                    <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
+                        <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z"/>
+                    </svg>
+                </span>
+                <span>Discord</span>
+            </a>
+
+            @if (!string.IsNullOrWhiteSpace(openIdConfigName))
+            {
+                <button type="button" class="btn btn-secondary py-2" onclick="remoteLogin()">
+                    <i class="bi bi-shield-lock me-2"></i>@($"{translator.Translate(userLanguage, "Login via")} {openIdConfigName}")
+                </button>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(config.GetMOTD()))
+        {
+            <div class="text-center mt-3">
+                <small class="text-secondary">@config.GetMOTD()</small>
+            </div>
+        }
+
+        @if (!registrationDisabled)
+        {
+            <div class="text-center mt-4 pt-2 border-top border-secondary border-opacity-10">
+                <span class="small text-secondary">¿No tienes cuenta?</span>
+                <a href="/Login/Registration" class="small fw-semibold text-primary text-decoration-none ms-1">Regístrate aquí</a>
+            </div>
+        }
+    </div>
+</div>
+<script>
+    var returnUrl = "@Model";
+    function getRedirectURL() {
+        return { url: decodeHTMLEntities('@Model') };
+    }
+    function getReturnUrl() {
+        return { url: decodeHTMLEntities('@Model') };
+    }
+    checkPersistLoginState();
+
+    function togglePasswordVisibility(elem) {
+        var group = $(elem).closest('.login-field-box, .login-input-group, .input-group');
+        var passwordField = group.find('input');
+        if (!passwordField.length) {
+            passwordField = $(elem).parent().siblings("input");
+        }
+        var passwordButton = $(elem).find('.bi');
+        if (passwordField.attr("type") === "password") {
+            passwordField.attr("type", "text");
+            passwordButton.removeClass('bi-eye').addClass('bi-eye-slash');
+        } else {
+            passwordField.attr("type", "password");
+            passwordButton.removeClass('bi-eye-slash').addClass('bi-eye');
+        }
+    }
+</script>

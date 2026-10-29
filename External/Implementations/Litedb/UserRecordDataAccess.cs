@@ -1,60 +1,68 @@
-using CarCareTracker.External.Interfaces;
-using CarCareTracker.Models;
-using LiteDB;
-using CarCareTracker.Helper;
-
-namespace CarCareTracker.External.Implementations
-{
-    public class UserRecordDataAccess : IUserRecordDataAccess
-    {
-        private ILiteDBHelper _liteDB { get; set; }
-        private static string tableName = "userrecords";
-        public UserRecordDataAccess(ILiteDBHelper liteDB)
-        {
-           _liteDB = liteDB;
-        }
-        public List<UserData> GetUsers()
-        {
-            var db = _liteDB.GetLiteDB();
-            var table = db.GetCollection<UserData>(tableName);
-            return table.FindAll().ToList();
-        }
-        public UserData GetUserRecordByUserName(string userName)
-        {
-            var db = _liteDB.GetLiteDB();
-            var table = db.GetCollection<UserData>(tableName);
-            var userRecord = table.FindOne(x => x.UserName.ToLower() == userName.ToLower());
-            return userRecord ?? new UserData();
-        }
-        public UserData GetUserRecordByEmailAddress(string emailAddress)
-        {
-            var db = _liteDB.GetLiteDB();
-            var table = db.GetCollection<UserData>(tableName);
-            var userRecord = table.FindOne(x => x.EmailAddress.ToLower() == emailAddress.ToLower());
-            return userRecord ?? new UserData();
-        }
-        public UserData GetUserRecordById(int userId)
-        {
-            var db = _liteDB.GetLiteDB();
-            var table = db.GetCollection<UserData>(tableName);
-            var userRecord = table.FindById(userId);
-            return userRecord ?? new UserData();
-        }
-        public bool SaveUserRecord(UserData userRecord)
-        {
-            var db = _liteDB.GetLiteDB();
-            var table = db.GetCollection<UserData>(tableName);
-            table.Upsert(userRecord);
-            db.Checkpoint();
-            return true;
-        }
-        public bool DeleteUserRecord(int userId)
-        {
-            var db = _liteDB.GetLiteDB();
-            var table = db.GetCollection<UserData>(tableName);
-            table.Delete(userId);
-            db.Checkpoint();
-            return true;
-        }
-    }
+using CarCareTracker.External.Interfaces;
+using CarCareTracker.Models;
+using LiteDB;
+using CarCareTracker.Helper;
+
+namespace CarCareTracker.External.Implementations
+{
+    public class UserRecordDataAccess : IUserRecordDataAccess
+    {
+        private ILiteDBHelper _liteDB { get; set; }
+        private static string tableName = "userrecords";
+        public UserRecordDataAccess(ILiteDBHelper liteDB)
+        {
+           _liteDB = liteDB;
+        }
+        public List<UserData> GetUsers()
+        {
+            var db = _liteDB.GetLiteDB();
+            var table = db.GetCollection<UserData>(tableName);
+            return table.FindAll().ToList();
+        }
+        public UserData GetUserRecordByUserName(string userName)
+        {
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                return new UserData();
+            }
+            var db = _liteDB.GetLiteDB();
+            var table = db.GetCollection<UserData>(tableName);
+            var userRecord = table.FindOne(x => !string.IsNullOrEmpty(x.UserName) && x.UserName.ToLower() == userName.ToLower());
+            return userRecord ?? new UserData();
+        }
+        public UserData GetUserRecordByEmailAddress(string emailAddress)
+        {
+            if (string.IsNullOrWhiteSpace(emailAddress))
+            {
+                return new UserData();
+            }
+            var db = _liteDB.GetLiteDB();
+            var table = db.GetCollection<UserData>(tableName);
+            var userRecord = table.FindOne(x => !string.IsNullOrEmpty(x.EmailAddress) && x.EmailAddress.ToLower() == emailAddress.ToLower());
+            return userRecord ?? new UserData();
+        }
+        public UserData GetUserRecordById(int userId)
+        {
+            var db = _liteDB.GetLiteDB();
+            var table = db.GetCollection<UserData>(tableName);
+            var userRecord = table.FindById(userId);
+            return userRecord ?? new UserData();
+        }
+        public bool SaveUserRecord(UserData userRecord)
+        {
+            var db = _liteDB.GetLiteDB();
+            var table = db.GetCollection<UserData>(tableName);
+            table.Upsert(userRecord);
+            db.Checkpoint();
+            return true;
+        }
+        public bool DeleteUserRecord(int userId)
+        {
+            var db = _liteDB.GetLiteDB();
+            var table = db.GetCollection<UserData>(tableName);
+            table.Delete(userId);
+            db.Checkpoint();
+            return true;
+        }
+    }
 }

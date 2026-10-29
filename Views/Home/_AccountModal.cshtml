@@ -1,50 +1,50 @@
-@using CarCareTracker.Helper
-@inject IConfigHelper config
-@inject ITranslationHelper translator
-@model UserDataViewModel
-@{
-    var userConfig = config.GetUserConfig(User);
-    var userLanguage = userConfig.UserLanguage;
-}
-<div class="modal-header">
-    <h5 class="modal-title d-flex align-items-center gap-2" id="updateAccountModalLabel">
-        <i class="bi bi-person-gear text-warning"></i>
-        <span>@translator.Translate(userLanguage, "Update Profile")</span>
-    </h5>
-    <button type="button" class="btn-close btn-close-white" onclick="hideAccountInformationModal()" aria-label="Close"></button>
-</div>
-<div class="modal-body" onkeydown="handleEnter(this)">
-    <form class="form-inline">
-        <div class="form-group">
-            <label for="inputUsername" class="mb-1 fw-semibold small text-light">@translator.Translate(userLanguage, "Username")</label>
-            <input type="text" id="inputUsername" class="form-control mb-3" placeholder="@translator.Translate(userLanguage, "Account Username")" value="@Model.UserName">
-            
-            <label for="inputEmail" class="mb-1 fw-semibold small text-light">@translator.Translate(userLanguage, "Email Address")</label>
-            <input type="text" id="inputEmail" class="form-control mb-3" placeholder="@translator.Translate(userLanguage, "Email Address")" value="@Model.EmailAddress">
-            
-            @if (Model.HasExistingPassword)
-            {
-                <label for="inputCurrentPassword" class="mb-1 fw-semibold small text-light">Contraseña actual</label>
-                <div class="input-group mb-3">
-                    <input type="password" id="inputCurrentPassword" class="form-control" placeholder="Escribe tu contraseña actual para cambiarla" value="">
-                    <div class="input-group-text">
-                        <button type="button" class="btn btn-sm text-secondary password-visible-button p-0" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
-                    </div>
-                </div>
-            }
-
-            <label for="inputPassword" class="mb-1 fw-semibold small text-light">Nueva contraseña @(Model.HasExistingPassword ? "(dejar en blanco para no cambiarla)" : "")</label>           
-            <div class="input-group mb-1">
-                <input type="password" id="inputPassword" class="form-control" placeholder="Nueva contraseña" value="">
-                <div class="input-group-text">
-                    <button type="button" class="btn btn-sm text-secondary password-visible-button p-0" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
-                </div>
-            </div>
-            <small class="text-secondary d-block mb-2" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúsculas, minúsculas, números y al menos un carácter especial (!@@#$%...).</small>
-        </div>
-    </form>
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-secondary" onclick="hideAccountInformationModal()">@translator.Translate(userLanguage, "Cancel")</button>
-    <button type="button" onclick="validateAndSaveUserAccount()" class="btn btn-primary">@translator.Translate(userLanguage, "Update")</button>
-</div>
+@using CarCareTracker.Helper
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@model UserDataViewModel
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+<div class="modal-header">
+    <h5 class="modal-title d-flex align-items-center gap-2" id="updateAccountModalLabel">
+        <i class="bi bi-person-gear text-warning"></i>
+        <span>@translator.Translate(userLanguage, "Update Profile")</span>
+    </h5>
+    <button type="button" class="btn-close btn-close-white" onclick="hideAccountInformationModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body" onkeydown="handleEnter(this)">
+    <form class="form-inline">
+        <div class="form-group">
+            <label for="inputUsername" class="mb-1 fw-semibold small text-light">@translator.Translate(userLanguage, "Username")</label>
+            <input type="text" id="inputUsername" class="form-control mb-3" placeholder="@translator.Translate(userLanguage, "Account Username")" value="@Model.UserName">
+            
+            <label for="inputEmail" class="mb-1 fw-semibold small text-light">@translator.Translate(userLanguage, "Email Address") <span class="text-secondary fw-normal">(opcional)</span></label>
+            <input type="email" id="inputEmail" class="form-control mb-3" placeholder="ejemplo@correo.com (opcional)" value="@Model.EmailAddress">
+            
+            @if (Model.HasExistingPassword)
+            {
+                <label for="inputCurrentPassword" class="mb-1 fw-semibold small text-light">Contraseña actual</label>
+                <div class="input-group mb-3">
+                    <input type="password" id="inputCurrentPassword" class="form-control" placeholder="Escribe tu contraseña actual para cambiarla" value="">
+                    <div class="input-group-text">
+                        <button type="button" class="btn btn-sm text-secondary password-visible-button p-0" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+            }
+
+            <label for="inputPassword" class="mb-1 fw-semibold small text-light">Nueva contraseña @(Model.HasExistingPassword ? "(dejar en blanco para no cambiarla)" : "")</label>           
+            <div class="input-group mb-1">
+                <input type="password" id="inputPassword" class="form-control" placeholder="Nueva contraseña" value="">
+                <div class="input-group-text">
+                    <button type="button" class="btn btn-sm text-secondary password-visible-button p-0" onclick="togglePasswordVisibility(this)"><i class="bi bi-eye"></i></button>
+                </div>
+            </div>
+            <small class="text-secondary d-block mb-2" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúsculas, minúsculas, números y al menos un carácter especial (!@@#$%...).</small>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" onclick="hideAccountInformationModal()">@translator.Translate(userLanguage, "Cancel")</button>
+    <button type="button" onclick="validateAndSaveUserAccount()" class="btn btn-primary">@translator.Translate(userLanguage, "Update")</button>
+</div>

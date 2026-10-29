@@ -1,2776 +1,2771 @@
-
-// Variables globales de reserva para compatibilidad con módulos de suministros
-var supplyUsageHistory = [];
-var deletedSupplyUsageHistory = [];
-var selectedSupplies = [];
-var copySuppliesAttachments = false;
-﻿$.expr.pseudos.containsNC = $.expr.createPseudo(function (arg) {
-    return function (elem) {
-        return $(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
-    };
-});
-const mobileScreen = window.matchMedia("(max-width: 575px)");
-var eventHubConn = undefined;
-function returnToGarage() {
-    window.location.href = '/Home';
-}
-function confirmDelete(message, callBack) {
-    Swal.fire({
-        title: "Confirm Deletion?",
-        text: message,
-        showCancelButton: true,
-        confirmButtonText: "Delete",
-        confirmButtonColor: "#dc3545"
-    }).then((result) => {
-        callBack(result);
-    });
-}
-function successToast(message) {
-    Swal.fire({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        title: message,
-        timerProgressBar: true,
-        icon: "success",
-        didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-        }
-    })
-}
-function errorToast(message) {
-    Swal.fire({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        title: message,
-        timerProgressBar: true,
-        icon: "error",
-        didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-        }
-    })
-}
-function infoToast(message) {
-    Swal.fire({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        title: message,
-        timerProgressBar: true,
-        icon: "info",
-        didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-        }
-    })
-}
-function warnToast(message) {
-    Swal.fire({
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-        title: message,
-        timerProgressBar: true,
-        icon: "warning",
-        didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-        }
-    })
-}
-function viewVehicle(vehicleId, tab) {
-    if (tab != undefined) {
-        window.location.href = `/Vehicle/Index?vehicleId=${vehicleId}&tab=${tab}`;
-    } else {
-        window.location.href = `/Vehicle/Index?vehicleId=${vehicleId}`;
-    }
-}
-function saveVehicle(isEdit) {
-    var vehicleId = getVehicleModelData().id;
-    var vehicleYear = $("#inputYear").val();
-    var vehicleMake = $("#inputMake").val();
-    var vehicleModel = $("#inputModel").val();
-    var vehicleTags = $("#inputTag").val();
-    var vehiclePurchaseDate = $("#inputPurchaseDate").val();
-    var vehicleSoldDate = $("#inputSoldDate").val();
-    var vehicleLicensePlate = $("#inputLicensePlate").val();
-    var vehicleIsElectric = $("#inputFuelType").val() == 'Electric';
-    var vehicleIsDiesel = $("#inputFuelType").val() == 'Diesel';
-    var vehicleUseHours = $("#inputUseHours").is(":checked");
-    var vehicleOdometerOptional = $("#inputOdometerOptional").is(":checked");
-    var vehicleHasOdometerAdjustment = $("#inputHasOdometerAdjustment").is(':checked');
-    var vehicleOdometerMultiplier = $("#inputOdometerMultiplier").val();
-    var vehicleOdometerDifference = parseInt(globalParseFloat($("#inputOdometerDifference").val())).toString();
-    var vehiclePurchasePrice = $("#inputPurchasePrice").val();
-    var vehicleSoldPrice = $("#inputSoldPrice").val();
-    var vehicleIdentifier = $("#inputIdentifier").val();
-    var vehicleVin = $("#inputVin").val() || '';
-    var vehicleEngineCode = $("#inputEngineCode").val() || '';
-    var vehicleEngineOil = $("#inputEngineOil").val() || '';
-    var vehicleSparkPlugs = $("#inputSparkPlugs").val() || '';
-    var vehicleTyreSizes = $("#inputTyreSizes").val() || '';
-    var vehicleItvExpiry = $("#inputItvExpiry").val() || '';
-    var vehicleInsuranceExpiry = $("#inputInsuranceExpiry").val() || '';
-    var vehicleInsuranceCompany = $("#inputInsuranceCompany").val() || '';
-    var vehicleIsPublic = $("#inputIsPublic").is(":checked");
-    var vehicleDashboardMetrics = $("#collapseMetricInfo :checked").map(function () {
-        return this.value;
-    }).toArray();
-    var extraFields = getAndValidateExtraFields();
-    //validate
-    var hasError = false;
-    if (extraFields.hasError) {
-        hasError = true;
-    }
-    if (vehicleYear.trim() == '' || parseInt(vehicleYear) < 1900) {
-        hasError = true;
-        $("#inputYear").addClass("is-invalid");
-    } else {
-        $("#inputYear").removeClass("is-invalid");
-    }
-    if (vehicleMake.trim() == '') {
-        hasError = true;
-        $("#inputMake").addClass("is-invalid");
-    } else {
-        $("#inputMake").removeClass("is-invalid");
-    }
-    if (vehicleModel.trim() == '') {
-        hasError = true;
-        $("#inputModel").addClass("is-invalid");
-    } else {
-        $("#inputModel").removeClass("is-invalid");
-    }
-    if (vehicleIdentifier == "LicensePlate") {
-        if (vehicleLicensePlate.trim() == '') {
-            hasError = true;
-            $("#inputLicensePlate").addClass("is-invalid");
-        } else {
-            $("#inputLicensePlate").removeClass("is-invalid");
-        }
-    } else {
-        $("#inputLicensePlate").removeClass("is-invalid");
-        //check if extra fields have value.
-        var vehicleIdentifierExtraField = extraFields.extraFields.filter(x => x.name == vehicleIdentifier);
-        //check if extra field exists.
-        if (vehicleIdentifierExtraField.length == 0) {
-            $(".modal.fade.show").find(`.extra-field [placeholder='${vehicleIdentifier}']`).addClass("is-invalid");
-            hasError = true;
-        } else {
-            $(".modal.fade.show").find(`.extra-field [placeholder='${vehicleIdentifier}']`).removeClass("is-invalid");
-        }
-    }
-    
-    if (vehicleHasOdometerAdjustment) {
-        //validate odometer adjustments
-        //validate multiplier
-        if (vehicleOdometerMultiplier.trim() == '' || !isValidMoney(vehicleOdometerMultiplier)) {
-            hasError = true;
-            $("#inputOdometerMultiplier").addClass("is-invalid");
-        } else {
-            $("#inputOdometerMultiplier").removeClass("is-invalid");
-        }
-        //validate difference
-        if (vehicleOdometerDifference.trim() == '' || isNaN(vehicleOdometerDifference)) {
-            hasError = true;
-            $("#inputOdometerDifference").addClass("is-invalid");
-        } else {
-            $("#inputOdometerDifference").removeClass("is-invalid");
-        }
-    }
-    if (vehiclePurchasePrice.trim() != '' && !isValidMoney(vehiclePurchasePrice)) {
-        hasError = true;
-        $("#inputPurchasePrice").addClass("is-invalid");
-        $("#collapsePurchaseInfo").collapse('show');
-    } else {
-        $("#inputPurchasePrice").removeClass("is-invalid");
-    }
-    if (vehicleSoldPrice.trim() != '' && !isValidMoney(vehicleSoldPrice)) {
-        hasError = true;
-        $("#inputSoldPrice").addClass("is-invalid");
-        $("#collapsePurchaseInfo").collapse('show');
-    } else {
-        $("#inputSoldPrice").removeClass("is-invalid");
-    }
-    if (vehiclePurchaseDate.trim() != '' && vehicleSoldDate.trim() != '') {
-        let purchaseTicks = $("#inputPurchaseDate").datepicker('getDate')?.getTime();
-        let soldTicks = $("#inputSoldDate").datepicker('getDate')?.getTime();
-        if (!purchaseTicks || !soldTicks || purchaseTicks > soldTicks) {
-            hasError = true;
-            $("#inputPurchaseDate").addClass("is-invalid");
-            $("#inputSoldDate").addClass("is-invalid");
-            $("#collapsePurchaseInfo").collapse('show');
-        } else {
-            $("#inputPurchaseDate").removeClass("is-invalid");
-            $("#inputSoldDate").removeClass("is-invalid");
-        }
-    } else {
-        $("#inputPurchaseDate").removeClass("is-invalid");
-        $("#inputSoldDate").removeClass("is-invalid");
-    }
-    if (hasError) {
-        return;
-    }
-    let vehicleOwner = $("#inputVehicleOwner").length ? $("#inputVehicleOwner").val() : null;
-    $.post('/Vehicle/SaveVehicle', {
-        ownerUserId: vehicleOwner,
-        id: vehicleId,
-        imageLocation: uploadedFile,
-        mapLocation: uploadedMap,
-        year: vehicleYear,
-        make: vehicleMake,
-        model: vehicleModel,
-        licensePlate: vehicleLicensePlate,
-        isElectric: vehicleIsElectric,
-        isDiesel: vehicleIsDiesel,
-        tags: vehicleTags,
-        useHours: vehicleUseHours,
-        extraFields: extraFields.extraFields,
-        purchaseDate: vehiclePurchaseDate,
-        soldDate: vehicleSoldDate,
-        odometerOptional: vehicleOdometerOptional,
-        hasOdometerAdjustment: vehicleHasOdometerAdjustment,
-        odometerMultiplier: vehicleOdometerMultiplier,
-        odometerDifference: vehicleOdometerDifference,
-        purchasePrice: vehiclePurchasePrice,
-        soldPrice: vehicleSoldPrice,
-        dashboardMetrics: vehicleDashboardMetrics,
-        vehicleIdentifier: vehicleIdentifier,
-        vin: vehicleVin,
-        engineCode: vehicleEngineCode,
-        engineOil: vehicleEngineOil,
-        sparkPlugs: vehicleSparkPlugs,
-        tyreSizes: vehicleTyreSizes,
-        itvExpiry: vehicleItvExpiry,
-        insuranceExpiry: vehicleInsuranceExpiry,
-        insuranceCompany: vehicleInsuranceCompany,
-        isPublic: vehicleIsPublic
-    }, function (data) {
-        if (data.success) {
-            if (!isEdit) {
-                successToast("Vehicle Added");
-                hideAddVehicleModal();
-                loadGarage();
-            }
-            else {
-                successToast("Vehicle Updated");
-                hideEditVehicleModal();
-                //persist current tab
-                let currentParams = new URLSearchParams(window.location.search);
-                let currentTab = currentParams.get('tab');
-                if (currentTab == undefined || currentTab == '' || currentTab == null) {
-                    currentTab = getDefaultTabName();
-                }
-                viewVehicle(vehicleId, currentTab);
-            }
-        } else {
-            errorToast(data.message);
-        }
-    });
-}
-function toggleOdometerAdjustment() {
-    var isChecked = $("#inputHasOdometerAdjustment").is(':checked');
-    if (isChecked) {
-        $("#odometerAdjustments").collapse('show');
-    } else {
-        $("#odometerAdjustments").collapse('hide');
-    }
-}
-function setUploadedFile(data) {
-    uploadedFile = data;
-}
-function setUploadedMap(data) {
-    uploadedMap = data;
-}
-function handleVehicleMapCheckChanged() {
-    let vehicleHasMap = $("#inputHasVehicleMap").is(":checked");
-    if (vehicleHasMap) {
-        $("#inputMap").off('cancel').on('cancel', function () {
-            $("#inputHasVehicleMap").prop('checked', false);
-        });
-        $("#inputMap").trigger('click');
-    } else {
-        uploadedMap = '';
-    }
-}
-function uploadMap(event) {
-    let selectedMapFile = event.files[0];
-    uploadFileAsync(selectedMapFile, setUploadedMap);
-}
-function uploadThumbnail(event) {
-    var originalImage = event.files[0];
-    if (getGlobalConfig().resizeThumbnailEnabled) {
-        let maxHeight = 290;
-        try {
-            //load image and perform Hermite resize
-            var img = new Image();
-            img.onload = function () {
-                URL.revokeObjectURL(img.src);
-                var imgWidth = img.width;
-                var imgHeight = img.height;
-                if (imgHeight > maxHeight) {
-                    //only scale if height is greater than threshold
-                    var imgScale = maxHeight / imgHeight;
-                    var newImgWidth = imgWidth * imgScale;
-                    var newImgHeight = imgHeight * imgScale;
-                    var resizedCanvas = hermiteResize(img, newImgWidth, newImgHeight);
-                    resizedCanvas.toBlob((blob) => {
-                        let file = new File([blob], originalImage.name, { type: "image/jpeg" });
-                        uploadFileAsync(file, setUploadedFile);
-                    }, 'image/jpeg');
-                } else {
-                    uploadFileAsync(originalImage, setUploadedFile);
-                }
-            }
-            img.src = URL.createObjectURL(originalImage);
-        } catch (error) {
-            console.log(`Error while attempting to upload and resize thumbnail - ${error}`);
-            uploadFileAsync(originalImage, setUploadedFile);
-        }
-    } else {
-        uploadFileAsync(originalImage, setUploadedFile);
-    }
-}
-//Resize method using Hermite interpolation
-//JS implementation by viliusle
-function hermiteResize(origImg, width, height) {
-    var canvas = document.createElement("canvas");
-    var ctx = canvas.getContext("2d");
-    canvas.width = origImg.width;
-    canvas.height = origImg.height;
-    ctx.drawImage(origImg, 0, 0);
-
-    var width_source = canvas.width;
-    var height_source = canvas.height;
-    width = Math.round(width);
-    height = Math.round(height);
-
-    var ratio_w = width_source / width;
-    var ratio_h = height_source / height;
-    var ratio_w_half = Math.ceil(ratio_w / 2);
-    var ratio_h_half = Math.ceil(ratio_h / 2);
-
-   
-    var img = ctx.getImageData(0, 0, width_source, height_source);
-    var img2 = ctx.createImageData(width, height);
-    var data = img.data;
-    var data2 = img2.data;
-
-    for (var j = 0; j < height; j++) {
-        for (var i = 0; i < width; i++) {
-            var x2 = (i + j * width) * 4;
-            var weight = 0;
-            var weights = 0;
-            var weights_alpha = 0;
-            var gx_r = 0;
-            var gx_g = 0;
-            var gx_b = 0;
-            var gx_a = 0;
-            var center_y = (j + 0.5) * ratio_h;
-            var yy_start = Math.floor(j * ratio_h);
-            var yy_stop = Math.ceil((j + 1) * ratio_h);
-            for (var yy = yy_start; yy < yy_stop; yy++) {
-                var dy = Math.abs(center_y - (yy + 0.5)) / ratio_h_half;
-                var center_x = (i + 0.5) * ratio_w;
-                var w0 = dy * dy; //pre-calc part of w
-                var xx_start = Math.floor(i * ratio_w);
-                var xx_stop = Math.ceil((i + 1) * ratio_w);
-                for (var xx = xx_start; xx < xx_stop; xx++) {
-                    var dx = Math.abs(center_x - (xx + 0.5)) / ratio_w_half;
-                    var w = Math.sqrt(w0 + dx * dx);
-                    if (w >= 1) {
-                        //pixel too far
-                        continue;
-                    }
-                    //hermite filter
-                    weight = 2 * w * w * w - 3 * w * w + 1;
-                    var pos_x = 4 * (xx + yy * width_source);
-                    //alpha
-                    gx_a += weight * data[pos_x + 3];
-                    weights_alpha += weight;
-                    //colors
-                    if (data[pos_x + 3] < 255)
-                        weight = weight * data[pos_x + 3] / 250;
-                    gx_r += weight * data[pos_x];
-                    gx_g += weight * data[pos_x + 1];
-                    gx_b += weight * data[pos_x + 2];
-                    weights += weight;
-                }
-            }
-            data2[x2] = gx_r / weights;
-            data2[x2 + 1] = gx_g / weights;
-            data2[x2 + 2] = gx_b / weights;
-            data2[x2 + 3] = gx_a / weights_alpha;
-        }
-    }
-    //clear and resize canvas
-    canvas.width = width;
-    canvas.height = height;
-    ctx.clearRect(0, 0, width, height);
-
-    //draw
-    ctx.putImageData(img2, 0, 0);
-    return canvas;
-}
-function uploadFileAsync(event, callBack) {
-    let formData = new FormData();
-    if (event.files != undefined && event.files.length > 0) {
-        formData.append("file", event.files[0]);
-    } else {
-        formData.append("file", event);
-    }
-    sloader.show();
-    $.ajax({
-        url: "/Files/HandleFileUpload",
-        data: formData,
-        cache: false,
-        processData: false,
-        contentType: false,
-        type: 'POST'
-    }).done((response) => {
-        sloader.hide();
-        if (response.trim() != '') {
-            callBack(response);
-        }
-    }).fail(() => {
-        sloader.hide();
-        errorToast("An error has occurred, please check the file size and try again later.");
-    });
-}
-function isValidMoney(input) {
-    const euRegex = /^\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}((\.\d{3}){0,8}|(\d{3}){0,8})(,\d{1,3}?)?\)?$/;
-    const usRegex = /^\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}((,\d{3}){0,8}|(\d{3}){0,8})(\.\d{1,3}?)?\)?$/;
-    return (euRegex.test(input) || usRegex.test(input));
-}
-function initExtraFieldDatePicker(fieldName) {
-    let inputField = $(`#${fieldName}`);
-    if (inputField.length > 0) {
-        inputField.datepicker({
-            format: getShortDatePattern().pattern,
-            autoclose: true,
-            weekStart: getGlobalConfig().firstDayOfWeek
-        });
-    }
-}
-function handleDateInputAutoSlash(e) {
-    var input = e.target;
-    var inputType = e.inputType || (e.originalEvent && e.originalEvent.inputType);
-    var prevVal = $(input).data('prev-date-val') || '';
-    var currentVal = input.value || '';
-
-    // No intervenir si se está borrando (Backspace o Delete)
-    if (inputType === 'deleteContentBackward' || inputType === 'deleteContentForward' || currentVal.length < prevVal.length) {
-        $(input).data('prev-date-val', currentVal);
-        return;
-    }
-
-    // Extraer únicamente los dígitos numéricos
-    var digits = currentVal.replace(/\D/g, '');
-    if (digits.length === 0) {
-        $(input).data('prev-date-val', '');
-        return;
-    }
-
-    // Limitar a 8 dígitos (DDMMAAAA)
-    if (digits.length > 8) {
-        digits = digits.substring(0, 8);
-    }
-
-    var formatted = '';
-    if (digits.length === 1) {
-        formatted = digits;
-    } else if (digits.length === 2) {
-        formatted = digits + '/';
-    } else if (digits.length === 3) {
-        formatted = digits.substring(0, 2) + '/' + digits.substring(2);
-    } else if (digits.length === 4) {
-        formatted = digits.substring(0, 2) + '/' + digits.substring(2) + '/';
-    } else {
-        formatted = digits.substring(0, 2) + '/' + digits.substring(2, 4) + '/' + digits.substring(4);
-    }
-
-    if (input.value !== formatted && formatted.length > 0) {
-        var isAtEnd = (input.selectionStart >= currentVal.length);
-        input.value = formatted;
-        if (isAtEnd && typeof input.setSelectionRange === 'function') {
-            input.setSelectionRange(formatted.length, formatted.length);
-        }
-    }
-    $(input).data('prev-date-val', input.value);
-
-    // Si completó los 10 caracteres (DD/MM/AAAA), sincronizar el datepicker
-    if (formatted.length === 10 && typeof $(input).datepicker === 'function') {
-        try {
-            $(input).datepicker('update');
-        } catch (err) {}
-    }
-}
-
-function handleDateInputKeydown(e) {
-    if (e.key === 'Enter' || e.keyCode === 13 || e.key === 'Escape' || e.keyCode === 27) {
-        e.preventDefault();
-        e.stopPropagation();
-        var $input = $(this);
-        if (typeof $input.datepicker === 'function') {
-            try {
-                $input.datepicker('update');
-                $input.datepicker('hide');
-            } catch (err) {}
-        }
-        $('.datepicker.datepicker-dropdown').hide();
-        $input.blur();
-    }
-}
-
-function attachDateInputMask(input) {
-    if (!input || !input.length) return;
-    input.addClass('has-date-mask');
-    input.attr('maxlength', '10');
-    input.attr('autocomplete', 'off');
-    input.off('input.dateAutoSlash').on('input.dateAutoSlash', handleDateInputAutoSlash);
-    input.off('keydown.dateCloseOnEnter').on('keydown.dateCloseOnEnter', handleDateInputKeydown);
-}
-
-// Delegacion global para cualquier campo de fecha en la aplicacion
-$(document).on('input.dateAutoSlash', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', function (e) {
-    if (!$(this).hasClass('has-date-mask')) {
-        $(this).addClass('has-date-mask');
-        $(this).attr('maxlength', '10');
-        $(this).attr('autocomplete', 'off');
-    }
-    handleDateInputAutoSlash(e);
-});
-
-$(document).on('keydown.dateCloseOnEnter', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', handleDateInputKeydown);
-
-function initDatePicker(input, mode) {
-    var datepickerOptions = {
-        format: getShortDatePattern().pattern,
-        autoclose: true,
-        todayHighlight: true,
-        weekStart: getGlobalConfig().firstDayOfWeek,
-        language: 'es',
-        forceParse: false,
-        enableOnReadonly: true
-    };
-
-    if (mode === true || mode === 'future') {
-        datepickerOptions.startDate = "+0d";
-    } else if (mode === 'past') {
-        datepickerOptions.endDate = "+0d";
-    } else if (mode === 'any' || mode === false || mode === 'none') {
-        // Permite cualquier fecha sin restricción de tope pasado o futuro
-    } else {
-        // Históricos por defecto
-        datepickerOptions.endDate = "+0d";
-    }
-
-    input.datepicker(datepickerOptions);
-    attachDateInputMask(input);
-}
-function initTagSelector(input, noDataList) {
-    if (noDataList) {
-        input.tagsinput({
-            useDataList: false,
-            confirmKeys: [13, 44, 188],
-            trimValue: true
-        });
-    } else {
-        input.tagsinput({
-            confirmKeys: [13, 44, 188],
-            trimValue: true
-        });
-    }
-}
-function getAndValidateSelectedVehicle() {
-    var selectedVehiclesArray = [];
-    $("#vehicleSelector :checked").map(function () {
-        selectedVehiclesArray.push(this.value);
-    });
-    if (selectedVehiclesArray.length == 0) {
-        return {
-            hasError: true,
-            ids: []
-        }
-    } else {
-        return {
-            hasError: false,
-            ids: selectedVehiclesArray
-        }
-    }
-}
-function showMobileNav() {
-    $(".lubelogger-mobile-nav").addClass("lubelogger-mobile-nav-show");
-    //hide body scrollbar
-    $("body").css('overflow-y', 'hidden');
-    $("body").css('position', 'fixed'); //iOS SafariWebKit hack fix
-}
-function hideMobileNav() {
-    $(".lubelogger-mobile-nav").removeClass("lubelogger-mobile-nav-show");
-    //re-enable scrollbar.
-    $("body").css('overflow-y', 'auto');
-    $("body").css('position', ''); //iOS SafariWebKit hack fix
-}
-var windowWidthForCompare = 0;
-function bindWindowResize() {
-    windowWidthForCompare = window.innerWidth;
-    $(window).on('resize', function () {
-        if (window.innerWidth != windowWidthForCompare) {
-            hideMobileNav();
-            windowWidthForCompare = window.innerWidth;
-        }
-    });
-}
-function encodeHTMLInput(input) {
-    const encoded = document.createElement('div');
-    encoded.innerText = input;
-    return encoded.innerHTML;
-}
-function decodeHTMLEntities(text) {
-    return $("<textarea/>")
-        .html(text)
-        .text();
-}
-var debounce = null;
-function setDebounce(callBack) {
-    clearTimeout(debounce);
-    debounce = setTimeout(function () {
-        callBack();
-    }, 1000);
-}
-function toggleSort(tabName, sender) {
-    sender = $(sender);
-    var colName = sender.attr('data-column');
-    var sortAscIcon = '<i class="sort-icon bi bi-sort-down ms-2"></i>';
-    var sortDescIcon = '<i class="sort-icon bi bi-sort-down-alt ms-2"></i>';
-
-    // Remove sort icons and classes from all OTHER headers in this table
-    $(`#${tabName} table th`).not(sender).each(function() {
-        $(this).removeClass('sort-asc sort-desc');
-        $(this).find('.sort-icon').remove();
-    });
-
-    // Save default sort index on rows if not yet done
-    if ($(`#${tabName} table tbody tr[default-sort]`).length == 0) {
-        $(`#${tabName} table tbody tr`).each((index, elem) => {
-            $(elem).attr("default-sort", index);
-        });
-    }
-
-    if (sender.hasClass('sort-asc')) {
-        // Toggle to descending
-        sender.removeClass('sort-asc').addClass('sort-desc');
-        sender.find('.sort-icon').remove();
-        sender.append(sortDescIcon);
-        sortTable(tabName, sender, true);
-    } else if (sender.hasClass('sort-desc')) {
-        // Toggle back to ascending
-        sender.removeClass('sort-desc').addClass('sort-asc');
-        sender.find('.sort-icon').remove();
-        sender.append(sortAscIcon);
-        sortTable(tabName, sender, false);
-    } else {
-        // First time sorting this column -> ascending
-        sender.addClass('sort-asc');
-        sender.find('.sort-icon').remove();
-        sender.append(sortAscIcon);
-        sortTable(tabName, sender, false);
-    }
-}
-function sortTable(tabName, columnSender, desc) {
-    var sender = $(columnSender);
-    var colName = sender.attr('data-column');
-    var colIndex = sender.index();
-    var rows = $(`#${tabName} table tbody tr`).toArray();
-
-    rows.sort((a, b) => {
-        var cellA = colName ? a.querySelector(`[data-column='${colName}']`) : a.children[colIndex];
-        var cellB = colName ? b.querySelector(`[data-column='${colName}']`) : b.children[colIndex];
-        if (!cellA && !cellB) return 0;
-        if (!cellA) return desc ? -1 : 1;
-        if (!cellB) return desc ? 1 : -1;
-
-        var rawA = cellA.getAttribute('data-sort-value');
-        var rawB = cellB.getAttribute('data-sort-value');
-
-        var numA, numB;
-        if (rawA !== null && rawA !== undefined && rawA !== '') {
-            numA = Number(rawA);
-        } else {
-            numA = globalParseFloat(cellA.textContent);
-        }
-
-        if (rawB !== null && rawB !== undefined && rawB !== '') {
-            numB = Number(rawB);
-        } else {
-            numB = globalParseFloat(cellB.textContent);
-        }
-
-        var isNumA = !isNaN(numA);
-        var isNumB = !isNaN(numB);
-
-        var comparison = 0;
-        if (isNumA && isNumB) {
-            comparison = numA - numB;
-        } else if (isNumA) {
-            comparison = -1;
-        } else if (isNumB) {
-            comparison = 1;
-        } else {
-            var textA = (cellA.textContent || '').trim();
-            var textB = (cellB.textContent || '').trim();
-            comparison = textA.localeCompare(textB, undefined, { numeric: true, sensitivity: 'base' });
-        }
-
-        return desc ? -comparison : comparison;
-    });
-
-    $(`#${tabName} table tbody`).append(rows);
-}
-function resetSortTable(tabName) {
-    var rowData = $(`#${tabName} table tbody tr`);
-    var sortedRow = rowData.toArray().sort((a, b) => {
-        var currentVal = Number($(a).attr('default-sort') || 0);
-        var nextVal = Number($(b).attr('default-sort') || 0);
-        return currentVal - nextVal;
-    });
-    $(`#${tabName} table tbody`).append(sortedRow);
-}
-function filterTable(tabName, sender) {
-    var rowData = $(`#${tabName} table tbody tr`);
-    if (sender == undefined) {
-        rowData.removeClass('override-hide');
-        return;
-    }
-    var tagName = sender.textContent;
-    //check for other applied filters
-    if ($(sender).hasClass("bg-primary")) {
-        rowData.removeClass('override-hide');
-        $(sender).removeClass('bg-primary');
-        $(sender).addClass('bg-secondary');
-        updateAggregateLabels();
-    } else {
-        //hide table rows.
-        rowData.addClass('override-hide');
-        $(`[data-tags~='${tagName}']`).removeClass('override-hide');
-        updateAggregateLabels();
-        if ($(".tagfilter.bg-primary").length > 0) {
-            //disabling other filters
-            $(".tagfilter.bg-primary").addClass('bg-secondary');
-            $(".tagfilter.bg-primary").removeClass('bg-primary');
-        }
-        $(sender).addClass('bg-primary');
-        $(sender).removeClass('bg-secondary');
-    }
-}
-
-function updateAggregateLabels() {
-    //Sum
-    var sumLabel = $("[data-aggregate-type='sum']");
-    if (sumLabel.length > 0) {
-        var labelsToSum = $("[data-record-type='cost']").parent(":not('.override-hide')").children("[data-record-type='cost']").toArray();
-        var newSum = "0.00";
-        if (labelsToSum.length > 0) {
-            newSum = labelsToSum.map(x => globalParseFloat(x.textContent)).reduce((a, b) => a + b).toFixed(2);
-        }
-        sumLabel.text(`${sumLabel.text().split(':')[0]}: ${globalAppendCurrency(globalFloatToString(newSum))}`)
-    }
-    //Sum Distance
-    var sumDistanceLabel = $("[data-aggregate-type='sum-distance']");
-    if (sumDistanceLabel.length > 0) {
-        var distanceLabelsToSum = $("[data-record-type='distance']").parent(":not('.override-hide')").children("[data-record-type='distance']").toArray();
-        var newDistanceSum = 0;
-        if (distanceLabelsToSum.length > 0) {
-            newDistanceSum = distanceLabelsToSum.map(x => globalParseFloat(x.textContent)).reduce((a, b) => a + b).toFixed(0);
-        }
-        sumDistanceLabel.text(`${sumDistanceLabel.text().split(':')[0]}: ${newDistanceSum}`)
-    }
-    //Count
-    var newCount = $("[data-record-type='cost']").parent(":not('.override-hide')").length;
-    var countLabel = $("[data-aggregate-type='count']");
-    countLabel.text(`${countLabel.text().split(':')[0]}: ${newCount}`);
-}
-
-function uploadVehicleFilesAsync(event) {
-    let formData = new FormData();
-    var files = event.files;
-    for (var x = 0; x < files.length; x++) {
-        formData.append("file", files[x]);
-    }
-    sloader.show();
-    $.ajax({
-        url: "/Files/HandleMultipleFileUpload",
-        data: formData,
-        cache: false,
-        processData: false,
-        contentType: false,
-        type: 'POST'
-    }).done((response) => {
-        sloader.hide();
-        $(event).val(""); //clear out the filename from the uploader
-        if (response.length > 0) {
-            uploadedFiles.push.apply(uploadedFiles, response);
-            $.post('/Vehicle/GetFilesPendingUpload', { uploadedFiles: uploadedFiles }, function (viewData) {
-                $("#filesPendingUpload").html(viewData);
-            });
-        }
-    }).fail(() => {
-        sloader.hide();
-        errorToast("An error has occurred, please check the file size and try again later.");
-    });
-}
-function uploadVehicleLinksAsync(event) {
-    event.stopPropagation();
-    Swal.fire({
-        title: 'Add Link',
-        html: `
-                    <input type="text" id="newLinkName" class="swal2-input" placeholder="Link Name" onkeydown="handleSwalEnter(event)">
-                    <input type="text" id="newLinkLocation" class="swal2-input" placeholder="Link Location" onkeydown="handleSwalEnter(event)">
-                    `,
-        confirmButtonText: 'Add Link',
-        focusConfirm: false,
-        preConfirm: () => {
-            const newLinkName = $("#newLinkName").val();
-            const newLinkLocation = $("#newLinkLocation").val();
-            if (!newLinkName) {
-                Swal.showValidationMessage(`Please enter a valid link name`);
-            }
-            if (!newLinkLocation) {
-                Swal.showValidationMessage(`Please enter a valid link location`);
-            }
-            return { newLinkName, newLinkLocation }
-        },
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            uploadedFiles.push({ name: result.value.newLinkName, location: result.value.newLinkLocation, isPending: true });
-            $.post('/Vehicle/GetFilesPendingUpload', { uploadedFiles: uploadedFiles }, function (viewData) {
-                $("#filesPendingUpload").html(viewData);
-            });
-        }
-    });
-}
-function deleteFileFromUploadedFiles(fileLocation, event) {
-    event.parentElement.parentElement.parentElement.remove();
-    uploadedFiles = uploadedFiles.filter(x => x.location != fileLocation);
-    if ($("#documentsPendingUploadList > li").length == 0) {
-        $("#documentsPendingUploadLabel").text("");
-    }
-    if ($("#uploadedDocumentsList > li").length == 0) {
-        $("#uploadedDocumentsLabel").text("");
-    }
-}
-function editFileName(fileLocation, event) {
-    let currentFileName = $(event.parentElement.parentElement).find('a > .text-link').text();
-    Swal.fire({
-        title: 'Rename File or Link',
-        html: `
-                    <input type="text" id="newFileName" class="swal2-input" placeholder="New Name" onkeydown="handleSwalEnter(event)" value="${currentFileName}">
-                    `,
-        confirmButtonText: 'Rename',
-        focusConfirm: false,
-        preConfirm: () => {
-            const newFileName = $("#newFileName").val();
-            if (!newFileName) {
-                Swal.showValidationMessage(`Please enter a valid name`)
-            }
-            return { newFileName }
-        },
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            var linkDisplayObject = $(event.parentElement.parentElement).find('a > .text-link');
-            linkDisplayObject.text(result.value.newFileName);
-            var editFileIndex = uploadedFiles.findIndex(x => x.location == fileLocation);
-            uploadedFiles[editFileIndex].name = result.value.newFileName;
-        }
-    });
-}
-var scrollPosition = 0;
-var savedTag = '';
-function saveScrollPosition() {
-    scrollPosition = $(".vehicleDetailTabContainer").scrollTop();
-    let selectedTagElem = $(".tagfilter.bg-primary");
-    if (selectedTagElem.length > 0) {
-        savedTag = selectedTagElem.text();
-    }
-}
-function restoreScrollPosition() {
-    $(".vehicleDetailTabContainer").scrollTop(scrollPosition);
-    scrollPosition = 0;
-    if (savedTag != '') {
-        let availableTagElem = $(".tagfilter").filter((index, elem) => $(elem).text() == savedTag);
-        if (availableTagElem.length > 0) {
-            availableTagElem.trigger('click');
-        }
-        savedTag = '';
-    }
-}
-function toggleMarkDownOverlay(textAreaName) {
-    var textArea = $(`#${textAreaName}`);
-    if ($(".markdown-overlay").length > 0) {
-        $(".markdown-overlay").remove();
-        return;
-    }
-    var text = textArea.val();
-    if (text == undefined) {
-        return;
-    }
-    if (text.length > 0) {
-        var formatted = markdown(text);
-        //var overlay div
-        var overlayDiv = `<div class='markdown-overlay' style="z-index: 1060; position:absolute; top:${textArea.css('top')}; left:${textArea.css('left')}; width:${textArea.css('width')}; height:${textArea.css('height')}; padding:${textArea.css('padding')}; overflow-y:auto; background-color:var(--bs-modal-bg);">${formatted}</div>`;
-        textArea.parent().children(`label[for=${textAreaName}]`).append(overlayDiv);
-    }
-}
-function setMarkDownStickerNotes() {
-    var stickerContainers = $(".stickerNote");
-    if (stickerContainers.length > 0) {
-        stickerContainers.map((index, elem) => {
-            let originalStickerNote = $(elem).html().trim();
-            let markDownStickerNote = markdown(originalStickerNote);
-            $(elem).html(markDownStickerNote);
-        });
-    }
-}
-function showLinks(e) {
-    var textAreaName = $(e.parentElement).attr("for");
-    toggleMarkDownOverlay(textAreaName);
-}
-function printTab() {
-    setTimeout(function () {
-        window.print();
-    }, 500);
-}
-function printContainer(htmlData) {
-    // Asegurar limpieza de estados modales o backdrop de SweetAlert2
-    $('body').removeClass('swal2-shown swal2-height-auto');
-    $('.swal2-container').remove();
-    $('[aria-hidden]').removeAttr('aria-hidden');
-
-    // Crear un iframe aislado para imprimir limpiamente sin conflictos de pantalla ni modo oscuro
-    var frameId = 'lubelogger_print_frame';
-    $('#' + frameId).remove();
-    var iframe = document.createElement('iframe');
-    iframe.id = frameId;
-    iframe.name = frameId;
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    document.body.appendChild(iframe);
-
-    var frameDoc = iframe.contentWindow || iframe.contentDocument;
-    if (frameDoc.document) frameDoc = frameDoc.document;
-
-    frameDoc.open();
-    frameDoc.write(`<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <title>${document.title || 'Informe de Mantenimiento'}</title>
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap-icons.css" />
-    <style>
-        * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            box-sizing: border-box;
-        }
-        html, body {
-            background-color: #ffffff !important;
-            color: #111827 !important;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 13px;
-            line-height: 1.45;
-            margin: 0;
-            padding: 12px;
-        }
-        .lubelogger-logo {
-            max-height: 48px;
-            width: auto;
-            object-fit: contain;
-        }
-        .display-6 {
-            font-size: 1.55rem;
-            font-weight: 700;
-            color: #111827 !important;
-        }
-        .lead {
-            font-size: 0.95rem;
-            color: #374151 !important;
-        }
-        .list-group {
-            border-radius: 6px;
-        }
-        .list-group-item {
-            background-color: #ffffff !important;
-            color: #111827 !important;
-            border: 1px solid #e5e7eb !important;
-            padding: 0.45rem 0.75rem;
-        }
-        .table {
-            color: #111827 !important;
-            background-color: #ffffff !important;
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 1rem;
-        }
-        .table th {
-            background-color: #f3f4f6 !important;
-            color: #111827 !important;
-            font-weight: 600;
-            border: 1px solid #d1d5db !important;
-            border-bottom: 2px solid #9ca3af !important;
-            padding: 6px 10px;
-        }
-        .table td {
-            background-color: #ffffff !important;
-            color: #111827 !important;
-            border: 1px solid #e5e7eb !important;
-            padding: 6px 10px;
-        }
-        .table tr {
-            page-break-inside: avoid;
-        }
-        hr {
-            border: 0;
-            border-top: 1px solid #d1d5db;
-            margin: 0.85rem 0;
-            opacity: 1;
-        }
-        .lubelogger-report-banner {
-            font-size: 11px;
-            color: #6b7280 !important;
-            text-align: center;
-            padding-top: 8px;
-        }
-        @media print {
-            @page {
-                margin: 1.2cm;
-                size: auto;
-            }
-            body {
-                padding: 0;
-            }
-            .showOnPrint {
-                display: block !important;
-            }
-            .hideOnPrint {
-                display: none !important;
-            }
-        }
-    </style>
-</head>
-<body>
-    ${htmlData}
-</body>
-</html>`);
-    frameDoc.close();
-
-    // Tiempo prudente para que el DOM y estilos del iframe se evalúen antes de imprimir
-    setTimeout(function () {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        setTimeout(function () {
-            $('#' + frameId).remove();
-        }, 2000);
-    }, 350);
-}
-function printTabStickers(ids, source) {
-    var vehicleId = GetVehicleId().vehicleId;
-    $.post('/Vehicle/PrintRecordStickers', {
-        vehicleId: vehicleId,
-        recordIds: ids,
-        importMode: source
-    }, function (data) {
-        if (isOperationResponse(data)) {
-            return;
-        }
-        else if (data) {
-            printContainer(data);
-        }
-    })
-}
-function getAndValidateCSVExportParameter() {
-    let tagFilterMode = $("#tagSelector").val();
-    let tagsToFilter = $("#tagSelectorInput").val();
-    let filterByDateRange = $("#dateRangeSelector").is(":checked");
-    let startDate = $("#dateRangeStartDate").val();
-    let endDate = $("#dateRangeEndDate").val();
-    let hasValidationError = false;
-    let validationErrorMessage = "";
-    if (filterByDateRange) {
-        //validate date range
-        let startDateTicks = $("#dateRangeStartDate").datepicker('getDate')?.getTime();
-        let endDateTicks = $("#dateRangeEndDate").datepicker('getDate')?.getTime();
-        if (!startDateTicks || !endDateTicks || startDateTicks > endDateTicks) {
-            hasValidationError = true;
-            validationErrorMessage = "Invalid date range";
-        }
-    }
-    if (hasValidationError) {
-        return {
-            hasError: true,
-            errorMessage: validationErrorMessage,
-            tagFilter: tagFilterMode,
-            tags: [],
-            filterByDateRange: filterByDateRange,
-            starDate: '',
-            endDate: ''
-        }
-    } else {
-        return {
-            hasError: false,
-            errorMessage: '',
-            tagFilter: tagFilterMode,
-            tags: tagsToFilter,
-            filterByDateRange: filterByDateRange,
-            startDate: startDate,
-            endDate: endDate
-        }
-    }
-}
-function toggleCSVExportParameters() {
-    if ($(".csv-export-parameters").hasClass("d-none")) {
-        $(".csv-export-parameters").removeClass("d-none");
-    } else {
-        $(".csv-export-parameters").addClass("d-none");
-    }
-}
-function getSavedCSVExportParameters(mode) {
-    var vehicleId = GetVehicleId().vehicleId;
-    let savedCsvExportParameters = sessionStorage.getItem(`${vehicleId}_csvExportParameters_${mode}`);
-    if (savedCsvExportParameters != null) {
-        savedCsvExportParameters = JSON.parse(savedCsvExportParameters);
-        $("#tagSelector").val(savedCsvExportParameters.tagFilter);
-        savedCsvExportParameters.tags.map(x => {
-            $("#tagSelectorInput").append(`<option value='${x}'>${x}</option>`)
-        });
-        $("#dateRangeSelector").prop('checked', savedCsvExportParameters.filterByDateRange);
-        $("#dateRangeStartDate").val(savedCsvExportParameters.startDate);
-        $("#dateRangeEndDate").val(savedCsvExportParameters.endDate);
-        if (savedCsvExportParameters.tags.length > 0 || savedCsvExportParameters.filterByDateRange) {
-            $("#csvExportParameterToggle").trigger('click');
-        }
-    }
-}
-function exportVehicleData(mode) {
-    var vehicleId = GetVehicleId().vehicleId;
-    let bypassRecordTypes = ['PlanRecord', 'EquipmentRecord'];
-    if (!bypassRecordTypes.includes(mode)) {
-        $.get('/Vehicle/GetCSVExportParameters', function (paramData) {
-            if (paramData) {
-                Swal.fire({
-                    html: paramData,
-                    confirmButtonText: 'Generate CSV Export',
-                    focusConfirm: false,
-                    preConfirm: () => {
-                        //validate
-                        var exportParamsData = getAndValidateCSVExportParameter();
-                        if (exportParamsData.hasError) {
-                            Swal.showValidationMessage(exportParamsData.errorMessage);
-                        }
-                        return { exportParamsData };
-                    },
-                    didOpen: () => {
-                        getSavedCSVExportParameters(mode);
-                        initTagSelector($("#tagSelectorInput"));
-                        initDatePicker($('#dateRangeStartDate'));
-                        initDatePicker($('#dateRangeEndDate'));
-                    }
-                }).then(function (result) {
-                    if (result.isConfirmed) {
-                        sessionStorage.setItem(`${vehicleId}_csvExportParameters_${mode}`, JSON.stringify(result.value.exportParamsData));
-                        $.post('/Vehicle/ExportFromVehicleToCsv', { vehicleId: vehicleId, mode: mode, exportParameters: result.value.exportParamsData }, function (data) {
-                            if (isOperationResponse(data)) {
-                                return;
-                            }
-                            else if (data) {
-                                window.location.href = data;
-                            }
-                        });
-                    }
-                })
-            }
-        })
-    }
-    else {
-        $.post('/Vehicle/ExportFromVehicleToCsv', { vehicleId: vehicleId, mode: mode }, function (data) {
-            if (isOperationResponse(data)) {
-                return;
-            }
-            else if (data) {
-                window.location.href = data;
-            }
-        });
-    }
-}
-function showBulkImportModal(mode) {
-    $.get(`/Vehicle/GetBulkImportModalPartialView?mode=${mode}`, function (data) {
-        if (data) {
-            $("#bulkImportModalContent").html(data);
-            $("#bulkImportModal").modal('show');
-        }
-    })
-}
-function hideBulkImportModal() {
-    $("#bulkImportModal").modal('hide');
-}
-function getAndValidateExtraFields() {
-    var hasError = false;
-    var outputData = [];
-    //get extra fields in modal that is currently open.
-    var extraFieldsVisible = $(".modal.fade.show").find(".extra-field");
-    extraFieldsVisible.map((index, elem) => {
-        var extraFieldName = $(elem).children("label").text();
-        var extraFieldInput = $(elem).find("input");
-        var extraFieldValue = extraFieldInput.val();
-        var extraFieldIsRequired = extraFieldInput.hasClass('extra-field-required');
-        if (extraFieldIsRequired && extraFieldValue.trim() == '') {
-            hasError = true;
-            extraFieldInput.addClass("is-invalid");
-        } else {
-            extraFieldInput.removeClass("is-invalid");
-        }
-        //only push fields with value in them
-        if (extraFieldValue.trim() != '') {
-            outputData.push({ name: extraFieldName, value: extraFieldValue, isRequired: extraFieldIsRequired });
-        }
-    });
-    return { hasError: hasError, extraFields: outputData };
-}
-function toggleSupplyUsageHistory() {
-    var container = $("#supplyUsageHistoryModalContainer");
-    if (container.hasClass("d-none")) {
-        container.removeClass("d-none");
-    } else {
-        container.addClass("d-none");
-    }
-}
-function moveRecords(ids, source, dest) {
-    if (ids.length == 0) {
-        return;
-    }
-    $("#workAroundInput").show();
-    var friendlySource = "";
-    var friendlyDest = "";
-    var refreshDataCallBack;
-    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
-    switch (source) {
-        case "ServiceRecord":
-            friendlySource = "Service Records";
-            refreshDataCallBack = getVehicleServiceRecords;
-            break;
-        case "RepairRecord":
-            friendlySource = "Repairs";
-            refreshDataCallBack = getVehicleCollisionRecords;
-            break;
-        case "UpgradeRecord":
-            friendlySource = "Upgrades";
-            refreshDataCallBack = getVehicleUpgradeRecords;
-            break;
-    }
-    switch (dest) {
-        case "ServiceRecord":
-            friendlyDest = "Service Records";
-            break;
-        case "RepairRecord":
-            friendlyDest = "Repairs";
-            break;
-        case "UpgradeRecord":
-            friendlyDest = "Upgrades";
-            break;
-    }
-
-    Swal.fire({
-        title: "Confirm Move?",
-        text: `Move ${recordVerbiage} from ${friendlySource} to ${friendlyDest}?`,
-        showCancelButton: true,
-        confirmButtonText: "Move",
-        confirmButtonColor: "#dc3545"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('/Vehicle/MoveRecords', { recordIds: ids, source: source, destination: dest }, function (data) {
-                if (data.success) {
-                    successToast(`${ids.length} Record(s) Moved`);
-                    var vehicleId = GetVehicleId().vehicleId;
-                    refreshDataCallBack(vehicleId);
-                } else {
-                    errorToast(data.message);
-                    $("#workAroundInput").hide();
-                }
-            });
-        } else {
-            $("#workAroundInput").hide();
-        }
-    });
-}
-function deleteRecords(ids, source) {
-    if (ids.length == 0) {
-        return;
-    }
-    $("#workAroundInput").show();
-    var friendlySource = "";
-    var refreshDataCallBack;
-    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
-    switch (source) {
-        case "ServiceRecord":
-            friendlySource = "Service Records";
-            refreshDataCallBack = getVehicleServiceRecords;
-            break;
-        case "RepairRecord":
-            friendlySource = "Repairs";
-            refreshDataCallBack = getVehicleCollisionRecords;
-            break;
-        case "UpgradeRecord":
-            friendlySource = "Upgrades";
-            refreshDataCallBack = getVehicleUpgradeRecords;
-            break;
-        case "TaxRecord":
-            friendlySource = "Taxes";
-            refreshDataCallBack = getVehicleTaxRecords;
-            break;
-        case "SupplyRecord":
-            friendlySource = "Supplies";
-            refreshDataCallBack = getVehicleSupplyRecords;
-            break;
-        case "NoteRecord":
-            friendlySource = "Notes";
-            refreshDataCallBack = getVehicleNotes;
-            break;
-        case "OdometerRecord":
-            friendlySource = "Odometer Records";
-            refreshDataCallBack = getVehicleOdometerRecords;
-            break;
-        case "ReminderRecord":
-            friendlySource = "Reminders";
-            refreshDataCallBack = getVehicleReminders;
-            break;
-        case "GasRecord":
-            friendlySource = "Fuel Records";
-            refreshDataCallBack = getVehicleGasRecords;
-            break;
-        case "InspectionRecord":
-            friendlySource = "Inspection Records";
-            refreshDataCallBack = getVehicleInspectionRecords;
-            break;
-        case "EquipmentRecord":
-            friendlySource = "Equipment Records";
-            refreshDataCallBack = getVehicleEquipmentRecords;
-            break;
-    }
-
-    confirmDelete(`Delete ${recordVerbiage} from ${friendlySource}?`, (result) => {
-        if (result.isConfirmed) {
-            $.post('/Vehicle/DeleteRecords', { recordIds: ids, importMode: source }, function (data) {
-                if (data.success) {
-                    successToast(`${ids.length} Record(s) Deleted`);
-                    var vehicleId = GetVehicleId().vehicleId;
-                    refreshDataCallBack(vehicleId);
-                } else {
-                    errorToast(data.message);
-                    $("#workAroundInput").hide();
-                }
-            });
-        } else {
-            $("#workAroundInput").hide();
-        }
-    });
-}
-function duplicateRecords(ids, source) {
-    if (ids.length == 0) {
-        return;
-    }
-    $("#workAroundInput").show();
-    var friendlySource = "";
-    var refreshDataCallBack;
-    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
-    switch (source) {
-        case "ServiceRecord":
-            friendlySource = "Service Records";
-            refreshDataCallBack = getVehicleServiceRecords;
-            break;
-        case "RepairRecord":
-            friendlySource = "Repairs";
-            refreshDataCallBack = getVehicleCollisionRecords;
-            break;
-        case "UpgradeRecord":
-            friendlySource = "Upgrades";
-            refreshDataCallBack = getVehicleUpgradeRecords;
-            break;
-        case "TaxRecord":
-            friendlySource = "Taxes";
-            refreshDataCallBack = getVehicleTaxRecords;
-            break;
-        case "SupplyRecord":
-            friendlySource = "Supplies";
-            refreshDataCallBack = getVehicleSupplyRecords;
-            break;
-        case "NoteRecord":
-            friendlySource = "Notes";
-            refreshDataCallBack = getVehicleNotes;
-            break;
-        case "OdometerRecord":
-            friendlySource = "Odometer Records";
-            refreshDataCallBack = getVehicleOdometerRecords;
-            break;
-        case "ReminderRecord":
-            friendlySource = "Reminders";
-            refreshDataCallBack = getVehicleReminders;
-            break;
-        case "GasRecord":
-            friendlySource = "Fuel Records";
-            refreshDataCallBack = getVehicleGasRecords;
-            break;
-        case "PlanRecord":
-            friendlySource = "Plan";
-            refreshDataCallBack = getVehiclePlanRecords;
-            break;
-        case "InspectionRecord":
-            friendlySource = "Inspection Record";
-            refreshDataCallBack = hideInspectionRecordTemplateModal;
-            break;
-        case "EquipmentRecord":
-            friendlySource = "Equipment Records";
-            refreshDataCallBack = getVehicleEquipmentRecords;
-            break;
-    }
-
-    Swal.fire({
-        title: "Confirm Duplicate?",
-        text: `Duplicate ${recordVerbiage}?`,
-        showCancelButton: true,
-        confirmButtonText: "Duplicate",
-        confirmButtonColor: "#dc3545"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('/Vehicle/DuplicateRecords', { recordIds: ids, importMode: source }, function (data) {
-                if (data.success) {
-                    successToast(`${ids.length} Record(s) Duplicated`);
-                    var vehicleId = GetVehicleId().vehicleId;
-                    refreshDataCallBack(vehicleId);
-                } else {
-                    errorToast(data.message);
-                    $("#workAroundInput").hide();
-                }
-            });
-        } else {
-            $("#workAroundInput").hide();
-        }
-    });
-}
-function duplicateRecordsToOtherVehicles(ids, source) {
-    if (ids.length == 0) {
-        return;
-    }
-    $("#workAroundInput").show();
-    var friendlySource = "";
-    var refreshDataCallBack;
-    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
-    switch (source) {
-        case "ServiceRecord":
-            friendlySource = "Service Records";
-            refreshDataCallBack = getVehicleServiceRecords;
-            break;
-        case "RepairRecord":
-            friendlySource = "Repairs";
-            refreshDataCallBack = getVehicleCollisionRecords;
-            break;
-        case "UpgradeRecord":
-            friendlySource = "Upgrades";
-            refreshDataCallBack = getVehicleUpgradeRecords;
-            break;
-        case "TaxRecord":
-            friendlySource = "Taxes";
-            refreshDataCallBack = getVehicleTaxRecords;
-            break;
-        case "SupplyRecord":
-            friendlySource = "Supplies";
-            refreshDataCallBack = getVehicleSupplyRecords;
-            break;
-        case "NoteRecord":
-            friendlySource = "Notes";
-            refreshDataCallBack = getVehicleNotes;
-            break;
-        case "OdometerRecord":
-            friendlySource = "Odometer Records";
-            refreshDataCallBack = getVehicleOdometerRecords;
-            break;
-        case "ReminderRecord":
-            friendlySource = "Reminders";
-            refreshDataCallBack = getVehicleReminders;
-            break;
-        case "GasRecord":
-            friendlySource = "Fuel Records";
-            refreshDataCallBack = getVehicleGasRecords;
-            break;
-        case "PlanRecord":
-            friendlySource = "Plan";
-            refreshDataCallBack = getVehiclePlanRecords;
-            break;
-        case "InspectionRecord":
-            friendlySource = "Inspection Record";
-            refreshDataCallBack = hideInspectionRecordTemplateModal;
-            break;
-        case "EquipmentRecord":
-            friendlySource = "Equipment Records";
-            refreshDataCallBack = getVehicleEquipmentRecords;
-            break;
-    }
-
-    $.get(`/Home/GetVehicleSelector?vehicleId=${GetVehicleId().vehicleId}&importMode=${source}`, function (data) {
-        if (data) {
-            //prompt user to select a vehicle
-            Swal.fire({
-                title: 'Duplicate to Vehicle(s)',
-                html: data,
-                confirmButtonText: 'Duplicate',
-                focusConfirm: false,
-                preConfirm: () => {
-                    //validate
-                    var selectedVehicleData = getAndValidateSelectedVehicle();
-                    if (selectedVehicleData.hasError) {
-                        Swal.showValidationMessage(`You must select a vehicle`);
-                    }
-                    return { selectedVehicleData }
-                },
-            }).then(function (result) {
-                if (result.isConfirmed) {
-                    $.post('/Vehicle/DuplicateRecordsToOtherVehicles', { recordIds: ids, vehicleIds: result.value.selectedVehicleData.ids, importMode: source}, function (data) {
-                        if (data.success) {
-                            successToast(`${ids.length} Record(s) Duplicated`);
-                        } else {
-                            errorToast(data.message);
-                        }
-                    });
-                }
-            });
-        } else {
-            errorToast(genericErrorMessage());
-        }
-    })
-}
-function insertOdometer(ids, source) {
-    if (ids.length == 0) {
-        return;
-    }
-    $("#workAroundInput").show();
-    var friendlySource = "";
-    var refreshDataCallBack;
-    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
-    switch (source) {
-        case "ServiceRecord":
-            friendlySource = "Service Records";
-            refreshDataCallBack = getVehicleServiceRecords;
-            break;
-        case "RepairRecord":
-            friendlySource = "Repairs";
-            refreshDataCallBack = getVehicleCollisionRecords;
-            break;
-        case "UpgradeRecord":
-            friendlySource = "Upgrades";
-            refreshDataCallBack = getVehicleUpgradeRecords;
-            break;
-        case "GasRecord":
-            friendlySource = "Fuel Records";
-            refreshDataCallBack = getVehicleGasRecords;
-            break;
-    }
-
-    Swal.fire({
-        title: "Create Odometer Records?",
-        text: `Create Odometer Records based on ${recordVerbiage}?`,
-        showCancelButton: true,
-        confirmButtonText: "Create",
-        confirmButtonColor: "#dc3545"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post('/Vehicle/BulkCreateOdometerRecords', { recordIds: ids, importMode: source }, function (data) {
-                if (data.success) {
-                    successToast(`${ids.length} Odometer Record(s) Created`);
-                    var vehicleId = GetVehicleId().vehicleId;
-                    refreshDataCallBack(vehicleId);
-                } else {
-                    errorToast(data.message);
-                    $("#workAroundInput").hide();
-                }
-            });
-        } else {
-            $("#workAroundInput").hide();
-        }
-    });
-}
-var selectedRow = [];
-var isDragging = false;
-$(window).on('mouseup', function (e) {
-    rangeMouseUp(e);
-});
-$(window).on('mousedown', function (e) {
-    rangeMouseDown(e);
-});
-$(window).on('keydown', function (e) {
-    var userOnInput = $(e.target).is("input") || $(e.target).is("textarea");
-    if (!userOnInput) {
-        if ((e.ctrlKey || e.metaKey) && e.which == 65) {
-            e.preventDefault();
-            e.stopPropagation();
-            selectAllRows();
-            selectAllVehicles();
-        }
-    }
-});
-function getCurrentTab() {
-    return $(".tab-pane.active.show").attr('id');
-}
-function selectAllRows() {
-    clearSelectedRows();
-    $('.vehicleDetailTabContainer .table tbody tr:visible').addClass('table-active');
-    $('.vehicleDetailTabContainer .table tbody tr:visible').map((index, elem) => {
-        addToSelectedRows($(elem).attr('data-rowId'));
-    });
-}
-function selectAllVehicles() {
-    clearSelectedVehicles();
-    $('.garage-item:visible').addClass('garage-active');
-    $('.garage-item:visible').map((index, elem) => {
-        addToSelectedVehicles($(elem).attr('data-rowId'));
-    });
-}
-function rangeMouseDown(e) {
-    if (isRightClick(e)) {
-        return;
-    }
-    var contextMenuAction = $(e.target).parents(".table-context-menu > li > .dropdown-item").length > 0 || $(e.target).is(".table-context-menu > li > .dropdown-item") || $(e.target).parents(".garage-context-menu > li > .dropdown-item").length > 0 || $(e.target).is(".garage-context-menu > li > .dropdown-item");
-    var selectMode = $("#chkSelectMode").length > 0 ? $("#chkSelectMode").is(":checked") : false;
-    if (!(e.ctrlKey || e.metaKey || e.shiftKey || selectMode) && !contextMenuAction) {
-        clearSelectedRows();
-        clearSelectedVehicles();
-    }
-    isDragging = true;
-
-    document.documentElement.onselectstart = function () { return false; };
-}
-function isRightClick(e) {
-    if (e.which) {
-        return (e.which == 3);
-    } else if (e.button) {
-        return (e.button == 2);
-    }
-    return false;
-}
-function stopEvent() {
-    if (isDragging) {
-        isDragging = false;
-    }
-    event.stopPropagation();
-}
-function rangeMouseUp(e) {
-    if (isRightClick(e)) {
-        return;
-    }
-    if ($(".table-context-menu").length > 0) {
-        $(".table-context-menu").fadeOut("fast");
-    }
-    if ($(".garage-context-menu").length > 0) {
-        $(".garage-context-menu").fadeOut("fast");
-    }
-    isDragging = false;
-    document.documentElement.onselectstart = function () { return true; };
-}
-function rangeMouseMove(e) {
-    if (isDragging) {
-        if (!$(e).hasClass('table-active')) {
-            addToSelectedRows($(e).attr('data-rowId'));
-            $(e).addClass('table-active');
-        }
-    }
-}
-function addToSelectedRows(id) {
-    if (selectedRow.findIndex(x => x == id) == -1) {
-        selectedRow.push(id);
-    }
-}
-function removeFromSelectedRows(id) {
-    var rowIndex = selectedRow.findIndex(x => x == id)
-    if (rowIndex != -1) {
-        selectedRow.splice(rowIndex, 1);
-    }
-}
-function clearSelectedRows() {
-    selectedRow = [];
-    $('.table tr').removeClass('table-active');
-}
-function clearSelectedVehicles() {
-    selectedVehicles = [];
-    $('.garage-item').removeClass('garage-active');
-}
-function getDeviceIsTouchOnly() {
-    if (navigator.maxTouchPoints > 0 && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches) {
-        return true;
-    } else {
-        return false;
-    }
-}
-function showTableContextMenu(e) {
-    if (event != undefined) {
-        event.preventDefault();
-    }
-    if (getDeviceIsTouchOnly()) {
-        return;
-    }
-    if (!$(e).hasClass('table-active')) {
-        clearSelectedRows();
-        addToSelectedRows($(e).attr('data-rowId'));
-        $(e).addClass('table-active');
-    }
-    $(".table-context-menu").fadeIn("fast");
-    determineContextMenuItems();
-    $(".table-context-menu").css({
-        left: getMenuPosition(event.clientX, 'width', 'scrollLeft'),
-        top: getMenuPosition(event.clientY, 'height', 'scrollTop')
-    });
-}
-function determineContextMenuItems() {
-    var tableRows = $('.table tbody tr:visible');
-    var tableRowsActive = $('.table tr.table-active');
-    if (tableRowsActive.length == 1) {
-        //only one row selected
-        $(".context-menu-active-single").show();
-        $(".context-menu-active-multiple").hide();
-    } else if (tableRowsActive.length > 1) {
-        //multiple rows selected
-        $(".context-menu-active-single").hide();
-        $(".context-menu-active-multiple").show();
-    } else {
-        //nothing was selected, bug case.
-        $(".context-menu-active-single").hide();
-        $(".context-menu-active-multiple").hide();
-    }
-    if (tableRows.length > 1) {
-        $(".context-menu-multiple").show();
-        if (tableRows.length == tableRowsActive.length) {
-            //all rows are selected, show deselect all button.
-            $(".context-menu-deselect-all").show();
-            $(".context-menu-select-all").hide();
-        } else if (tableRows.length != tableRowsActive.length) {
-            //not all rows are selected, show select all button.
-            $(".context-menu-select-all").show();
-            $(".context-menu-deselect-all").hide();
-        }
-    } else {
-        $(".context-menu-multiple").hide();
-    }
-    if (GetVehicleId().hasOdometerAdjustment) {
-        $(".context-menu-odometer-adjustment").show();
-    } else {
-        $(".context-menu-odometer-adjustment").hide();
-    }
-}
-function getMenuPosition(mouse, direction, scrollDir) {
-    var win = $(window)[direction](),
-        scroll = $(window)[scrollDir](),
-        menu = $(".table-context-menu")[direction](),
-        position = mouse + scroll;
-
-    // opening menu would pass the side of the page
-    if (mouse + menu > win && menu < mouse)
-        position -= menu;
-    return position;
-}
-function getGarageMenuPosition(mouse, direction, scrollDir) {
-    var win = $(window)[direction](),
-        scroll = $(window)[scrollDir](),
-        menu = $(".garage-context-menu")[direction](),
-        position = mouse + scroll;
-
-    // opening menu would pass the side of the page
-    if (mouse + menu > win && menu < mouse)
-        position -= menu;
-    return position;
-}
-function selectEveryRowInBetween(rowId) {
-    if (selectedRow.length == 0) {
-        let startRow = $(`[data-rowId='${rowId}'`);
-        startRow.addClass('table-active');
-        addToSelectedRows(rowId);
-    }
-    else {
-        let lastSelectedRowId = selectedRow[0];
-        if (lastSelectedRowId == rowId) {
-            clearSelectedRows();
-            let startRow = $(`[data-rowId='${lastSelectedRowId}'`);
-            startRow.addClass('table-active');
-            addToSelectedRows(lastSelectedRowId);
-            return;
-        }
-        clearSelectedRows();
-        let startRow = $(`[data-rowId='${lastSelectedRowId}'`);
-        startRow.addClass('table-active');
-        addToSelectedRows(lastSelectedRowId);
-        let startIndex = startRow.index();
-        let endIndex = $(`[data-rowId='${rowId}'`).index();
-        if (startIndex > endIndex) {
-            for (let i = endIndex; i < startIndex; i++) {
-                $('.vehicleDetailTabContainer .table tbody tr').eq(i).map((index, elem) => {
-                    if ($(elem).is(':visible')) {
-                        $(elem).addClass('table-active');
-                        addToSelectedRows($(elem).attr('data-rowId'));
-                    }
-                });
-            }
-        } else {
-            for (let i = endIndex; i > startIndex; i--) {
-                $('.vehicleDetailTabContainer .table tbody tr').eq(i).map((index, elem) => {
-                    if ($(elem).is(':visible')) {
-                        $(elem).addClass('table-active');
-                        addToSelectedRows($(elem).attr('data-rowId'));
-                    }
-                });
-            }
-        }
-    }
-}
-function handleTableRowClick(e, callBack, rowId) {
-    if ($("#vehicleViewContainer").hasClass("user-read-only")) {
-        return;
-    }
-    var selectMode = $("#chkSelectMode").length > 0 ? $("#chkSelectMode").is(":checked") : false;
-    if (!(event.ctrlKey || event.metaKey || event.shiftKey || selectMode)) {
-        callBack(rowId);
-    } else if (event.shiftKey) {
-        selectEveryRowInBetween($(e).attr('data-rowId'));
-    }
-    else if (!$(e).hasClass('table-active')) {
-        addToSelectedRows($(e).attr('data-rowId'));
-        $(e).addClass('table-active');
-    } else if ($(e).hasClass('table-active')) {
-        removeFromSelectedRows($(e).attr('data-rowId'));
-        $(e).removeClass('table-active');
-    }
-}
-
-function showTableContextMenuForMobile(e, xPosition, yPosition) {
-    if (!$(e).hasClass('table-active')) {
-        addToSelectedRows($(e).attr('data-rowId'));
-        $(e).addClass('table-active');
-        shakeTableRow(e);
-    } else {
-        $(".table-context-menu").fadeIn("fast");
-        determineContextMenuItems();
-        $(".table-context-menu").css({
-            left: getMenuPosition(xPosition, 'width', 'scrollLeft'),
-            top: getMenuPosition(yPosition, 'height', 'scrollTop')
-        });
-    }
-}
-function shakeTableRow(e) {
-    $(e).addClass('tablerow-shake');
-    setTimeout(function () { $(e).removeClass('tablerow-shake'); }, 1200)
-}
-var rowTouchTimer;
-var rowTouchDuration = 800;
-function detectRowLongTouch(sender) {
-    var touchX = event.touches[0].clientX;
-    var touchY = event.touches[0].clientY;
-    if (!rowTouchTimer) {
-        rowTouchTimer = setTimeout(function () { showTableContextMenuForMobile(sender, touchX, touchY); detectRowTouchEndPremature(sender); }, rowTouchDuration);
-    }
-}
-function detectRowTouchEndPremature(sender) {
-    if (rowTouchTimer) {
-        clearTimeout(rowTouchTimer);
-        rowTouchTimer = null;
-    }
-}
-function handleSupplyAddCostKeyDown(event) {
-    handleSwalEnter(event);
-    interceptDecimalKeys(event);
-}
-function replenishSupplies() {
-    Swal.fire({
-        title: 'Replenish Supplies',
-        html: `
-                            <input type="text" id="inputSupplyAddQuantity" class="swal2-input" placeholder="Quantity" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)">
-                            <br />
-                            <input type="text" id="inputSupplyAddCost" class="swal2-input" placeholder="Cost" onkeydown="handleSupplyAddCostKeyDown(event)" onkeyup="fixDecimalInput(this, 2)">
-                            <br />
-                            <span class='small'>leave blank to use unit cost calculation</span>
-              `,
-        confirmButtonText: 'Replenish',
-        focusConfirm: false,
-        preConfirm: () => {
-            const replquantity = globalParseFloat($("#inputSupplyAddQuantity").val());
-            const replcost = $("#inputSupplyAddCost").val();
-            const parsedReplCost = globalParseFloat(replcost);
-            var quantitybeforeRepl = globalParseFloat($('#supplyRecordQuantity').val());
-            if (isNaN(replquantity) || (replcost.trim() != '' && isNaN(parsedReplCost))) {
-                Swal.showValidationMessage(`Please enter a valid quantity and cost`);
-            } else if (replcost.trim() == '' && (isNaN(quantitybeforeRepl) || quantitybeforeRepl == 0)) {
-                Swal.showValidationMessage(`Unable to use unit cost calculation, please provide cost`);
-            }
-            return { replquantity, replcost, parsedReplCost }
-        },
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            var replenishedCost = result.value.replcost;
-            var parsedReplenishedCost = result.value.parsedReplCost;
-            var replenishedQuantity = result.value.replquantity;
-            var currentCost = globalParseFloat($('#supplyRecordCost').val())
-            if (isNaN(currentCost)) {
-                currentCost = 0;
-            }
-            var currentQuantity = globalParseFloat($('#supplyRecordQuantity').val());
-            if (isNaN(currentQuantity)) {
-                currentQuantity = 0;
-            }
-            var newQuantity = currentQuantity + replenishedQuantity;
-            if (replenishedCost.trim() == '' && currentCost > 0 && currentQuantity > 0) {
-
-                var unitCost = currentCost / currentQuantity;
-                var newCost = newQuantity * unitCost;
-                //set text fields.
-                $('#supplyRecordCost').val(globalFloatToString(newCost.toFixed(3).toString()));
-                $('#supplyRecordQuantity').val(globalFloatToString(newQuantity.toFixed(3).toString()));
-            } else {
-                var newCost = currentCost + parsedReplenishedCost;
-                //set text fields.
-                $('#supplyRecordCost').val(globalFloatToString(newCost.toFixed(3).toString()));
-                $('#supplyRecordQuantity').val(globalFloatToString(newQuantity.toFixed(3).toString()));
-            }
-        }
-    });
-}
-function showTableColumns(e, tabName) {
-    //logic for extra field since we dont hardcode the data-column type
-    var showColumn = $(e).is(':checked');
-    var columnName = $(e).attr('data-column-toggle');
-    if (showColumn) {
-        $(`[data-column='${columnName}']`).show();
-    } else {
-        $(`[data-column='${columnName}']`).hide();
-    }
-    saveUserColumnPreferences(tabName);
-}
-function searchTableRows(tabName) {
-    Swal.fire({
-        title: 'Search Records',
-        html: `
-                            <input type="text" id="inputSearch" class="swal2-input" placeholder="Keyword" onkeydown="handleSwalEnter(event)">
-                            `,
-        confirmButtonText: 'Search',
-        focusConfirm: false,
-        preConfirm: () => {
-            const searchString = $("#inputSearch").val();
-            return { searchString }
-        },
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            var rowData = $(`#${tabName} table tbody tr`);
-            var filteredRows = $(`#${tabName} table tbody tr td:containsNC('${result.value.searchString}')`).parent();
-            var splitSearchString = result.value.searchString.split('=');
-            if (result.value.searchString.includes('=') && splitSearchString.length == 2) {
-                //column specific search.
-                //get column index
-                var columns = $(`#${tabName} table th`).toArray().map(x => x.innerText);
-                var columnName = splitSearchString[0];
-                var colSearchString = splitSearchString[1];
-                var colIndex = columns.findIndex(x => x == columnName) + 1;
-                filteredRows = $(`#${tabName} table tbody tr td:nth-child(${colIndex}):containsNC('${colSearchString}')`).parent();
-            }
-            if (result.value.searchString.trim() == '') {
-                rowData.removeClass('override-hide');
-            } else {
-                rowData.addClass('override-hide');
-                filteredRows.removeClass('override-hide');
-            }
-            $(".tagfilter.bg-primary").addClass('bg-secondary').removeClass('bg-primary');
-            updateAggregateLabels();
-        }
-    });
-}
-function loadUserColumnPreferences(columns, order) {
-    if (columns.length == 0) {
-        //user has no preference saved, reset to default
-        return;
-    }
-    //uncheck all columns
-    $(".col-visible-toggle").prop("checked", false);
-    //hide all columns
-    $('[data-column]').hide();
-    //toggle visibility of each column
-    columns.map(x => {
-        var defaultColumn = $(`[data-column-toggle='${x}'].col-visible-toggle`);
-        if (defaultColumn.length > 0) {
-            defaultColumn.prop("checked", true); 
-        }
-        $(`[data-column='${x}']`).show();
-    });
-    order.map((x, y) => {
-        //re-order items in menu
-        var itemToMove = $(`[data-column-toggle='${x}'].col-visible-toggle`).closest('.dropdown-item');
-        var itemCurrentlyInPosition = $('.dropdown-item[draggable="true"]')[y];
-        if (itemToMove != undefined && itemToMove.length > 0 && itemCurrentlyInPosition != undefined) {
-            itemToMove.insertBefore(itemCurrentlyInPosition);
-        }
-        //re-order table columns
-        $(`[data-column='${x}']`).css('order', y);
-    });
-}
-function saveUserColumnPreferences(importMode) {
-    var visibleColumns = $('.col-visible-toggle:checked').map((index, elem) => $(elem).attr('data-column-toggle')).toArray();
-    var columnOrder = [];
-    var sortedOrderedColumns = $("ul.dropdown-menu > li[draggable='true']").toArray().sort((a, b) => {
-        var currentVal = $(a).css("order");
-        var nextVal = $(b).css("order");
-        return currentVal - nextVal;
-    });
-    sortedOrderedColumns.map(elem => {
-        var columnOrderName = $(elem).find('.col-visible-toggle').attr("data-column-toggle");
-        if (columnOrderName != null && columnOrderName != undefined) {
-            columnOrder.push(columnOrderName);
-        }
-    });
-    var columnPreference = {
-        tab: importMode,
-        visibleColumns: visibleColumns,
-        columnOrder: columnOrder
-    };
-    $.post('/Vehicle/SaveUserColumnPreferences', { columnPreference: columnPreference }, function (data) {
-        if (!data) {
-            errorToast(genericErrorMessage());
-        }
-    });
-}
-function copyToClipboard(e) {
-    var textToCopy = e.textContent.trim();
-    navigator.clipboard.writeText(textToCopy);
-    successToast("Copied to Clipboard");
-}
-function noPropagation() {
-    event.stopPropagation();
-}
-var checkExist;
-var elemsToCheck = [];
-function waitForElement(element, callBack, callBackParameter) {
-    //if element already exists
-    if ($(`${element}`).length) {
-        callBack(callBackParameter);
-        return;
-    }
-    //element does not exist, add to list
-    elemsToCheck.push({
-        element: element,
-        callBack: callBack,
-        callBackParameter: callBackParameter
-    });
-    if (!checkExist) {
-        checkExist = setInterval(function () {
-            let elemsToRemove = [];
-            elemsToCheck.forEach(x => {
-                if ($(`${x.element}`).length) {
-                    x.callBack(x.callBackParameter);
-                    elemsToRemove.push(x);
-                }
-            });
-            elemsToCheck = elemsToCheck.filter(x => !elemsToRemove.includes(x));
-            if (elemsToCheck.length == 0) {
-                clearInterval(checkExist);
-                checkExist = null;
-            }
-        }, 100); // check every 100ms
-    }
-}
-function bindModalInputChanges(modalName) {
-    //bind text inputs
-    $(`#${modalName} input[type='text'], #${modalName} input[type='number'], #${modalName} textarea`).off('input').on('input', function (e) {
-        $(e.currentTarget).attr('data-changed', true);
-    });
-    $(`#${modalName} select, #${modalName} input[type='checkbox']`).off('input').on('input', function (e) {
-        $(e.currentTarget).attr('data-changed', true);
-    });
-}
-function handleModalPaste(e) {
-    let recordType = getUploaderId().uploaderId;
-    let clipboardFiles = e.clipboardData.files;
-    let acceptableFileFormats = $(`#${recordType}`).attr("accept");
-    let acceptableFileFormatsArray = acceptableFileFormats.split(',');
-    let acceptableFiles = new DataTransfer();
-    if (clipboardFiles.length > 0) {
-        for (var x = 0; x < clipboardFiles.length; x++) {
-            if (acceptableFileFormats != "*") {
-                var fileExtension = `.${clipboardFiles[x].name.split('.').pop()}`;
-                if (acceptableFileFormatsArray.includes(fileExtension)) {
-                    acceptableFiles.items.add(clipboardFiles[x]);
-                }
-            } else {
-                acceptableFiles.items.add(clipboardFiles[x]);
-            }
-        }
-        $(`#${recordType}`)[0].files = acceptableFiles.files;
-        $(`#${recordType}`).trigger('change');
-    }
-}
-function handleEnter(e) {
-    if ((event.ctrlKey || event.metaKey) && event.which == 13) {
-        var saveButton = $(e).parent().find(".modal-footer .btn-primary:not('.d-none')");
-        if (saveButton.length > 0) {
-            saveButton.first().trigger('click');
-        }
-    }
-}
-function handleSwalEnter(e) {
-    if (e.which == 13) {
-        Swal.clickConfirm();
-    }
-}
-function togglePasswordVisibility(elem) {
-    var group = $(elem).closest('.input-group, .auth-input-group');
-    var passwordField = group.find('input');
-    if (!passwordField.length) {
-        passwordField = $(elem).parent().siblings("input");
-    }
-    var passwordButton = $(elem).find('.bi');
-    if (passwordField.attr("type") === "password") {
-        passwordField.attr("type", "text");
-        passwordButton.removeClass('bi-eye').addClass('bi-eye-slash');
-    } else {
-        passwordField.attr("type", "password");
-        passwordButton.removeClass('bi-eye-slash').addClass('bi-eye');
-    }
-}
-var tableColumnDragToReorder = undefined;
-function handleTableColumnDragStart(e) {
-    tableColumnDragToReorder = $(e.target).closest('.dropdown-item');
-    //clear out order attribute.
-    $("ul.dropdown-menu > li[draggable='true']").map((index, elem) => {
-        $(elem).css('order', 0);
-    })
-}
-function handleTableColumnDragOver(e) {
-    if (tableColumnDragToReorder == undefined || tableColumnDragToReorder == "") {
-        return;
-    }
-    var potentialDropTarget = $(e.target).closest('.list-group-item').find('.col-visible-toggle').attr("data-column-toggle");
-    var draggedTarget = tableColumnDragToReorder.find('.col-visible-toggle').attr("data-column-toggle");
-    if (draggedTarget != potentialDropTarget) {
-        var targetObj = $(e.target).closest('.dropdown-item');
-        var draggedOrder = tableColumnDragToReorder.index();
-        var targetOrder = targetObj.index();
-        if (draggedOrder < targetOrder) {
-            tableColumnDragToReorder.insertAfter(targetObj);
-        } else {
-            tableColumnDragToReorder.insertBefore(targetObj);
-        }
-    }
-    else {
-        event.preventDefault();
-    }
-}
-function handleTableColumnDragEnd(tabName) {
-    $("ul.dropdown-menu > li[draggable='true']").map((index, elem) => {
-        $(elem).css('order', $(elem).index());
-        var columnName = $(elem).find('.col-visible-toggle').attr('data-column-toggle');
-        $(`[data-column='${columnName}']`).css('order', $(elem).index());
-    });
-    saveUserColumnPreferences(tabName);
-    tableColumnDragToReorder = undefined;
-    if (isDragging) {
-        isDragging = false;
-    }
-}
-
-function callBackOnEnter(event, callBack) {
-    if (event.keyCode == 13) {
-        callBack();
-    }
-}
-
-function populateLocationField(fieldName) {
-    let populateLocationFieldCallBack = (position) => {
-        $(`#${fieldName}`).val(`${position.coords.latitude},${position.coords.longitude}`)
-    };
-    let populateLocationFieldErrorCallBack = (errMsg) => {
-        if (errMsg && errMsg.code) {
-            switch (errMsg.code) {
-                case 1:
-                    errorToast(errMsg.message);
-                    break;
-                case 2:
-                    errorToast("Location Unavailable");
-                    break;
-            }
-        }
-    };
-    if (navigator.geolocation) {
-        try {
-            navigator.geolocation.getCurrentPosition(populateLocationFieldCallBack, populateLocationFieldErrorCallBack, { maximumAge: 1000, timeout: 4000, enableHighAccuracy: true });
-        } catch (err) {
-            errorToast('Location Services not Enabled');
-        }
-    }
-}
-function toggleUploadFileBrowser() {
-    let uploaderId = getUploaderId().uploaderId;
-    $(`#${uploaderId}`).trigger('click');
-}
-function handlePotentialFileDrop(event) {
-    event.preventDefault();
-    $('.lubelogger-uploader').addClass('solid');
-}
-function handleNoFileDrop(event) {
-    event.preventDefault();
-    $('.lubelogger-uploader').removeClass('solid');
-}
-function handleEndFileDrop(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    $('.lubelogger-uploader').removeClass('solid');
-    let recordType = getUploaderId().uploaderId;
-    let clipboardFiles = event.dataTransfer.files;
-    let acceptableFileFormats = $(`#${recordType}`).attr("accept");
-    let acceptableFileFormatsArray = acceptableFileFormats.split(',');
-    let acceptableFiles = new DataTransfer();
-    if (clipboardFiles.length > 0) {
-        for (var x = 0; x < clipboardFiles.length; x++) {
-            if (acceptableFileFormats != "*") {
-                var fileExtension = `.${clipboardFiles[x].name.split('.').pop()}`;
-                if (acceptableFileFormatsArray.includes(fileExtension)) {
-                    acceptableFiles.items.add(clipboardFiles[x]);
-                }
-            } else {
-                acceptableFiles.items.add(clipboardFiles[x]);
-            }
-        }
-        $(`#${recordType}`)[0].files = acceptableFiles.files;
-        $(`#${recordType}`).trigger('change');
-    }
-}
-function bindNavBarResize() {
-    let resizeObserver = new ResizeObserver((elems) => {
-        let targetElem = $(elems[0].target);
-        checkNavBarOverflow();
-    });
-    resizeObserver.observe(document.querySelector('.lubelogger-navbar'));
-}
-function checkNavBarOverflow() {
-    if ($('.nav-item-more').length === 0) {
-        $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
-        return;
-    }
-    // Show all primary tabs, ensure dropdown items in 'Más' remain visible
-    $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
-    $('.nav-item-more > ul > li.nav-item-dropdown-item').show();
-    $('.nav-item-more').show();
-    
-    // Check if icons loaded
-    let iconWidth = `${$('.lubelogger-navbar > .lubelogger-tab > .nav-item .bi').width()}px`;
-    let iconFontSize = $('.lubelogger-navbar > .lubelogger-tab > .nav-item .bi').css('font-size');
-    const removeNavbarItems = () => {
-        let navbarHeight = $('.lubelogger-navbar').height();
-        if (navbarHeight > 54) {
-            let sortedElems = $('.lubelogger-navbar > .lubelogger-tab > .nav-item:visible:not(".nav-item-persist")').toArray().sort((a, b) => {
-                let orderA = parseInt($(a).css('order')) || 0;
-                let orderB = parseInt($(b).css('order')) || 0;
-                return orderA - orderB;
-            });
-            for (let i = sortedElems.length - 1; i > -1; i--) {
-                navbarHeight = $('.lubelogger-navbar').height();
-                if (navbarHeight > 54) {
-                    $(sortedElems[i]).hide();
-                    let hiddenButtonId = $(sortedElems[i]).find('button').attr('id');
-                    let buttonToShow = $(`.nav-item-more > ul > li > #${hiddenButtonId}`).closest('li');
-                    buttonToShow.show();
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-    if (iconWidth != iconFontSize) {
-        setTimeout(() => { checkNavBarOverflow(); }, 500);
-    } else {
-        removeNavbarItems();
-    }
-}
-function openAttachmentPreview(fileName, fileLocation) {
-    $.get('/Files/PreviewFile', { fileName: fileName, fileLocation: fileLocation }, function (data) {
-        $('#attachmentPreviewModalContent').html(data);
-        $('#attachmentPreviewModal').modal('show');
-    });
-}
-function closeAttachmentPreview() {
-    $('#attachmentPreviewModal').modal('hide');
-}
-function setBrowserHistory(param, val) {
-    let currentParams = new URLSearchParams(window.location.search);
-    //early return if the param already matches the val.
-    if (currentParams.get(param) == val && val != '') {
-        return;
-    }
-    if (val == '') {
-        currentParams.delete(param);
-    } else {
-        currentParams.set(param, val);
-    }
-    let updatedURL = `${window.location.origin}${window.location.pathname}?${currentParams.toString()}`;
-    window.history.pushState({}, '', updatedURL);
-}
-function getTabNameForURL(tabName) {
-    return tabName.toLowerCase().split('-')[0];
-}
-function getTabNameFromURL(defaultValue) {
-    let currentParams = new URLSearchParams(window.location.search);
-    let currentTab = currentParams.get('tab');
-    if (currentTab == null || currentTab == undefined || currentTab == '') {
-        return `${defaultValue.toLowerCase()}-tab`;
-    } else {
-        return `${currentTab}-tab`;
-    }
-}
-function stretchedLinkClick(e) {
-    let closestCheckElem = $(e).closest('.form-check').find('.form-check-input');
-    if (closestCheckElem.prop('checked')) {
-        closestCheckElem.prop('checked', false).trigger('change');
-    } else {
-        closestCheckElem.prop('checked', true).trigger('change');
-    }
-}
-function clearModalContentOnHide(modalElem) {
-    modalElem.off('hidden.bs.modal').on('hidden.bs.modal', () => {
-        modalElem.find('.modal-content').html('');
-    });
-}
-function handleAttachmentCopyLink(e) {
-    event.stopPropagation();
-    event.preventDefault();
-    let textToCopy = $(e).attr('data-link');
-    navigator.clipboard.writeText(textToCopy);
-    successToast("Copied Link to Clipboard");
-}
-function isOperationResponse(result) {
-    //checks if response from controller is operationresponse
-    if (result.success != undefined && result.message != undefined) {
-        if (!result.success) {
-            errorToast(result.message);
-        }
-        return true;
-    }
-}
-function toggleSelectMode() {
-    $('#chkSelectMode').trigger('click');
-}
-function checkSelectModeToggle() {
-    if ($('#chkSelectMode').is(':checked')) {
-        $('.select-mode-toggle').removeClass('btn-outline-secondary');
-        $('.select-mode-toggle').addClass('btn-primary');
-    } else {
-        $('.select-mode-toggle').removeClass('btn-primary');
-        $('.select-mode-toggle').addClass('btn-outline-secondary');
-    }
-}
-function showDropDownForRecordNav(sender) {
-    $(sender).off('hide.bs.dropdown');
-    let tableRowsActive = $('.table tr.table-active');
-    let siblingContextMenu = $('.lubelogger-record-nav .record-dropdown');
-    if (!siblingContextMenu.hasClass('show')) {
-        return;
-    }
-    //clear off any existing items
-    if (siblingContextMenu.find('li').length > 0) {
-        siblingContextMenu.find('li').remove();
-    }
-    if (tableRowsActive.length == 0) {
-        //clone menu items
-        let storedMenuItems = $('.lubelogger-record-add .record-dropdown > li');
-        storedMenuItems.map((index, elem) => {
-            siblingContextMenu.append($(elem));
-        });
-        $(sender).on('hide.bs.dropdown', () => {
-            if (siblingContextMenu.find('li').length > 0) {
-                siblingContextMenu.find('li').map((index, elem) => {
-                    $('.lubelogger-record-add .record-dropdown').append($(elem));
-                })
-            } else {
-                storedMenuItems.map((index, elem) => {
-                    $('.lubelogger-record-add .record-dropdown').append($(elem));
-                })
-            }
-        });
-    } else {
-        determineContextMenuItems();
-        let storedMenuItems = $('.table-context-menu > li').clone();
-        storedMenuItems.map((index, elem) => {
-            siblingContextMenu.append($(elem));
-        });
-        $(sender).on('hide.bs.dropdown', () => {
-            siblingContextMenu.find('li').remove();
-        });
-    }
-}
-
-function triggerInnerCheckbox(sender, e) {
-    if ($(e.target).is('input')) {
-        return;
-    }
-    let checkbox = $(sender).find('input');
-    if (checkbox.length > 0) {
-        checkbox.prop('checked', !checkbox.prop('checked'));
-        checkbox.trigger('change');
-    }
-}
-
-function checkQueryParams(elemToAwait, callBack, param) {
-    let currentParams = new URLSearchParams(window.location.search);
-    let paramData = currentParams.get(param);
-    if (paramData != null && paramData != undefined) {
-        waitForElement(elemToAwait, callBack, paramData);
-        setBrowserHistory(param, '');
-    }
-}
-
-async function setupEventHub(groupName, callBack, callBackParam) {
-    if (!getGlobalConfig().webSocketEnabled) {
-        return;
-    }
-    //initialize signalr
-    let eventHubUrl = '/api/ws';
-    await resetEventHub();
-    try {
-        eventHubConn = new signalR.HubConnectionBuilder().withUrl(eventHubUrl).build();
-        eventHubConn.off("ReceiveChangeForAllVehicles");
-        eventHubConn.on("ReceiveChangeForAllVehicles", () => {
-            if ($('.modal.show').length == 0) { //only perform update if no modal is actively being shown.
-                setDebounce(() => {
-                    callBack(callBackParam);
-                });
-            }
-        });
-        await eventHubConn.start().then(() => {
-            eventHubConn.invoke("JoinGroup", groupName);
-        });
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
-async function resetEventHub() {
-    if (eventHubConn != undefined) {
-        await eventHubConn.stop();
-        eventHubConn = undefined;
-    }
-}
-
-function bindTabEvents(tab) {
-    switch (tab) {
-        case "servicerecord-tab":
-            checkQueryParams('#serviceRecordModalContent', showEditServiceRecordModal, 'id');
-            checkQueryParams('#serviceRecordModalContent', showAddServiceRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleServiceRecords, GetVehicleId().vehicleId);
-            break;
-        case "notes-tab":
-            checkQueryParams('#noteModalContent', showEditNoteModal, 'id');
-            checkQueryParams('#noteModalContent', showAddNoteModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleNotes, GetVehicleId().vehicleId);
-            break;
-        case "gas-tab":
-            checkQueryParams('#gasRecordModalContent', showEditGasRecordModal, 'id');
-            checkQueryParams('#gasRecordModalContent', showAddGasRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleGasRecords, GetVehicleId().vehicleId);
-            break;
-        case "accident-tab":
-            checkQueryParams('#collisionRecordModalContent', showEditCollisionRecordModal, 'id');
-            checkQueryParams('#collisionRecordModalContent', showAddCollisionRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleCollisionRecords, GetVehicleId().vehicleId);
-            break;
-        case "tax-tab":
-            checkQueryParams('#taxRecordModalContent', showEditTaxRecordModal, 'id');
-            checkQueryParams('#taxRecordModalContent', showAddTaxRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleTaxRecords, GetVehicleId().vehicleId);
-            break;
-        case "report-tab":
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleReport, GetVehicleId().vehicleId);
-            break;
-        case "garage-tab":
-            setupEventHub(`kiosk`, loadGarage, '');
-            break;
-        case "settings-tab":
-            break;
-        case "calendar-tab":
-            setupEventHub(`kiosk`, getVehicleCalendarEvents, '');
-            break;
-        case "reminder-tab":
-            checkQueryParams('#reminderRecordModalContent', showEditReminderRecordModal, 'id');
-            checkQueryParams('#reminderRecordModalContent', showAddReminderModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleReminders, GetVehicleId().vehicleId);
-            break;
-        case "upgrade-tab":
-            checkQueryParams('#upgradeRecordModalContent', showEditUpgradeRecordModal, 'id');
-            checkQueryParams('#upgradeRecordModalContent', showAddUpgradeRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleUpgradeRecords, GetVehicleId().vehicleId);
-            break;
-        case "supply-tab":
-            checkQueryParams('#supplyRecordModalContent', showEditSupplyRecordModal, 'id');
-            checkQueryParams('#supplyRecordModalContent', showAddSupplyRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleSupplyRecords, GetVehicleId().vehicleId);
-            break;
-        case "plan-tab":
-            checkQueryParams('#planRecordModalContent', showEditPlanRecordModal, 'id');
-            checkQueryParams('#planRecordModalContent', showAddPlanRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehiclePlanRecords, GetVehicleId().vehicleId);
-            break;
-        case "odometer-tab":
-            checkQueryParams('#odometerRecordModalContent', showEditOdometerRecordModal, 'id');
-            checkQueryParams('#odometerRecordModalContent', showAddOdometerRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleOdometerRecords, GetVehicleId().vehicleId);
-            break;
-        case "inspection-tab":
-            checkQueryParams('#inspectionRecordModalContent', showEditInspectionRecordModal, 'id');
-            checkQueryParams('#inspectionRecordModalContent', useInspectionRecordTemplate, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleInspectionRecords, GetVehicleId().vehicleId);
-            break;
-        case "equipment-tab":
-            checkQueryParams('#equipmentRecordModalContent', showEditEquipmentRecordModal, 'id');
-            checkQueryParams('#equipmentRecordModalContent', showAddEquipmentRecordModal, 'add');
-            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleEquipmentRecords, GetVehicleId().vehicleId);
-            break;
-    }
-}
-
-function createQR(param, val) {
-    let currentParams = new URLSearchParams(window.location.search);
-    currentParams.set(param, val);
-    let urlToRender = `${window.location.origin}${window.location.pathname}?${currentParams.toString()}`;
-    let qr = qrcode(0, 'M');
-    qr.addData(urlToRender);
-    qr.make();
-    let svgData = qr.createSvgTag();
-    Swal.fire({
-        title: "QR Code",
-        html: `<div class='qr-container'>${svgData}</div>`,
-        confirmButtonText: 'Download',
-        showCancelButton: true
-    }).then(function (result) {
-        if (result.isConfirmed) {
-            downloadQR();
-        }
-    });
-}
-function downloadQR() {
-    let svgElement = $(".qr-container").find('svg')[0];
-    let parentContainer = $('.qr-container');
-    let svgData = new XMLSerializer().serializeToString(svgElement);
-    let svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    let url = URL.createObjectURL(svgBlob);
-    let img = new Image();
-    let canvas = document.createElement("canvas");
-    img.src = url;
-    img.onload = function () {
-        let targetWidth = 500;
-        let targetHeight = 500;
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-        canvas.getContext('2d').drawImage(img, 0, 0, targetWidth, targetHeight);
-        let pngDataUrl = canvas.toDataURL('image/png');
-        let downloadLink = document.createElement('a');
-        downloadLink.href = pngDataUrl;
-        let downloadFileName = new Date().getTime();
-        downloadLink.download = `qr_${downloadFileName}.png`;
-        downloadLink.click();
-        URL.revokeObjectURL(url);
-    };
-}
-
-function handleDualRangeSlider(e) {
-    let isMinSlider = $(e).attr('data-handle') == 'min';
-    let minSlider = $(e).closest('.dual-range').find('[data-handle="min"]');
-    let maxSlider = $(e).closest('.dual-range').find('[data-handle="max"]');
-    let maxRangeValue = parseInt(maxSlider.val());
-    let minRangeValue = parseInt(minSlider.val());
-    let rangePadding = 2;
-    let maxRangeLimit = maxRangeValue - rangePadding;
-    let minRangeLimit = minRangeValue + rangePadding;
-    let rangeHighlight = $(e).closest('.dual-range').find('.dual-range-highlight');
-    if (isMinSlider) {
-        if (minRangeValue >= maxRangeLimit) {
-            minSlider.val(maxRangeLimit);
-        }
-        minSlider.addClass('dual-range-top');
-        maxSlider.removeClass('dual-range-top');
-    } else {
-        if (maxRangeValue <= minRangeLimit) {
-            maxSlider.val(minRangeLimit);
-        }
-        minSlider.removeClass('dual-range-top');
-        maxSlider.addClass('dual-range-top');
-    }
-    //update range highlight
-    rangeHighlight.css('left', (minRangeValue + '%'));
-    rangeHighlight.css('width', ((maxRangeValue - minRangeValue) + '%'));
-    //update labels
-    let minRangeLabel = $(e).closest('.dual-range-container').find('[data-range-label="min"]');
-    let maxRangeLabel = $(e).closest('.dual-range-container').find('[data-range-label="max"]');
-    minRangeLabel.text(`${minSlider.val()}%`);
-    maxRangeLabel.text(`${maxSlider.val()}%`);
-}
-function removeVehicleThumbnail() {
-    uploadedFile = "";
-    $("#inputImageReplaceLabel").addClass('d-none');
-    $("#inputImageUploadLabel").removeClass('d-none');
-}
-function hideActiveModal() {
-    let activeModal = $(".modal.show");
-    if (activeModal.length > 0) {
-        activeModal.modal('hide');
-    }
-}
-function performLogOut() {
-    $.post('/Login/LogOut', function (data) {
-        if (data) {
-            resetEventHub();
-            window.location.href = data;
-        }
-    });
-}
-
-
-function showAccountInformationModal() {
-    $.get('/Home/GetUserAccountInformationModal', function (data) {
-        $('#accountInformationModalContent').html(data);
-        $('#accountInformationModal').modal('show');
-    });
-}
-
-function showRootAccountInformationModal() {
-    $.get('/Home/GetRootAccountInformationModal', function (data) {
-        $('#accountInformationModalContent').html(data);
-        $('#accountInformationModal').modal('show');
-    });
-}
-
-function hideAccountInformationModal() {
-    $('#accountInformationModal').modal('hide');
-}
-
-function validateAndSaveRootUserAccount() {
-    var hasError = false;
-    if ($('#inputUsername').val().trim() == '') {
-        $('#inputUsername').addClass("is-invalid");
-        hasError = true;
-    } else {
-        $('#inputUsername').removeClass("is-invalid");
-    }
-    if ($('#inputPassword').val().trim() == '') {
-        $('#inputPassword').addClass("is-invalid");
-        hasError = true;
-    } else {
-        $('#inputPassword').removeClass("is-invalid");
-    }
-    if (hasError) {
-        errorToast("Please check the form data");
-        return;
-    }
-    var userAccountInfo = {
-        userName: $('#inputUsername').val(),
-        password: $('#inputPassword').val()
-    };
-    $.post('/Login/CreateLoginCreds', { credentials: userAccountInfo }, function (data) {
-        if (data) {
-            hideAccountInformationModal();
-            successToast('Root Account Updated');
-            performLogOut();
-        } else {
-            errorToast(data.message);
-        }
-    });
-}
-
-function validateAndSaveUserAccount() {
-    var hasError = false;
-    if ($('#inputUsername').val().trim() == '') {
-        $('#inputUsername').addClass("is-invalid");
-        hasError = true;
-    } else {
-        $('#inputUsername').removeClass("is-invalid");
-    }
-    if ($('#inputEmail').val().trim() == '') {
-        $('#inputEmail').addClass("is-invalid");
-        hasError = true;
-    } else {
-        $('#inputEmail').removeClass("is-invalid");
-    }
-
-    var newPassword = $('#inputPassword').val().trim();
-    var currentPassword = $('#inputCurrentPassword').length ? $('#inputCurrentPassword').val() : '';
-
-    if (newPassword != '' && $('#inputCurrentPassword').length > 0 && currentPassword.trim() == '') {
-        $('#inputCurrentPassword').addClass("is-invalid");
-        errorToast("Debes introducir tu contraseña actual para cambiarla");
-        return;
-    } else {
-        $('#inputCurrentPassword').removeClass("is-invalid");
-    }
-
-    if (hasError) {
-        errorToast("Por favor, revisa los datos del formulario.");
-        return;
-    }
-    var userAccountInfo = {
-        userName: $('#inputUsername').val(),
-        currentPassword: currentPassword,
-        password: newPassword,
-        emailAddress: $('#inputEmail').val(),
-        token: ''
-    };
-    $.post('/Home/UpdateUserAccount', { userAccount: userAccountInfo }, function (data) {
-        if (data.success) {
-            hideAccountInformationModal();
-            successToast(data.message || 'Perfil actualizado con éxito');
-            if (newPassword != '') {
-                setTimeout(performLogOut, 1500);
-            }
-        } else {
-            errorToast(data.message || 'Error al actualizar');
-        }
-    });
-}
-
-// Normalización de separador decimal: permitir tanto '.' como ',' indistintamente
-$(document).on('keydown', 'input[inputmode="decimal"], input[id*="Cost"], input[id*="Gallons"], input[id*="Price"], input[id*="Quantity"], input[id*="Consumption"]', function (e) {
-    var decimalSep = (typeof getDecimalSeparator === 'function' ? getDecimalSeparator() : null) || ',';
-    if (e.key === '.' || e.key === ',' || e.keyCode === 190 || e.keyCode === 110 || e.keyCode === 188) {
-        e.preventDefault();
-        var val = this.value;
-        var selStart = this.selectionStart;
-        var selEnd = this.selectionEnd;
-        var valWithoutSel = val.substring(0, selStart) + val.substring(selEnd);
-        // Evitar introducir múltiples separadores decimales
-        if (valWithoutSel.indexOf('.') === -1 && valWithoutSel.indexOf(',') === -1) {
-            this.value = val.substring(0, selStart) + decimalSep + val.substring(selEnd);
-            if (typeof this.setSelectionRange === 'function') {
-                this.setSelectionRange(selStart + 1, selStart + 1);
-            }
-            $(this).trigger('input').trigger('change');
-        }
-    }
-});
-
-$(document).on('input', 'input[inputmode="decimal"], input[id*="Cost"], input[id*="Gallons"], input[id*="Price"], input[id*="Quantity"], input[id*="Consumption"]', function () {
-    var decimalSep = (typeof getDecimalSeparator === 'function' ? getDecimalSeparator() : null) || ',';
-    var val = this.value;
-    var otherSep = decimalSep === ',' ? '.' : ',';
-    if (val.indexOf(otherSep) > -1 && val.indexOf(decimalSep) === -1) {
-        var selStart = this.selectionStart;
-        this.value = val.replace(otherSep, decimalSep);
-        if (typeof this.setSelectionRange === 'function' && selStart !== null) {
-            this.setSelectionRange(selStart, selStart);
-        }
-    }
-});
+
+// Variables globales de reserva para compatibilidad con módulos de suministros
+var supplyUsageHistory = [];
+var deletedSupplyUsageHistory = [];
+var selectedSupplies = [];
+var copySuppliesAttachments = false;
+﻿$.expr.pseudos.containsNC = $.expr.createPseudo(function (arg) {
+    return function (elem) {
+        return $(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
+    };
+});
+const mobileScreen = window.matchMedia("(max-width: 575px)");
+var eventHubConn = undefined;
+function returnToGarage() {
+    window.location.href = '/Home';
+}
+function confirmDelete(message, callBack) {
+    Swal.fire({
+        title: "Confirm Deletion?",
+        text: message,
+        showCancelButton: true,
+        confirmButtonText: "Delete",
+        confirmButtonColor: "#dc3545"
+    }).then((result) => {
+        callBack(result);
+    });
+}
+function successToast(message) {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        title: message,
+        timerProgressBar: true,
+        icon: "success",
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    })
+}
+function errorToast(message) {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        title: message,
+        timerProgressBar: true,
+        icon: "error",
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    })
+}
+function infoToast(message) {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        title: message,
+        timerProgressBar: true,
+        icon: "info",
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    })
+}
+function warnToast(message) {
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        title: message,
+        timerProgressBar: true,
+        icon: "warning",
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    })
+}
+function viewVehicle(vehicleId, tab) {
+    if (tab != undefined) {
+        window.location.href = `/Vehicle/Index?vehicleId=${vehicleId}&tab=${tab}`;
+    } else {
+        window.location.href = `/Vehicle/Index?vehicleId=${vehicleId}`;
+    }
+}
+function saveVehicle(isEdit) {
+    var vehicleId = getVehicleModelData().id;
+    var vehicleYear = $("#inputYear").val();
+    var vehicleMake = $("#inputMake").val();
+    var vehicleModel = $("#inputModel").val();
+    var vehicleTags = $("#inputTag").val();
+    var vehiclePurchaseDate = $("#inputPurchaseDate").val();
+    var vehicleSoldDate = $("#inputSoldDate").val();
+    var vehicleLicensePlate = $("#inputLicensePlate").val();
+    var vehicleIsElectric = $("#inputFuelType").val() == 'Electric';
+    var vehicleIsDiesel = $("#inputFuelType").val() == 'Diesel';
+    var vehicleUseHours = $("#inputUseHours").is(":checked");
+    var vehicleOdometerOptional = $("#inputOdometerOptional").is(":checked");
+    var vehicleHasOdometerAdjustment = $("#inputHasOdometerAdjustment").is(':checked');
+    var vehicleOdometerMultiplier = $("#inputOdometerMultiplier").val();
+    var vehicleOdometerDifference = parseInt(globalParseFloat($("#inputOdometerDifference").val())).toString();
+    var vehiclePurchasePrice = $("#inputPurchasePrice").val();
+    var vehicleSoldPrice = $("#inputSoldPrice").val();
+    var vehicleIdentifier = $("#inputIdentifier").val();
+    var vehicleVin = $("#inputVin").val() || '';
+    var vehicleEngineCode = $("#inputEngineCode").val() || '';
+    var vehicleEngineOil = $("#inputEngineOil").val() || '';
+    var vehicleSparkPlugs = $("#inputSparkPlugs").val() || '';
+    var vehicleTyreSizes = $("#inputTyreSizes").val() || '';
+    var vehicleItvExpiry = $("#inputItvExpiry").val() || '';
+    var vehicleInsuranceExpiry = $("#inputInsuranceExpiry").val() || '';
+    var vehicleInsuranceCompany = $("#inputInsuranceCompany").val() || '';
+    var vehicleIsPublic = $("#inputIsPublic").is(":checked");
+    var vehicleDashboardMetrics = $("#collapseMetricInfo :checked").map(function () {
+        return this.value;
+    }).toArray();
+    var extraFields = getAndValidateExtraFields();
+    //validate
+    var hasError = false;
+    if (extraFields.hasError) {
+        hasError = true;
+    }
+    if (vehicleYear.trim() == '' || parseInt(vehicleYear) < 1900) {
+        hasError = true;
+        $("#inputYear").addClass("is-invalid");
+    } else {
+        $("#inputYear").removeClass("is-invalid");
+    }
+    if (vehicleMake.trim() == '') {
+        hasError = true;
+        $("#inputMake").addClass("is-invalid");
+    } else {
+        $("#inputMake").removeClass("is-invalid");
+    }
+    if (vehicleModel.trim() == '') {
+        hasError = true;
+        $("#inputModel").addClass("is-invalid");
+    } else {
+        $("#inputModel").removeClass("is-invalid");
+    }
+    if (vehicleIdentifier == "LicensePlate") {
+        if (vehicleLicensePlate.trim() == '') {
+            hasError = true;
+            $("#inputLicensePlate").addClass("is-invalid");
+        } else {
+            $("#inputLicensePlate").removeClass("is-invalid");
+        }
+    } else {
+        $("#inputLicensePlate").removeClass("is-invalid");
+        //check if extra fields have value.
+        var vehicleIdentifierExtraField = extraFields.extraFields.filter(x => x.name == vehicleIdentifier);
+        //check if extra field exists.
+        if (vehicleIdentifierExtraField.length == 0) {
+            $(".modal.fade.show").find(`.extra-field [placeholder='${vehicleIdentifier}']`).addClass("is-invalid");
+            hasError = true;
+        } else {
+            $(".modal.fade.show").find(`.extra-field [placeholder='${vehicleIdentifier}']`).removeClass("is-invalid");
+        }
+    }
+    
+    if (vehicleHasOdometerAdjustment) {
+        //validate odometer adjustments
+        //validate multiplier
+        if (vehicleOdometerMultiplier.trim() == '' || !isValidMoney(vehicleOdometerMultiplier)) {
+            hasError = true;
+            $("#inputOdometerMultiplier").addClass("is-invalid");
+        } else {
+            $("#inputOdometerMultiplier").removeClass("is-invalid");
+        }
+        //validate difference
+        if (vehicleOdometerDifference.trim() == '' || isNaN(vehicleOdometerDifference)) {
+            hasError = true;
+            $("#inputOdometerDifference").addClass("is-invalid");
+        } else {
+            $("#inputOdometerDifference").removeClass("is-invalid");
+        }
+    }
+    if (vehiclePurchasePrice.trim() != '' && !isValidMoney(vehiclePurchasePrice)) {
+        hasError = true;
+        $("#inputPurchasePrice").addClass("is-invalid");
+        $("#collapsePurchaseInfo").collapse('show');
+    } else {
+        $("#inputPurchasePrice").removeClass("is-invalid");
+    }
+    if (vehicleSoldPrice.trim() != '' && !isValidMoney(vehicleSoldPrice)) {
+        hasError = true;
+        $("#inputSoldPrice").addClass("is-invalid");
+        $("#collapsePurchaseInfo").collapse('show');
+    } else {
+        $("#inputSoldPrice").removeClass("is-invalid");
+    }
+    if (vehiclePurchaseDate.trim() != '' && vehicleSoldDate.trim() != '') {
+        let purchaseTicks = $("#inputPurchaseDate").datepicker('getDate')?.getTime();
+        let soldTicks = $("#inputSoldDate").datepicker('getDate')?.getTime();
+        if (!purchaseTicks || !soldTicks || purchaseTicks > soldTicks) {
+            hasError = true;
+            $("#inputPurchaseDate").addClass("is-invalid");
+            $("#inputSoldDate").addClass("is-invalid");
+            $("#collapsePurchaseInfo").collapse('show');
+        } else {
+            $("#inputPurchaseDate").removeClass("is-invalid");
+            $("#inputSoldDate").removeClass("is-invalid");
+        }
+    } else {
+        $("#inputPurchaseDate").removeClass("is-invalid");
+        $("#inputSoldDate").removeClass("is-invalid");
+    }
+    if (hasError) {
+        return;
+    }
+    let vehicleOwner = $("#inputVehicleOwner").length ? $("#inputVehicleOwner").val() : null;
+    $.post('/Vehicle/SaveVehicle', {
+        ownerUserId: vehicleOwner,
+        id: vehicleId,
+        imageLocation: uploadedFile,
+        mapLocation: uploadedMap,
+        year: vehicleYear,
+        make: vehicleMake,
+        model: vehicleModel,
+        licensePlate: vehicleLicensePlate,
+        isElectric: vehicleIsElectric,
+        isDiesel: vehicleIsDiesel,
+        tags: vehicleTags,
+        useHours: vehicleUseHours,
+        extraFields: extraFields.extraFields,
+        purchaseDate: vehiclePurchaseDate,
+        soldDate: vehicleSoldDate,
+        odometerOptional: vehicleOdometerOptional,
+        hasOdometerAdjustment: vehicleHasOdometerAdjustment,
+        odometerMultiplier: vehicleOdometerMultiplier,
+        odometerDifference: vehicleOdometerDifference,
+        purchasePrice: vehiclePurchasePrice,
+        soldPrice: vehicleSoldPrice,
+        dashboardMetrics: vehicleDashboardMetrics,
+        vehicleIdentifier: vehicleIdentifier,
+        vin: vehicleVin,
+        engineCode: vehicleEngineCode,
+        engineOil: vehicleEngineOil,
+        sparkPlugs: vehicleSparkPlugs,
+        tyreSizes: vehicleTyreSizes,
+        itvExpiry: vehicleItvExpiry,
+        insuranceExpiry: vehicleInsuranceExpiry,
+        insuranceCompany: vehicleInsuranceCompany,
+        isPublic: vehicleIsPublic
+    }, function (data) {
+        if (data.success) {
+            if (!isEdit) {
+                successToast("Vehicle Added");
+                hideAddVehicleModal();
+                loadGarage();
+            }
+            else {
+                successToast("Vehicle Updated");
+                hideEditVehicleModal();
+                //persist current tab
+                let currentParams = new URLSearchParams(window.location.search);
+                let currentTab = currentParams.get('tab');
+                if (currentTab == undefined || currentTab == '' || currentTab == null) {
+                    currentTab = getDefaultTabName();
+                }
+                viewVehicle(vehicleId, currentTab);
+            }
+        } else {
+            errorToast(data.message);
+        }
+    });
+}
+function toggleOdometerAdjustment() {
+    var isChecked = $("#inputHasOdometerAdjustment").is(':checked');
+    if (isChecked) {
+        $("#odometerAdjustments").collapse('show');
+    } else {
+        $("#odometerAdjustments").collapse('hide');
+    }
+}
+function setUploadedFile(data) {
+    uploadedFile = data;
+}
+function setUploadedMap(data) {
+    uploadedMap = data;
+}
+function handleVehicleMapCheckChanged() {
+    let vehicleHasMap = $("#inputHasVehicleMap").is(":checked");
+    if (vehicleHasMap) {
+        $("#inputMap").off('cancel').on('cancel', function () {
+            $("#inputHasVehicleMap").prop('checked', false);
+        });
+        $("#inputMap").trigger('click');
+    } else {
+        uploadedMap = '';
+    }
+}
+function uploadMap(event) {
+    let selectedMapFile = event.files[0];
+    uploadFileAsync(selectedMapFile, setUploadedMap);
+}
+function uploadThumbnail(event) {
+    var originalImage = event.files[0];
+    if (getGlobalConfig().resizeThumbnailEnabled) {
+        let maxHeight = 290;
+        try {
+            //load image and perform Hermite resize
+            var img = new Image();
+            img.onload = function () {
+                URL.revokeObjectURL(img.src);
+                var imgWidth = img.width;
+                var imgHeight = img.height;
+                if (imgHeight > maxHeight) {
+                    //only scale if height is greater than threshold
+                    var imgScale = maxHeight / imgHeight;
+                    var newImgWidth = imgWidth * imgScale;
+                    var newImgHeight = imgHeight * imgScale;
+                    var resizedCanvas = hermiteResize(img, newImgWidth, newImgHeight);
+                    resizedCanvas.toBlob((blob) => {
+                        let file = new File([blob], originalImage.name, { type: "image/jpeg" });
+                        uploadFileAsync(file, setUploadedFile);
+                    }, 'image/jpeg');
+                } else {
+                    uploadFileAsync(originalImage, setUploadedFile);
+                }
+            }
+            img.src = URL.createObjectURL(originalImage);
+        } catch (error) {
+            console.log(`Error while attempting to upload and resize thumbnail - ${error}`);
+            uploadFileAsync(originalImage, setUploadedFile);
+        }
+    } else {
+        uploadFileAsync(originalImage, setUploadedFile);
+    }
+}
+//Resize method using Hermite interpolation
+//JS implementation by viliusle
+function hermiteResize(origImg, width, height) {
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
+    canvas.width = origImg.width;
+    canvas.height = origImg.height;
+    ctx.drawImage(origImg, 0, 0);
+
+    var width_source = canvas.width;
+    var height_source = canvas.height;
+    width = Math.round(width);
+    height = Math.round(height);
+
+    var ratio_w = width_source / width;
+    var ratio_h = height_source / height;
+    var ratio_w_half = Math.ceil(ratio_w / 2);
+    var ratio_h_half = Math.ceil(ratio_h / 2);
+
+   
+    var img = ctx.getImageData(0, 0, width_source, height_source);
+    var img2 = ctx.createImageData(width, height);
+    var data = img.data;
+    var data2 = img2.data;
+
+    for (var j = 0; j < height; j++) {
+        for (var i = 0; i < width; i++) {
+            var x2 = (i + j * width) * 4;
+            var weight = 0;
+            var weights = 0;
+            var weights_alpha = 0;
+            var gx_r = 0;
+            var gx_g = 0;
+            var gx_b = 0;
+            var gx_a = 0;
+            var center_y = (j + 0.5) * ratio_h;
+            var yy_start = Math.floor(j * ratio_h);
+            var yy_stop = Math.ceil((j + 1) * ratio_h);
+            for (var yy = yy_start; yy < yy_stop; yy++) {
+                var dy = Math.abs(center_y - (yy + 0.5)) / ratio_h_half;
+                var center_x = (i + 0.5) * ratio_w;
+                var w0 = dy * dy; //pre-calc part of w
+                var xx_start = Math.floor(i * ratio_w);
+                var xx_stop = Math.ceil((i + 1) * ratio_w);
+                for (var xx = xx_start; xx < xx_stop; xx++) {
+                    var dx = Math.abs(center_x - (xx + 0.5)) / ratio_w_half;
+                    var w = Math.sqrt(w0 + dx * dx);
+                    if (w >= 1) {
+                        //pixel too far
+                        continue;
+                    }
+                    //hermite filter
+                    weight = 2 * w * w * w - 3 * w * w + 1;
+                    var pos_x = 4 * (xx + yy * width_source);
+                    //alpha
+                    gx_a += weight * data[pos_x + 3];
+                    weights_alpha += weight;
+                    //colors
+                    if (data[pos_x + 3] < 255)
+                        weight = weight * data[pos_x + 3] / 250;
+                    gx_r += weight * data[pos_x];
+                    gx_g += weight * data[pos_x + 1];
+                    gx_b += weight * data[pos_x + 2];
+                    weights += weight;
+                }
+            }
+            data2[x2] = gx_r / weights;
+            data2[x2 + 1] = gx_g / weights;
+            data2[x2 + 2] = gx_b / weights;
+            data2[x2 + 3] = gx_a / weights_alpha;
+        }
+    }
+    //clear and resize canvas
+    canvas.width = width;
+    canvas.height = height;
+    ctx.clearRect(0, 0, width, height);
+
+    //draw
+    ctx.putImageData(img2, 0, 0);
+    return canvas;
+}
+function uploadFileAsync(event, callBack) {
+    let formData = new FormData();
+    if (event.files != undefined && event.files.length > 0) {
+        formData.append("file", event.files[0]);
+    } else {
+        formData.append("file", event);
+    }
+    sloader.show();
+    $.ajax({
+        url: "/Files/HandleFileUpload",
+        data: formData,
+        cache: false,
+        processData: false,
+        contentType: false,
+        type: 'POST'
+    }).done((response) => {
+        sloader.hide();
+        if (response.trim() != '') {
+            callBack(response);
+        }
+    }).fail(() => {
+        sloader.hide();
+        errorToast("An error has occurred, please check the file size and try again later.");
+    });
+}
+function isValidMoney(input) {
+    const euRegex = /^\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}((\.\d{3}){0,8}|(\d{3}){0,8})(,\d{1,3}?)?\)?$/;
+    const usRegex = /^\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}((,\d{3}){0,8}|(\d{3}){0,8})(\.\d{1,3}?)?\)?$/;
+    return (euRegex.test(input) || usRegex.test(input));
+}
+function initExtraFieldDatePicker(fieldName) {
+    let inputField = $(`#${fieldName}`);
+    if (inputField.length > 0) {
+        inputField.datepicker({
+            format: getShortDatePattern().pattern,
+            autoclose: true,
+            weekStart: getGlobalConfig().firstDayOfWeek
+        });
+    }
+}
+function handleDateInputAutoSlash(e) {
+    var input = e.target;
+    var inputType = e.inputType || (e.originalEvent && e.originalEvent.inputType);
+    var prevVal = $(input).data('prev-date-val') || '';
+    var currentVal = input.value || '';
+
+    // No intervenir si se está borrando (Backspace o Delete)
+    if (inputType === 'deleteContentBackward' || inputType === 'deleteContentForward' || currentVal.length < prevVal.length) {
+        $(input).data('prev-date-val', currentVal);
+        return;
+    }
+
+    // Extraer únicamente los dígitos numéricos
+    var digits = currentVal.replace(/\D/g, '');
+    if (digits.length === 0) {
+        $(input).data('prev-date-val', '');
+        return;
+    }
+
+    // Limitar a 8 dígitos (DDMMAAAA)
+    if (digits.length > 8) {
+        digits = digits.substring(0, 8);
+    }
+
+    var formatted = '';
+    if (digits.length === 1) {
+        formatted = digits;
+    } else if (digits.length === 2) {
+        formatted = digits + '/';
+    } else if (digits.length === 3) {
+        formatted = digits.substring(0, 2) + '/' + digits.substring(2);
+    } else if (digits.length === 4) {
+        formatted = digits.substring(0, 2) + '/' + digits.substring(2) + '/';
+    } else {
+        formatted = digits.substring(0, 2) + '/' + digits.substring(2, 4) + '/' + digits.substring(4);
+    }
+
+    if (input.value !== formatted && formatted.length > 0) {
+        var isAtEnd = (input.selectionStart >= currentVal.length);
+        input.value = formatted;
+        if (isAtEnd && typeof input.setSelectionRange === 'function') {
+            input.setSelectionRange(formatted.length, formatted.length);
+        }
+    }
+    $(input).data('prev-date-val', input.value);
+
+    // Si completó los 10 caracteres (DD/MM/AAAA), sincronizar el datepicker
+    if (formatted.length === 10 && typeof $(input).datepicker === 'function') {
+        try {
+            $(input).datepicker('update');
+        } catch (err) {}
+    }
+}
+
+function handleDateInputKeydown(e) {
+    if (e.key === 'Enter' || e.keyCode === 13 || e.key === 'Escape' || e.keyCode === 27) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $input = $(this);
+        if (typeof $input.datepicker === 'function') {
+            try {
+                $input.datepicker('update');
+                $input.datepicker('hide');
+            } catch (err) {}
+        }
+        $('.datepicker.datepicker-dropdown').hide();
+        $input.blur();
+    }
+}
+
+function attachDateInputMask(input) {
+    if (!input || !input.length) return;
+    input.addClass('has-date-mask');
+    input.attr('maxlength', '10');
+    input.attr('autocomplete', 'off');
+    input.off('input.dateAutoSlash').on('input.dateAutoSlash', handleDateInputAutoSlash);
+    input.off('keydown.dateCloseOnEnter').on('keydown.dateCloseOnEnter', handleDateInputKeydown);
+}
+
+// Delegacion global para cualquier campo de fecha en la aplicacion
+$(document).on('input.dateAutoSlash', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', function (e) {
+    if (!$(this).hasClass('has-date-mask')) {
+        $(this).addClass('has-date-mask');
+        $(this).attr('maxlength', '10');
+        $(this).attr('autocomplete', 'off');
+    }
+    handleDateInputAutoSlash(e);
+});
+
+$(document).on('keydown.dateCloseOnEnter', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', handleDateInputKeydown);
+
+function initDatePicker(input, mode) {
+    var datepickerOptions = {
+        format: getShortDatePattern().pattern,
+        autoclose: true,
+        todayHighlight: true,
+        weekStart: getGlobalConfig().firstDayOfWeek,
+        language: 'es',
+        forceParse: false,
+        enableOnReadonly: true
+    };
+
+    if (mode === true || mode === 'future') {
+        datepickerOptions.startDate = "+0d";
+    } else if (mode === 'past') {
+        datepickerOptions.endDate = "+0d";
+    } else if (mode === 'any' || mode === false || mode === 'none') {
+        // Permite cualquier fecha sin restricción de tope pasado o futuro
+    } else {
+        // Históricos por defecto
+        datepickerOptions.endDate = "+0d";
+    }
+
+    input.datepicker(datepickerOptions);
+    attachDateInputMask(input);
+}
+function initTagSelector(input, noDataList) {
+    if (noDataList) {
+        input.tagsinput({
+            useDataList: false,
+            confirmKeys: [13, 44, 188],
+            trimValue: true
+        });
+    } else {
+        input.tagsinput({
+            confirmKeys: [13, 44, 188],
+            trimValue: true
+        });
+    }
+}
+function getAndValidateSelectedVehicle() {
+    var selectedVehiclesArray = [];
+    $("#vehicleSelector :checked").map(function () {
+        selectedVehiclesArray.push(this.value);
+    });
+    if (selectedVehiclesArray.length == 0) {
+        return {
+            hasError: true,
+            ids: []
+        }
+    } else {
+        return {
+            hasError: false,
+            ids: selectedVehiclesArray
+        }
+    }
+}
+function showMobileNav() {
+    $(".lubelogger-mobile-nav").addClass("lubelogger-mobile-nav-show");
+    //hide body scrollbar
+    $("body").css('overflow-y', 'hidden');
+    $("body").css('position', 'fixed'); //iOS SafariWebKit hack fix
+}
+function hideMobileNav() {
+    $(".lubelogger-mobile-nav").removeClass("lubelogger-mobile-nav-show");
+    //re-enable scrollbar.
+    $("body").css('overflow-y', 'auto');
+    $("body").css('position', ''); //iOS SafariWebKit hack fix
+}
+var windowWidthForCompare = 0;
+function bindWindowResize() {
+    windowWidthForCompare = window.innerWidth;
+    $(window).on('resize', function () {
+        if (window.innerWidth != windowWidthForCompare) {
+            hideMobileNav();
+            windowWidthForCompare = window.innerWidth;
+        }
+    });
+}
+function encodeHTMLInput(input) {
+    const encoded = document.createElement('div');
+    encoded.innerText = input;
+    return encoded.innerHTML;
+}
+function decodeHTMLEntities(text) {
+    return $("<textarea/>")
+        .html(text)
+        .text();
+}
+var debounce = null;
+function setDebounce(callBack) {
+    clearTimeout(debounce);
+    debounce = setTimeout(function () {
+        callBack();
+    }, 1000);
+}
+function toggleSort(tabName, sender) {
+    sender = $(sender);
+    var colName = sender.attr('data-column');
+    var sortAscIcon = '<i class="sort-icon bi bi-sort-down ms-2"></i>';
+    var sortDescIcon = '<i class="sort-icon bi bi-sort-down-alt ms-2"></i>';
+
+    // Remove sort icons and classes from all OTHER headers in this table
+    $(`#${tabName} table th`).not(sender).each(function() {
+        $(this).removeClass('sort-asc sort-desc');
+        $(this).find('.sort-icon').remove();
+    });
+
+    // Save default sort index on rows if not yet done
+    if ($(`#${tabName} table tbody tr[default-sort]`).length == 0) {
+        $(`#${tabName} table tbody tr`).each((index, elem) => {
+            $(elem).attr("default-sort", index);
+        });
+    }
+
+    if (sender.hasClass('sort-asc')) {
+        // Toggle to descending
+        sender.removeClass('sort-asc').addClass('sort-desc');
+        sender.find('.sort-icon').remove();
+        sender.append(sortDescIcon);
+        sortTable(tabName, sender, true);
+    } else if (sender.hasClass('sort-desc')) {
+        // Toggle back to ascending
+        sender.removeClass('sort-desc').addClass('sort-asc');
+        sender.find('.sort-icon').remove();
+        sender.append(sortAscIcon);
+        sortTable(tabName, sender, false);
+    } else {
+        // First time sorting this column -> ascending
+        sender.addClass('sort-asc');
+        sender.find('.sort-icon').remove();
+        sender.append(sortAscIcon);
+        sortTable(tabName, sender, false);
+    }
+}
+function sortTable(tabName, columnSender, desc) {
+    var sender = $(columnSender);
+    var colName = sender.attr('data-column');
+    var colIndex = sender.index();
+    var rows = $(`#${tabName} table tbody tr`).toArray();
+
+    rows.sort((a, b) => {
+        var cellA = colName ? a.querySelector(`[data-column='${colName}']`) : a.children[colIndex];
+        var cellB = colName ? b.querySelector(`[data-column='${colName}']`) : b.children[colIndex];
+        if (!cellA && !cellB) return 0;
+        if (!cellA) return desc ? -1 : 1;
+        if (!cellB) return desc ? 1 : -1;
+
+        var rawA = cellA.getAttribute('data-sort-value');
+        var rawB = cellB.getAttribute('data-sort-value');
+
+        var numA, numB;
+        if (rawA !== null && rawA !== undefined && rawA !== '') {
+            numA = Number(rawA);
+        } else {
+            numA = globalParseFloat(cellA.textContent);
+        }
+
+        if (rawB !== null && rawB !== undefined && rawB !== '') {
+            numB = Number(rawB);
+        } else {
+            numB = globalParseFloat(cellB.textContent);
+        }
+
+        var isNumA = !isNaN(numA);
+        var isNumB = !isNaN(numB);
+
+        var comparison = 0;
+        if (isNumA && isNumB) {
+            comparison = numA - numB;
+        } else if (isNumA) {
+            comparison = -1;
+        } else if (isNumB) {
+            comparison = 1;
+        } else {
+            var textA = (cellA.textContent || '').trim();
+            var textB = (cellB.textContent || '').trim();
+            comparison = textA.localeCompare(textB, undefined, { numeric: true, sensitivity: 'base' });
+        }
+
+        return desc ? -comparison : comparison;
+    });
+
+    $(`#${tabName} table tbody`).append(rows);
+}
+function resetSortTable(tabName) {
+    var rowData = $(`#${tabName} table tbody tr`);
+    var sortedRow = rowData.toArray().sort((a, b) => {
+        var currentVal = Number($(a).attr('default-sort') || 0);
+        var nextVal = Number($(b).attr('default-sort') || 0);
+        return currentVal - nextVal;
+    });
+    $(`#${tabName} table tbody`).append(sortedRow);
+}
+function filterTable(tabName, sender) {
+    var rowData = $(`#${tabName} table tbody tr`);
+    if (sender == undefined) {
+        rowData.removeClass('override-hide');
+        return;
+    }
+    var tagName = sender.textContent;
+    //check for other applied filters
+    if ($(sender).hasClass("bg-primary")) {
+        rowData.removeClass('override-hide');
+        $(sender).removeClass('bg-primary');
+        $(sender).addClass('bg-secondary');
+        updateAggregateLabels();
+    } else {
+        //hide table rows.
+        rowData.addClass('override-hide');
+        $(`[data-tags~='${tagName}']`).removeClass('override-hide');
+        updateAggregateLabels();
+        if ($(".tagfilter.bg-primary").length > 0) {
+            //disabling other filters
+            $(".tagfilter.bg-primary").addClass('bg-secondary');
+            $(".tagfilter.bg-primary").removeClass('bg-primary');
+        }
+        $(sender).addClass('bg-primary');
+        $(sender).removeClass('bg-secondary');
+    }
+}
+
+function updateAggregateLabels() {
+    //Sum
+    var sumLabel = $("[data-aggregate-type='sum']");
+    if (sumLabel.length > 0) {
+        var labelsToSum = $("[data-record-type='cost']").parent(":not('.override-hide')").children("[data-record-type='cost']").toArray();
+        var newSum = "0.00";
+        if (labelsToSum.length > 0) {
+            newSum = labelsToSum.map(x => globalParseFloat(x.textContent)).reduce((a, b) => a + b).toFixed(2);
+        }
+        sumLabel.text(`${sumLabel.text().split(':')[0]}: ${globalAppendCurrency(globalFloatToString(newSum))}`)
+    }
+    //Sum Distance
+    var sumDistanceLabel = $("[data-aggregate-type='sum-distance']");
+    if (sumDistanceLabel.length > 0) {
+        var distanceLabelsToSum = $("[data-record-type='distance']").parent(":not('.override-hide')").children("[data-record-type='distance']").toArray();
+        var newDistanceSum = 0;
+        if (distanceLabelsToSum.length > 0) {
+            newDistanceSum = distanceLabelsToSum.map(x => globalParseFloat(x.textContent)).reduce((a, b) => a + b).toFixed(0);
+        }
+        sumDistanceLabel.text(`${sumDistanceLabel.text().split(':')[0]}: ${newDistanceSum}`)
+    }
+    //Count
+    var newCount = $("[data-record-type='cost']").parent(":not('.override-hide')").length;
+    var countLabel = $("[data-aggregate-type='count']");
+    countLabel.text(`${countLabel.text().split(':')[0]}: ${newCount}`);
+}
+
+function uploadVehicleFilesAsync(event) {
+    let formData = new FormData();
+    var files = event.files;
+    for (var x = 0; x < files.length; x++) {
+        formData.append("file", files[x]);
+    }
+    sloader.show();
+    $.ajax({
+        url: "/Files/HandleMultipleFileUpload",
+        data: formData,
+        cache: false,
+        processData: false,
+        contentType: false,
+        type: 'POST'
+    }).done((response) => {
+        sloader.hide();
+        $(event).val(""); //clear out the filename from the uploader
+        if (response.length > 0) {
+            uploadedFiles.push.apply(uploadedFiles, response);
+            $.post('/Vehicle/GetFilesPendingUpload', { uploadedFiles: uploadedFiles }, function (viewData) {
+                $("#filesPendingUpload").html(viewData);
+            });
+        }
+    }).fail(() => {
+        sloader.hide();
+        errorToast("An error has occurred, please check the file size and try again later.");
+    });
+}
+function uploadVehicleLinksAsync(event) {
+    event.stopPropagation();
+    Swal.fire({
+        title: 'Add Link',
+        html: `
+                    <input type="text" id="newLinkName" class="swal2-input" placeholder="Link Name" onkeydown="handleSwalEnter(event)">
+                    <input type="text" id="newLinkLocation" class="swal2-input" placeholder="Link Location" onkeydown="handleSwalEnter(event)">
+                    `,
+        confirmButtonText: 'Add Link',
+        focusConfirm: false,
+        preConfirm: () => {
+            const newLinkName = $("#newLinkName").val();
+            const newLinkLocation = $("#newLinkLocation").val();
+            if (!newLinkName) {
+                Swal.showValidationMessage(`Please enter a valid link name`);
+            }
+            if (!newLinkLocation) {
+                Swal.showValidationMessage(`Please enter a valid link location`);
+            }
+            return { newLinkName, newLinkLocation }
+        },
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            uploadedFiles.push({ name: result.value.newLinkName, location: result.value.newLinkLocation, isPending: true });
+            $.post('/Vehicle/GetFilesPendingUpload', { uploadedFiles: uploadedFiles }, function (viewData) {
+                $("#filesPendingUpload").html(viewData);
+            });
+        }
+    });
+}
+function deleteFileFromUploadedFiles(fileLocation, event) {
+    event.parentElement.parentElement.parentElement.remove();
+    uploadedFiles = uploadedFiles.filter(x => x.location != fileLocation);
+    if ($("#documentsPendingUploadList > li").length == 0) {
+        $("#documentsPendingUploadLabel").text("");
+    }
+    if ($("#uploadedDocumentsList > li").length == 0) {
+        $("#uploadedDocumentsLabel").text("");
+    }
+}
+function editFileName(fileLocation, event) {
+    let currentFileName = $(event.parentElement.parentElement).find('a > .text-link').text();
+    Swal.fire({
+        title: 'Rename File or Link',
+        html: `
+                    <input type="text" id="newFileName" class="swal2-input" placeholder="New Name" onkeydown="handleSwalEnter(event)" value="${currentFileName}">
+                    `,
+        confirmButtonText: 'Rename',
+        focusConfirm: false,
+        preConfirm: () => {
+            const newFileName = $("#newFileName").val();
+            if (!newFileName) {
+                Swal.showValidationMessage(`Please enter a valid name`)
+            }
+            return { newFileName }
+        },
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            var linkDisplayObject = $(event.parentElement.parentElement).find('a > .text-link');
+            linkDisplayObject.text(result.value.newFileName);
+            var editFileIndex = uploadedFiles.findIndex(x => x.location == fileLocation);
+            uploadedFiles[editFileIndex].name = result.value.newFileName;
+        }
+    });
+}
+var scrollPosition = 0;
+var savedTag = '';
+function saveScrollPosition() {
+    scrollPosition = $(".vehicleDetailTabContainer").scrollTop();
+    let selectedTagElem = $(".tagfilter.bg-primary");
+    if (selectedTagElem.length > 0) {
+        savedTag = selectedTagElem.text();
+    }
+}
+function restoreScrollPosition() {
+    $(".vehicleDetailTabContainer").scrollTop(scrollPosition);
+    scrollPosition = 0;
+    if (savedTag != '') {
+        let availableTagElem = $(".tagfilter").filter((index, elem) => $(elem).text() == savedTag);
+        if (availableTagElem.length > 0) {
+            availableTagElem.trigger('click');
+        }
+        savedTag = '';
+    }
+}
+function toggleMarkDownOverlay(textAreaName) {
+    var textArea = $(`#${textAreaName}`);
+    if ($(".markdown-overlay").length > 0) {
+        $(".markdown-overlay").remove();
+        return;
+    }
+    var text = textArea.val();
+    if (text == undefined) {
+        return;
+    }
+    if (text.length > 0) {
+        var formatted = markdown(text);
+        //var overlay div
+        var overlayDiv = `<div class='markdown-overlay' style="z-index: 1060; position:absolute; top:${textArea.css('top')}; left:${textArea.css('left')}; width:${textArea.css('width')}; height:${textArea.css('height')}; padding:${textArea.css('padding')}; overflow-y:auto; background-color:var(--bs-modal-bg);">${formatted}</div>`;
+        textArea.parent().children(`label[for=${textAreaName}]`).append(overlayDiv);
+    }
+}
+function setMarkDownStickerNotes() {
+    var stickerContainers = $(".stickerNote");
+    if (stickerContainers.length > 0) {
+        stickerContainers.map((index, elem) => {
+            let originalStickerNote = $(elem).html().trim();
+            let markDownStickerNote = markdown(originalStickerNote);
+            $(elem).html(markDownStickerNote);
+        });
+    }
+}
+function showLinks(e) {
+    var textAreaName = $(e.parentElement).attr("for");
+    toggleMarkDownOverlay(textAreaName);
+}
+function printTab() {
+    setTimeout(function () {
+        window.print();
+    }, 500);
+}
+function printContainer(htmlData) {
+    // Asegurar limpieza de estados modales o backdrop de SweetAlert2
+    $('body').removeClass('swal2-shown swal2-height-auto');
+    $('.swal2-container').remove();
+    $('[aria-hidden]').removeAttr('aria-hidden');
+
+    // Crear un iframe aislado para imprimir limpiamente sin conflictos de pantalla ni modo oscuro
+    var frameId = 'lubelogger_print_frame';
+    $('#' + frameId).remove();
+    var iframe = document.createElement('iframe');
+    iframe.id = frameId;
+    iframe.name = frameId;
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    var frameDoc = iframe.contentWindow || iframe.contentDocument;
+    if (frameDoc.document) frameDoc = frameDoc.document;
+
+    frameDoc.open();
+    frameDoc.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>${document.title || 'Informe de Mantenimiento'}</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap-icons.css" />
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-sizing: border-box;
+        }
+        html, body {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+            margin: 0;
+            padding: 12px;
+        }
+        .lubelogger-logo {
+            max-height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+        .display-6 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #111827 !important;
+        }
+        .lead {
+            font-size: 0.95rem;
+            color: #374151 !important;
+        }
+        .list-group {
+            border-radius: 6px;
+        }
+        .list-group-item {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            padding: 0.45rem 0.75rem;
+        }
+        .table {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .table th {
+            background-color: #f3f4f6 !important;
+            color: #111827 !important;
+            font-weight: 600;
+            border: 1px solid #d1d5db !important;
+            border-bottom: 2px solid #9ca3af !important;
+            padding: 6px 10px;
+        }
+        .table td {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            padding: 6px 10px;
+        }
+        .table tr {
+            page-break-inside: avoid;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #d1d5db;
+            margin: 0.85rem 0;
+            opacity: 1;
+        }
+        .lubelogger-report-banner {
+            font-size: 11px;
+            color: #6b7280 !important;
+            text-align: center;
+            padding-top: 8px;
+        }
+        @media print {
+            @page {
+                margin: 1.2cm;
+                size: auto;
+            }
+            body {
+                padding: 0;
+            }
+            .showOnPrint {
+                display: block !important;
+            }
+            .hideOnPrint {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    ${htmlData}
+</body>
+</html>`);
+    frameDoc.close();
+
+    // Tiempo prudente para que el DOM y estilos del iframe se evalúen antes de imprimir
+    setTimeout(function () {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(function () {
+            $('#' + frameId).remove();
+        }, 2000);
+    }, 350);
+}
+function printTabStickers(ids, source) {
+    var vehicleId = GetVehicleId().vehicleId;
+    $.post('/Vehicle/PrintRecordStickers', {
+        vehicleId: vehicleId,
+        recordIds: ids,
+        importMode: source
+    }, function (data) {
+        if (isOperationResponse(data)) {
+            return;
+        }
+        else if (data) {
+            printContainer(data);
+        }
+    })
+}
+function getAndValidateCSVExportParameter() {
+    let tagFilterMode = $("#tagSelector").val();
+    let tagsToFilter = $("#tagSelectorInput").val();
+    let filterByDateRange = $("#dateRangeSelector").is(":checked");
+    let startDate = $("#dateRangeStartDate").val();
+    let endDate = $("#dateRangeEndDate").val();
+    let hasValidationError = false;
+    let validationErrorMessage = "";
+    if (filterByDateRange) {
+        //validate date range
+        let startDateTicks = $("#dateRangeStartDate").datepicker('getDate')?.getTime();
+        let endDateTicks = $("#dateRangeEndDate").datepicker('getDate')?.getTime();
+        if (!startDateTicks || !endDateTicks || startDateTicks > endDateTicks) {
+            hasValidationError = true;
+            validationErrorMessage = "Invalid date range";
+        }
+    }
+    if (hasValidationError) {
+        return {
+            hasError: true,
+            errorMessage: validationErrorMessage,
+            tagFilter: tagFilterMode,
+            tags: [],
+            filterByDateRange: filterByDateRange,
+            starDate: '',
+            endDate: ''
+        }
+    } else {
+        return {
+            hasError: false,
+            errorMessage: '',
+            tagFilter: tagFilterMode,
+            tags: tagsToFilter,
+            filterByDateRange: filterByDateRange,
+            startDate: startDate,
+            endDate: endDate
+        }
+    }
+}
+function toggleCSVExportParameters() {
+    if ($(".csv-export-parameters").hasClass("d-none")) {
+        $(".csv-export-parameters").removeClass("d-none");
+    } else {
+        $(".csv-export-parameters").addClass("d-none");
+    }
+}
+function getSavedCSVExportParameters(mode) {
+    var vehicleId = GetVehicleId().vehicleId;
+    let savedCsvExportParameters = sessionStorage.getItem(`${vehicleId}_csvExportParameters_${mode}`);
+    if (savedCsvExportParameters != null) {
+        savedCsvExportParameters = JSON.parse(savedCsvExportParameters);
+        $("#tagSelector").val(savedCsvExportParameters.tagFilter);
+        savedCsvExportParameters.tags.map(x => {
+            $("#tagSelectorInput").append(`<option value='${x}'>${x}</option>`)
+        });
+        $("#dateRangeSelector").prop('checked', savedCsvExportParameters.filterByDateRange);
+        $("#dateRangeStartDate").val(savedCsvExportParameters.startDate);
+        $("#dateRangeEndDate").val(savedCsvExportParameters.endDate);
+        if (savedCsvExportParameters.tags.length > 0 || savedCsvExportParameters.filterByDateRange) {
+            $("#csvExportParameterToggle").trigger('click');
+        }
+    }
+}
+function exportVehicleData(mode) {
+    var vehicleId = GetVehicleId().vehicleId;
+    let bypassRecordTypes = ['PlanRecord', 'EquipmentRecord'];
+    if (!bypassRecordTypes.includes(mode)) {
+        $.get('/Vehicle/GetCSVExportParameters', function (paramData) {
+            if (paramData) {
+                Swal.fire({
+                    html: paramData,
+                    confirmButtonText: 'Generate CSV Export',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        //validate
+                        var exportParamsData = getAndValidateCSVExportParameter();
+                        if (exportParamsData.hasError) {
+                            Swal.showValidationMessage(exportParamsData.errorMessage);
+                        }
+                        return { exportParamsData };
+                    },
+                    didOpen: () => {
+                        getSavedCSVExportParameters(mode);
+                        initTagSelector($("#tagSelectorInput"));
+                        initDatePicker($('#dateRangeStartDate'));
+                        initDatePicker($('#dateRangeEndDate'));
+                    }
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        sessionStorage.setItem(`${vehicleId}_csvExportParameters_${mode}`, JSON.stringify(result.value.exportParamsData));
+                        $.post('/Vehicle/ExportFromVehicleToCsv', { vehicleId: vehicleId, mode: mode, exportParameters: result.value.exportParamsData }, function (data) {
+                            if (isOperationResponse(data)) {
+                                return;
+                            }
+                            else if (data) {
+                                window.location.href = data;
+                            }
+                        });
+                    }
+                })
+            }
+        })
+    }
+    else {
+        $.post('/Vehicle/ExportFromVehicleToCsv', { vehicleId: vehicleId, mode: mode }, function (data) {
+            if (isOperationResponse(data)) {
+                return;
+            }
+            else if (data) {
+                window.location.href = data;
+            }
+        });
+    }
+}
+function showBulkImportModal(mode) {
+    $.get(`/Vehicle/GetBulkImportModalPartialView?mode=${mode}`, function (data) {
+        if (data) {
+            $("#bulkImportModalContent").html(data);
+            $("#bulkImportModal").modal('show');
+        }
+    })
+}
+function hideBulkImportModal() {
+    $("#bulkImportModal").modal('hide');
+}
+function getAndValidateExtraFields() {
+    var hasError = false;
+    var outputData = [];
+    //get extra fields in modal that is currently open.
+    var extraFieldsVisible = $(".modal.fade.show").find(".extra-field");
+    extraFieldsVisible.map((index, elem) => {
+        var extraFieldName = $(elem).children("label").text();
+        var extraFieldInput = $(elem).find("input");
+        var extraFieldValue = extraFieldInput.val();
+        var extraFieldIsRequired = extraFieldInput.hasClass('extra-field-required');
+        if (extraFieldIsRequired && extraFieldValue.trim() == '') {
+            hasError = true;
+            extraFieldInput.addClass("is-invalid");
+        } else {
+            extraFieldInput.removeClass("is-invalid");
+        }
+        //only push fields with value in them
+        if (extraFieldValue.trim() != '') {
+            outputData.push({ name: extraFieldName, value: extraFieldValue, isRequired: extraFieldIsRequired });
+        }
+    });
+    return { hasError: hasError, extraFields: outputData };
+}
+function toggleSupplyUsageHistory() {
+    var container = $("#supplyUsageHistoryModalContainer");
+    if (container.hasClass("d-none")) {
+        container.removeClass("d-none");
+    } else {
+        container.addClass("d-none");
+    }
+}
+function moveRecords(ids, source, dest) {
+    if (ids.length == 0) {
+        return;
+    }
+    $("#workAroundInput").show();
+    var friendlySource = "";
+    var friendlyDest = "";
+    var refreshDataCallBack;
+    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
+    switch (source) {
+        case "ServiceRecord":
+            friendlySource = "Service Records";
+            refreshDataCallBack = getVehicleServiceRecords;
+            break;
+        case "RepairRecord":
+            friendlySource = "Repairs";
+            refreshDataCallBack = getVehicleCollisionRecords;
+            break;
+        case "UpgradeRecord":
+            friendlySource = "Upgrades";
+            refreshDataCallBack = getVehicleUpgradeRecords;
+            break;
+    }
+    switch (dest) {
+        case "ServiceRecord":
+            friendlyDest = "Service Records";
+            break;
+        case "RepairRecord":
+            friendlyDest = "Repairs";
+            break;
+        case "UpgradeRecord":
+            friendlyDest = "Upgrades";
+            break;
+    }
+
+    Swal.fire({
+        title: "Confirm Move?",
+        text: `Move ${recordVerbiage} from ${friendlySource} to ${friendlyDest}?`,
+        showCancelButton: true,
+        confirmButtonText: "Move",
+        confirmButtonColor: "#dc3545"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('/Vehicle/MoveRecords', { recordIds: ids, source: source, destination: dest }, function (data) {
+                if (data.success) {
+                    successToast(`${ids.length} Record(s) Moved`);
+                    var vehicleId = GetVehicleId().vehicleId;
+                    refreshDataCallBack(vehicleId);
+                } else {
+                    errorToast(data.message);
+                    $("#workAroundInput").hide();
+                }
+            });
+        } else {
+            $("#workAroundInput").hide();
+        }
+    });
+}
+function deleteRecords(ids, source) {
+    if (ids.length == 0) {
+        return;
+    }
+    $("#workAroundInput").show();
+    var friendlySource = "";
+    var refreshDataCallBack;
+    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
+    switch (source) {
+        case "ServiceRecord":
+            friendlySource = "Service Records";
+            refreshDataCallBack = getVehicleServiceRecords;
+            break;
+        case "RepairRecord":
+            friendlySource = "Repairs";
+            refreshDataCallBack = getVehicleCollisionRecords;
+            break;
+        case "UpgradeRecord":
+            friendlySource = "Upgrades";
+            refreshDataCallBack = getVehicleUpgradeRecords;
+            break;
+        case "TaxRecord":
+            friendlySource = "Taxes";
+            refreshDataCallBack = getVehicleTaxRecords;
+            break;
+        case "SupplyRecord":
+            friendlySource = "Supplies";
+            refreshDataCallBack = getVehicleSupplyRecords;
+            break;
+        case "NoteRecord":
+            friendlySource = "Notes";
+            refreshDataCallBack = getVehicleNotes;
+            break;
+        case "OdometerRecord":
+            friendlySource = "Odometer Records";
+            refreshDataCallBack = getVehicleOdometerRecords;
+            break;
+        case "ReminderRecord":
+            friendlySource = "Reminders";
+            refreshDataCallBack = getVehicleReminders;
+            break;
+        case "GasRecord":
+            friendlySource = "Fuel Records";
+            refreshDataCallBack = getVehicleGasRecords;
+            break;
+        case "InspectionRecord":
+            friendlySource = "Inspection Records";
+            refreshDataCallBack = getVehicleInspectionRecords;
+            break;
+        case "EquipmentRecord":
+            friendlySource = "Equipment Records";
+            refreshDataCallBack = getVehicleEquipmentRecords;
+            break;
+    }
+
+    confirmDelete(`Delete ${recordVerbiage} from ${friendlySource}?`, (result) => {
+        if (result.isConfirmed) {
+            $.post('/Vehicle/DeleteRecords', { recordIds: ids, importMode: source }, function (data) {
+                if (data.success) {
+                    successToast(`${ids.length} Record(s) Deleted`);
+                    var vehicleId = GetVehicleId().vehicleId;
+                    refreshDataCallBack(vehicleId);
+                } else {
+                    errorToast(data.message);
+                    $("#workAroundInput").hide();
+                }
+            });
+        } else {
+            $("#workAroundInput").hide();
+        }
+    });
+}
+function duplicateRecords(ids, source) {
+    if (ids.length == 0) {
+        return;
+    }
+    $("#workAroundInput").show();
+    var friendlySource = "";
+    var refreshDataCallBack;
+    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
+    switch (source) {
+        case "ServiceRecord":
+            friendlySource = "Service Records";
+            refreshDataCallBack = getVehicleServiceRecords;
+            break;
+        case "RepairRecord":
+            friendlySource = "Repairs";
+            refreshDataCallBack = getVehicleCollisionRecords;
+            break;
+        case "UpgradeRecord":
+            friendlySource = "Upgrades";
+            refreshDataCallBack = getVehicleUpgradeRecords;
+            break;
+        case "TaxRecord":
+            friendlySource = "Taxes";
+            refreshDataCallBack = getVehicleTaxRecords;
+            break;
+        case "SupplyRecord":
+            friendlySource = "Supplies";
+            refreshDataCallBack = getVehicleSupplyRecords;
+            break;
+        case "NoteRecord":
+            friendlySource = "Notes";
+            refreshDataCallBack = getVehicleNotes;
+            break;
+        case "OdometerRecord":
+            friendlySource = "Odometer Records";
+            refreshDataCallBack = getVehicleOdometerRecords;
+            break;
+        case "ReminderRecord":
+            friendlySource = "Reminders";
+            refreshDataCallBack = getVehicleReminders;
+            break;
+        case "GasRecord":
+            friendlySource = "Fuel Records";
+            refreshDataCallBack = getVehicleGasRecords;
+            break;
+        case "PlanRecord":
+            friendlySource = "Plan";
+            refreshDataCallBack = getVehiclePlanRecords;
+            break;
+        case "InspectionRecord":
+            friendlySource = "Inspection Record";
+            refreshDataCallBack = hideInspectionRecordTemplateModal;
+            break;
+        case "EquipmentRecord":
+            friendlySource = "Equipment Records";
+            refreshDataCallBack = getVehicleEquipmentRecords;
+            break;
+    }
+
+    Swal.fire({
+        title: "Confirm Duplicate?",
+        text: `Duplicate ${recordVerbiage}?`,
+        showCancelButton: true,
+        confirmButtonText: "Duplicate",
+        confirmButtonColor: "#dc3545"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('/Vehicle/DuplicateRecords', { recordIds: ids, importMode: source }, function (data) {
+                if (data.success) {
+                    successToast(`${ids.length} Record(s) Duplicated`);
+                    var vehicleId = GetVehicleId().vehicleId;
+                    refreshDataCallBack(vehicleId);
+                } else {
+                    errorToast(data.message);
+                    $("#workAroundInput").hide();
+                }
+            });
+        } else {
+            $("#workAroundInput").hide();
+        }
+    });
+}
+function duplicateRecordsToOtherVehicles(ids, source) {
+    if (ids.length == 0) {
+        return;
+    }
+    $("#workAroundInput").show();
+    var friendlySource = "";
+    var refreshDataCallBack;
+    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
+    switch (source) {
+        case "ServiceRecord":
+            friendlySource = "Service Records";
+            refreshDataCallBack = getVehicleServiceRecords;
+            break;
+        case "RepairRecord":
+            friendlySource = "Repairs";
+            refreshDataCallBack = getVehicleCollisionRecords;
+            break;
+        case "UpgradeRecord":
+            friendlySource = "Upgrades";
+            refreshDataCallBack = getVehicleUpgradeRecords;
+            break;
+        case "TaxRecord":
+            friendlySource = "Taxes";
+            refreshDataCallBack = getVehicleTaxRecords;
+            break;
+        case "SupplyRecord":
+            friendlySource = "Supplies";
+            refreshDataCallBack = getVehicleSupplyRecords;
+            break;
+        case "NoteRecord":
+            friendlySource = "Notes";
+            refreshDataCallBack = getVehicleNotes;
+            break;
+        case "OdometerRecord":
+            friendlySource = "Odometer Records";
+            refreshDataCallBack = getVehicleOdometerRecords;
+            break;
+        case "ReminderRecord":
+            friendlySource = "Reminders";
+            refreshDataCallBack = getVehicleReminders;
+            break;
+        case "GasRecord":
+            friendlySource = "Fuel Records";
+            refreshDataCallBack = getVehicleGasRecords;
+            break;
+        case "PlanRecord":
+            friendlySource = "Plan";
+            refreshDataCallBack = getVehiclePlanRecords;
+            break;
+        case "InspectionRecord":
+            friendlySource = "Inspection Record";
+            refreshDataCallBack = hideInspectionRecordTemplateModal;
+            break;
+        case "EquipmentRecord":
+            friendlySource = "Equipment Records";
+            refreshDataCallBack = getVehicleEquipmentRecords;
+            break;
+    }
+
+    $.get(`/Home/GetVehicleSelector?vehicleId=${GetVehicleId().vehicleId}&importMode=${source}`, function (data) {
+        if (data) {
+            //prompt user to select a vehicle
+            Swal.fire({
+                title: 'Duplicate to Vehicle(s)',
+                html: data,
+                confirmButtonText: 'Duplicate',
+                focusConfirm: false,
+                preConfirm: () => {
+                    //validate
+                    var selectedVehicleData = getAndValidateSelectedVehicle();
+                    if (selectedVehicleData.hasError) {
+                        Swal.showValidationMessage(`You must select a vehicle`);
+                    }
+                    return { selectedVehicleData }
+                },
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    $.post('/Vehicle/DuplicateRecordsToOtherVehicles', { recordIds: ids, vehicleIds: result.value.selectedVehicleData.ids, importMode: source}, function (data) {
+                        if (data.success) {
+                            successToast(`${ids.length} Record(s) Duplicated`);
+                        } else {
+                            errorToast(data.message);
+                        }
+                    });
+                }
+            });
+        } else {
+            errorToast(genericErrorMessage());
+        }
+    })
+}
+function insertOdometer(ids, source) {
+    if (ids.length == 0) {
+        return;
+    }
+    $("#workAroundInput").show();
+    var friendlySource = "";
+    var refreshDataCallBack;
+    var recordVerbiage = ids.length > 1 ? `these ${ids.length} records` : "this record";
+    switch (source) {
+        case "ServiceRecord":
+            friendlySource = "Service Records";
+            refreshDataCallBack = getVehicleServiceRecords;
+            break;
+        case "RepairRecord":
+            friendlySource = "Repairs";
+            refreshDataCallBack = getVehicleCollisionRecords;
+            break;
+        case "UpgradeRecord":
+            friendlySource = "Upgrades";
+            refreshDataCallBack = getVehicleUpgradeRecords;
+            break;
+        case "GasRecord":
+            friendlySource = "Fuel Records";
+            refreshDataCallBack = getVehicleGasRecords;
+            break;
+    }
+
+    Swal.fire({
+        title: "Create Odometer Records?",
+        text: `Create Odometer Records based on ${recordVerbiage}?`,
+        showCancelButton: true,
+        confirmButtonText: "Create",
+        confirmButtonColor: "#dc3545"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post('/Vehicle/BulkCreateOdometerRecords', { recordIds: ids, importMode: source }, function (data) {
+                if (data.success) {
+                    successToast(`${ids.length} Odometer Record(s) Created`);
+                    var vehicleId = GetVehicleId().vehicleId;
+                    refreshDataCallBack(vehicleId);
+                } else {
+                    errorToast(data.message);
+                    $("#workAroundInput").hide();
+                }
+            });
+        } else {
+            $("#workAroundInput").hide();
+        }
+    });
+}
+var selectedRow = [];
+var isDragging = false;
+$(window).on('mouseup', function (e) {
+    rangeMouseUp(e);
+});
+$(window).on('mousedown', function (e) {
+    rangeMouseDown(e);
+});
+$(window).on('keydown', function (e) {
+    var userOnInput = $(e.target).is("input") || $(e.target).is("textarea");
+    if (!userOnInput) {
+        if ((e.ctrlKey || e.metaKey) && e.which == 65) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectAllRows();
+            selectAllVehicles();
+        }
+    }
+});
+function getCurrentTab() {
+    return $(".tab-pane.active.show").attr('id');
+}
+function selectAllRows() {
+    clearSelectedRows();
+    $('.vehicleDetailTabContainer .table tbody tr:visible').addClass('table-active');
+    $('.vehicleDetailTabContainer .table tbody tr:visible').map((index, elem) => {
+        addToSelectedRows($(elem).attr('data-rowId'));
+    });
+}
+function selectAllVehicles() {
+    clearSelectedVehicles();
+    $('.garage-item:visible').addClass('garage-active');
+    $('.garage-item:visible').map((index, elem) => {
+        addToSelectedVehicles($(elem).attr('data-rowId'));
+    });
+}
+function rangeMouseDown(e) {
+    if (isRightClick(e)) {
+        return;
+    }
+    var contextMenuAction = $(e.target).parents(".table-context-menu > li > .dropdown-item").length > 0 || $(e.target).is(".table-context-menu > li > .dropdown-item") || $(e.target).parents(".garage-context-menu > li > .dropdown-item").length > 0 || $(e.target).is(".garage-context-menu > li > .dropdown-item");
+    var selectMode = $("#chkSelectMode").length > 0 ? $("#chkSelectMode").is(":checked") : false;
+    if (!(e.ctrlKey || e.metaKey || e.shiftKey || selectMode) && !contextMenuAction) {
+        clearSelectedRows();
+        clearSelectedVehicles();
+    }
+    isDragging = true;
+
+    document.documentElement.onselectstart = function () { return false; };
+}
+function isRightClick(e) {
+    if (e.which) {
+        return (e.which == 3);
+    } else if (e.button) {
+        return (e.button == 2);
+    }
+    return false;
+}
+function stopEvent() {
+    if (isDragging) {
+        isDragging = false;
+    }
+    event.stopPropagation();
+}
+function rangeMouseUp(e) {
+    if (isRightClick(e)) {
+        return;
+    }
+    if ($(".table-context-menu").length > 0) {
+        $(".table-context-menu").fadeOut("fast");
+    }
+    if ($(".garage-context-menu").length > 0) {
+        $(".garage-context-menu").fadeOut("fast");
+    }
+    isDragging = false;
+    document.documentElement.onselectstart = function () { return true; };
+}
+function rangeMouseMove(e) {
+    if (isDragging) {
+        if (!$(e).hasClass('table-active')) {
+            addToSelectedRows($(e).attr('data-rowId'));
+            $(e).addClass('table-active');
+        }
+    }
+}
+function addToSelectedRows(id) {
+    if (selectedRow.findIndex(x => x == id) == -1) {
+        selectedRow.push(id);
+    }
+}
+function removeFromSelectedRows(id) {
+    var rowIndex = selectedRow.findIndex(x => x == id)
+    if (rowIndex != -1) {
+        selectedRow.splice(rowIndex, 1);
+    }
+}
+function clearSelectedRows() {
+    selectedRow = [];
+    $('.table tr').removeClass('table-active');
+}
+function clearSelectedVehicles() {
+    selectedVehicles = [];
+    $('.garage-item').removeClass('garage-active');
+}
+function getDeviceIsTouchOnly() {
+    if (navigator.maxTouchPoints > 0 && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches) {
+        return true;
+    } else {
+        return false;
+    }
+}
+function showTableContextMenu(e) {
+    if (event != undefined) {
+        event.preventDefault();
+    }
+    if (getDeviceIsTouchOnly()) {
+        return;
+    }
+    if (!$(e).hasClass('table-active')) {
+        clearSelectedRows();
+        addToSelectedRows($(e).attr('data-rowId'));
+        $(e).addClass('table-active');
+    }
+    $(".table-context-menu").fadeIn("fast");
+    determineContextMenuItems();
+    $(".table-context-menu").css({
+        left: getMenuPosition(event.clientX, 'width', 'scrollLeft'),
+        top: getMenuPosition(event.clientY, 'height', 'scrollTop')
+    });
+}
+function determineContextMenuItems() {
+    var tableRows = $('.table tbody tr:visible');
+    var tableRowsActive = $('.table tr.table-active');
+    if (tableRowsActive.length == 1) {
+        //only one row selected
+        $(".context-menu-active-single").show();
+        $(".context-menu-active-multiple").hide();
+    } else if (tableRowsActive.length > 1) {
+        //multiple rows selected
+        $(".context-menu-active-single").hide();
+        $(".context-menu-active-multiple").show();
+    } else {
+        //nothing was selected, bug case.
+        $(".context-menu-active-single").hide();
+        $(".context-menu-active-multiple").hide();
+    }
+    if (tableRows.length > 1) {
+        $(".context-menu-multiple").show();
+        if (tableRows.length == tableRowsActive.length) {
+            //all rows are selected, show deselect all button.
+            $(".context-menu-deselect-all").show();
+            $(".context-menu-select-all").hide();
+        } else if (tableRows.length != tableRowsActive.length) {
+            //not all rows are selected, show select all button.
+            $(".context-menu-select-all").show();
+            $(".context-menu-deselect-all").hide();
+        }
+    } else {
+        $(".context-menu-multiple").hide();
+    }
+    if (GetVehicleId().hasOdometerAdjustment) {
+        $(".context-menu-odometer-adjustment").show();
+    } else {
+        $(".context-menu-odometer-adjustment").hide();
+    }
+}
+function getMenuPosition(mouse, direction, scrollDir) {
+    var win = $(window)[direction](),
+        scroll = $(window)[scrollDir](),
+        menu = $(".table-context-menu")[direction](),
+        position = mouse + scroll;
+
+    // opening menu would pass the side of the page
+    if (mouse + menu > win && menu < mouse)
+        position -= menu;
+    return position;
+}
+function getGarageMenuPosition(mouse, direction, scrollDir) {
+    var win = $(window)[direction](),
+        scroll = $(window)[scrollDir](),
+        menu = $(".garage-context-menu")[direction](),
+        position = mouse + scroll;
+
+    // opening menu would pass the side of the page
+    if (mouse + menu > win && menu < mouse)
+        position -= menu;
+    return position;
+}
+function selectEveryRowInBetween(rowId) {
+    if (selectedRow.length == 0) {
+        let startRow = $(`[data-rowId='${rowId}'`);
+        startRow.addClass('table-active');
+        addToSelectedRows(rowId);
+    }
+    else {
+        let lastSelectedRowId = selectedRow[0];
+        if (lastSelectedRowId == rowId) {
+            clearSelectedRows();
+            let startRow = $(`[data-rowId='${lastSelectedRowId}'`);
+            startRow.addClass('table-active');
+            addToSelectedRows(lastSelectedRowId);
+            return;
+        }
+        clearSelectedRows();
+        let startRow = $(`[data-rowId='${lastSelectedRowId}'`);
+        startRow.addClass('table-active');
+        addToSelectedRows(lastSelectedRowId);
+        let startIndex = startRow.index();
+        let endIndex = $(`[data-rowId='${rowId}'`).index();
+        if (startIndex > endIndex) {
+            for (let i = endIndex; i < startIndex; i++) {
+                $('.vehicleDetailTabContainer .table tbody tr').eq(i).map((index, elem) => {
+                    if ($(elem).is(':visible')) {
+                        $(elem).addClass('table-active');
+                        addToSelectedRows($(elem).attr('data-rowId'));
+                    }
+                });
+            }
+        } else {
+            for (let i = endIndex; i > startIndex; i--) {
+                $('.vehicleDetailTabContainer .table tbody tr').eq(i).map((index, elem) => {
+                    if ($(elem).is(':visible')) {
+                        $(elem).addClass('table-active');
+                        addToSelectedRows($(elem).attr('data-rowId'));
+                    }
+                });
+            }
+        }
+    }
+}
+function handleTableRowClick(e, callBack, rowId) {
+    if ($("#vehicleViewContainer").hasClass("user-read-only")) {
+        return;
+    }
+    var selectMode = $("#chkSelectMode").length > 0 ? $("#chkSelectMode").is(":checked") : false;
+    if (!(event.ctrlKey || event.metaKey || event.shiftKey || selectMode)) {
+        callBack(rowId);
+    } else if (event.shiftKey) {
+        selectEveryRowInBetween($(e).attr('data-rowId'));
+    }
+    else if (!$(e).hasClass('table-active')) {
+        addToSelectedRows($(e).attr('data-rowId'));
+        $(e).addClass('table-active');
+    } else if ($(e).hasClass('table-active')) {
+        removeFromSelectedRows($(e).attr('data-rowId'));
+        $(e).removeClass('table-active');
+    }
+}
+
+function showTableContextMenuForMobile(e, xPosition, yPosition) {
+    if (!$(e).hasClass('table-active')) {
+        addToSelectedRows($(e).attr('data-rowId'));
+        $(e).addClass('table-active');
+        shakeTableRow(e);
+    } else {
+        $(".table-context-menu").fadeIn("fast");
+        determineContextMenuItems();
+        $(".table-context-menu").css({
+            left: getMenuPosition(xPosition, 'width', 'scrollLeft'),
+            top: getMenuPosition(yPosition, 'height', 'scrollTop')
+        });
+    }
+}
+function shakeTableRow(e) {
+    $(e).addClass('tablerow-shake');
+    setTimeout(function () { $(e).removeClass('tablerow-shake'); }, 1200)
+}
+var rowTouchTimer;
+var rowTouchDuration = 800;
+function detectRowLongTouch(sender) {
+    var touchX = event.touches[0].clientX;
+    var touchY = event.touches[0].clientY;
+    if (!rowTouchTimer) {
+        rowTouchTimer = setTimeout(function () { showTableContextMenuForMobile(sender, touchX, touchY); detectRowTouchEndPremature(sender); }, rowTouchDuration);
+    }
+}
+function detectRowTouchEndPremature(sender) {
+    if (rowTouchTimer) {
+        clearTimeout(rowTouchTimer);
+        rowTouchTimer = null;
+    }
+}
+function handleSupplyAddCostKeyDown(event) {
+    handleSwalEnter(event);
+    interceptDecimalKeys(event);
+}
+function replenishSupplies() {
+    Swal.fire({
+        title: 'Replenish Supplies',
+        html: `
+                            <input type="text" id="inputSupplyAddQuantity" class="swal2-input" placeholder="Quantity" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)">
+                            <br />
+                            <input type="text" id="inputSupplyAddCost" class="swal2-input" placeholder="Cost" onkeydown="handleSupplyAddCostKeyDown(event)" onkeyup="fixDecimalInput(this, 2)">
+                            <br />
+                            <span class='small'>leave blank to use unit cost calculation</span>
+              `,
+        confirmButtonText: 'Replenish',
+        focusConfirm: false,
+        preConfirm: () => {
+            const replquantity = globalParseFloat($("#inputSupplyAddQuantity").val());
+            const replcost = $("#inputSupplyAddCost").val();
+            const parsedReplCost = globalParseFloat(replcost);
+            var quantitybeforeRepl = globalParseFloat($('#supplyRecordQuantity').val());
+            if (isNaN(replquantity) || (replcost.trim() != '' && isNaN(parsedReplCost))) {
+                Swal.showValidationMessage(`Please enter a valid quantity and cost`);
+            } else if (replcost.trim() == '' && (isNaN(quantitybeforeRepl) || quantitybeforeRepl == 0)) {
+                Swal.showValidationMessage(`Unable to use unit cost calculation, please provide cost`);
+            }
+            return { replquantity, replcost, parsedReplCost }
+        },
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            var replenishedCost = result.value.replcost;
+            var parsedReplenishedCost = result.value.parsedReplCost;
+            var replenishedQuantity = result.value.replquantity;
+            var currentCost = globalParseFloat($('#supplyRecordCost').val())
+            if (isNaN(currentCost)) {
+                currentCost = 0;
+            }
+            var currentQuantity = globalParseFloat($('#supplyRecordQuantity').val());
+            if (isNaN(currentQuantity)) {
+                currentQuantity = 0;
+            }
+            var newQuantity = currentQuantity + replenishedQuantity;
+            if (replenishedCost.trim() == '' && currentCost > 0 && currentQuantity > 0) {
+
+                var unitCost = currentCost / currentQuantity;
+                var newCost = newQuantity * unitCost;
+                //set text fields.
+                $('#supplyRecordCost').val(globalFloatToString(newCost.toFixed(3).toString()));
+                $('#supplyRecordQuantity').val(globalFloatToString(newQuantity.toFixed(3).toString()));
+            } else {
+                var newCost = currentCost + parsedReplenishedCost;
+                //set text fields.
+                $('#supplyRecordCost').val(globalFloatToString(newCost.toFixed(3).toString()));
+                $('#supplyRecordQuantity').val(globalFloatToString(newQuantity.toFixed(3).toString()));
+            }
+        }
+    });
+}
+function showTableColumns(e, tabName) {
+    //logic for extra field since we dont hardcode the data-column type
+    var showColumn = $(e).is(':checked');
+    var columnName = $(e).attr('data-column-toggle');
+    if (showColumn) {
+        $(`[data-column='${columnName}']`).show();
+    } else {
+        $(`[data-column='${columnName}']`).hide();
+    }
+    saveUserColumnPreferences(tabName);
+}
+function searchTableRows(tabName) {
+    Swal.fire({
+        title: 'Search Records',
+        html: `
+                            <input type="text" id="inputSearch" class="swal2-input" placeholder="Keyword" onkeydown="handleSwalEnter(event)">
+                            `,
+        confirmButtonText: 'Search',
+        focusConfirm: false,
+        preConfirm: () => {
+            const searchString = $("#inputSearch").val();
+            return { searchString }
+        },
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            var rowData = $(`#${tabName} table tbody tr`);
+            var filteredRows = $(`#${tabName} table tbody tr td:containsNC('${result.value.searchString}')`).parent();
+            var splitSearchString = result.value.searchString.split('=');
+            if (result.value.searchString.includes('=') && splitSearchString.length == 2) {
+                //column specific search.
+                //get column index
+                var columns = $(`#${tabName} table th`).toArray().map(x => x.innerText);
+                var columnName = splitSearchString[0];
+                var colSearchString = splitSearchString[1];
+                var colIndex = columns.findIndex(x => x == columnName) + 1;
+                filteredRows = $(`#${tabName} table tbody tr td:nth-child(${colIndex}):containsNC('${colSearchString}')`).parent();
+            }
+            if (result.value.searchString.trim() == '') {
+                rowData.removeClass('override-hide');
+            } else {
+                rowData.addClass('override-hide');
+                filteredRows.removeClass('override-hide');
+            }
+            $(".tagfilter.bg-primary").addClass('bg-secondary').removeClass('bg-primary');
+            updateAggregateLabels();
+        }
+    });
+}
+function loadUserColumnPreferences(columns, order) {
+    if (columns.length == 0) {
+        //user has no preference saved, reset to default
+        return;
+    }
+    //uncheck all columns
+    $(".col-visible-toggle").prop("checked", false);
+    //hide all columns
+    $('[data-column]').hide();
+    //toggle visibility of each column
+    columns.map(x => {
+        var defaultColumn = $(`[data-column-toggle='${x}'].col-visible-toggle`);
+        if (defaultColumn.length > 0) {
+            defaultColumn.prop("checked", true); 
+        }
+        $(`[data-column='${x}']`).show();
+    });
+    order.map((x, y) => {
+        //re-order items in menu
+        var itemToMove = $(`[data-column-toggle='${x}'].col-visible-toggle`).closest('.dropdown-item');
+        var itemCurrentlyInPosition = $('.dropdown-item[draggable="true"]')[y];
+        if (itemToMove != undefined && itemToMove.length > 0 && itemCurrentlyInPosition != undefined) {
+            itemToMove.insertBefore(itemCurrentlyInPosition);
+        }
+        //re-order table columns
+        $(`[data-column='${x}']`).css('order', y);
+    });
+}
+function saveUserColumnPreferences(importMode) {
+    var visibleColumns = $('.col-visible-toggle:checked').map((index, elem) => $(elem).attr('data-column-toggle')).toArray();
+    var columnOrder = [];
+    var sortedOrderedColumns = $("ul.dropdown-menu > li[draggable='true']").toArray().sort((a, b) => {
+        var currentVal = $(a).css("order");
+        var nextVal = $(b).css("order");
+        return currentVal - nextVal;
+    });
+    sortedOrderedColumns.map(elem => {
+        var columnOrderName = $(elem).find('.col-visible-toggle').attr("data-column-toggle");
+        if (columnOrderName != null && columnOrderName != undefined) {
+            columnOrder.push(columnOrderName);
+        }
+    });
+    var columnPreference = {
+        tab: importMode,
+        visibleColumns: visibleColumns,
+        columnOrder: columnOrder
+    };
+    $.post('/Vehicle/SaveUserColumnPreferences', { columnPreference: columnPreference }, function (data) {
+        if (!data) {
+            errorToast(genericErrorMessage());
+        }
+    });
+}
+function copyToClipboard(e) {
+    var textToCopy = e.textContent.trim();
+    navigator.clipboard.writeText(textToCopy);
+    successToast("Copied to Clipboard");
+}
+function noPropagation() {
+    event.stopPropagation();
+}
+var checkExist;
+var elemsToCheck = [];
+function waitForElement(element, callBack, callBackParameter) {
+    //if element already exists
+    if ($(`${element}`).length) {
+        callBack(callBackParameter);
+        return;
+    }
+    //element does not exist, add to list
+    elemsToCheck.push({
+        element: element,
+        callBack: callBack,
+        callBackParameter: callBackParameter
+    });
+    if (!checkExist) {
+        checkExist = setInterval(function () {
+            let elemsToRemove = [];
+            elemsToCheck.forEach(x => {
+                if ($(`${x.element}`).length) {
+                    x.callBack(x.callBackParameter);
+                    elemsToRemove.push(x);
+                }
+            });
+            elemsToCheck = elemsToCheck.filter(x => !elemsToRemove.includes(x));
+            if (elemsToCheck.length == 0) {
+                clearInterval(checkExist);
+                checkExist = null;
+            }
+        }, 100); // check every 100ms
+    }
+}
+function bindModalInputChanges(modalName) {
+    //bind text inputs
+    $(`#${modalName} input[type='text'], #${modalName} input[type='number'], #${modalName} textarea`).off('input').on('input', function (e) {
+        $(e.currentTarget).attr('data-changed', true);
+    });
+    $(`#${modalName} select, #${modalName} input[type='checkbox']`).off('input').on('input', function (e) {
+        $(e.currentTarget).attr('data-changed', true);
+    });
+}
+function handleModalPaste(e) {
+    let recordType = getUploaderId().uploaderId;
+    let clipboardFiles = e.clipboardData.files;
+    let acceptableFileFormats = $(`#${recordType}`).attr("accept");
+    let acceptableFileFormatsArray = acceptableFileFormats.split(',');
+    let acceptableFiles = new DataTransfer();
+    if (clipboardFiles.length > 0) {
+        for (var x = 0; x < clipboardFiles.length; x++) {
+            if (acceptableFileFormats != "*") {
+                var fileExtension = `.${clipboardFiles[x].name.split('.').pop()}`;
+                if (acceptableFileFormatsArray.includes(fileExtension)) {
+                    acceptableFiles.items.add(clipboardFiles[x]);
+                }
+            } else {
+                acceptableFiles.items.add(clipboardFiles[x]);
+            }
+        }
+        $(`#${recordType}`)[0].files = acceptableFiles.files;
+        $(`#${recordType}`).trigger('change');
+    }
+}
+function handleEnter(e) {
+    if ((event.ctrlKey || event.metaKey) && event.which == 13) {
+        var saveButton = $(e).parent().find(".modal-footer .btn-primary:not('.d-none')");
+        if (saveButton.length > 0) {
+            saveButton.first().trigger('click');
+        }
+    }
+}
+function handleSwalEnter(e) {
+    if (e.which == 13) {
+        Swal.clickConfirm();
+    }
+}
+function togglePasswordVisibility(elem) {
+    var group = $(elem).closest('.input-group, .auth-input-group');
+    var passwordField = group.find('input');
+    if (!passwordField.length) {
+        passwordField = $(elem).parent().siblings("input");
+    }
+    var passwordButton = $(elem).find('.bi');
+    if (passwordField.attr("type") === "password") {
+        passwordField.attr("type", "text");
+        passwordButton.removeClass('bi-eye').addClass('bi-eye-slash');
+    } else {
+        passwordField.attr("type", "password");
+        passwordButton.removeClass('bi-eye-slash').addClass('bi-eye');
+    }
+}
+var tableColumnDragToReorder = undefined;
+function handleTableColumnDragStart(e) {
+    tableColumnDragToReorder = $(e.target).closest('.dropdown-item');
+    //clear out order attribute.
+    $("ul.dropdown-menu > li[draggable='true']").map((index, elem) => {
+        $(elem).css('order', 0);
+    })
+}
+function handleTableColumnDragOver(e) {
+    if (tableColumnDragToReorder == undefined || tableColumnDragToReorder == "") {
+        return;
+    }
+    var potentialDropTarget = $(e.target).closest('.list-group-item').find('.col-visible-toggle').attr("data-column-toggle");
+    var draggedTarget = tableColumnDragToReorder.find('.col-visible-toggle').attr("data-column-toggle");
+    if (draggedTarget != potentialDropTarget) {
+        var targetObj = $(e.target).closest('.dropdown-item');
+        var draggedOrder = tableColumnDragToReorder.index();
+        var targetOrder = targetObj.index();
+        if (draggedOrder < targetOrder) {
+            tableColumnDragToReorder.insertAfter(targetObj);
+        } else {
+            tableColumnDragToReorder.insertBefore(targetObj);
+        }
+    }
+    else {
+        event.preventDefault();
+    }
+}
+function handleTableColumnDragEnd(tabName) {
+    $("ul.dropdown-menu > li[draggable='true']").map((index, elem) => {
+        $(elem).css('order', $(elem).index());
+        var columnName = $(elem).find('.col-visible-toggle').attr('data-column-toggle');
+        $(`[data-column='${columnName}']`).css('order', $(elem).index());
+    });
+    saveUserColumnPreferences(tabName);
+    tableColumnDragToReorder = undefined;
+    if (isDragging) {
+        isDragging = false;
+    }
+}
+
+function callBackOnEnter(event, callBack) {
+    if (event.keyCode == 13) {
+        callBack();
+    }
+}
+
+function populateLocationField(fieldName) {
+    let populateLocationFieldCallBack = (position) => {
+        $(`#${fieldName}`).val(`${position.coords.latitude},${position.coords.longitude}`)
+    };
+    let populateLocationFieldErrorCallBack = (errMsg) => {
+        if (errMsg && errMsg.code) {
+            switch (errMsg.code) {
+                case 1:
+                    errorToast(errMsg.message);
+                    break;
+                case 2:
+                    errorToast("Location Unavailable");
+                    break;
+            }
+        }
+    };
+    if (navigator.geolocation) {
+        try {
+            navigator.geolocation.getCurrentPosition(populateLocationFieldCallBack, populateLocationFieldErrorCallBack, { maximumAge: 1000, timeout: 4000, enableHighAccuracy: true });
+        } catch (err) {
+            errorToast('Location Services not Enabled');
+        }
+    }
+}
+function toggleUploadFileBrowser() {
+    let uploaderId = getUploaderId().uploaderId;
+    $(`#${uploaderId}`).trigger('click');
+}
+function handlePotentialFileDrop(event) {
+    event.preventDefault();
+    $('.lubelogger-uploader').addClass('solid');
+}
+function handleNoFileDrop(event) {
+    event.preventDefault();
+    $('.lubelogger-uploader').removeClass('solid');
+}
+function handleEndFileDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    $('.lubelogger-uploader').removeClass('solid');
+    let recordType = getUploaderId().uploaderId;
+    let clipboardFiles = event.dataTransfer.files;
+    let acceptableFileFormats = $(`#${recordType}`).attr("accept");
+    let acceptableFileFormatsArray = acceptableFileFormats.split(',');
+    let acceptableFiles = new DataTransfer();
+    if (clipboardFiles.length > 0) {
+        for (var x = 0; x < clipboardFiles.length; x++) {
+            if (acceptableFileFormats != "*") {
+                var fileExtension = `.${clipboardFiles[x].name.split('.').pop()}`;
+                if (acceptableFileFormatsArray.includes(fileExtension)) {
+                    acceptableFiles.items.add(clipboardFiles[x]);
+                }
+            } else {
+                acceptableFiles.items.add(clipboardFiles[x]);
+            }
+        }
+        $(`#${recordType}`)[0].files = acceptableFiles.files;
+        $(`#${recordType}`).trigger('change');
+    }
+}
+function bindNavBarResize() {
+    let resizeObserver = new ResizeObserver((elems) => {
+        let targetElem = $(elems[0].target);
+        checkNavBarOverflow();
+    });
+    resizeObserver.observe(document.querySelector('.lubelogger-navbar'));
+}
+function checkNavBarOverflow() {
+    if ($('.nav-item-more').length === 0) {
+        $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
+        return;
+    }
+    // Show all primary tabs, ensure dropdown items in 'Más' remain visible
+    $('.lubelogger-navbar > .lubelogger-tab > .nav-item').show();
+    $('.nav-item-more > ul > li.nav-item-dropdown-item').show();
+    $('.nav-item-more').show();
+    
+    // Check if icons loaded
+    let iconWidth = `${$('.lubelogger-navbar > .lubelogger-tab > .nav-item .bi').width()}px`;
+    let iconFontSize = $('.lubelogger-navbar > .lubelogger-tab > .nav-item .bi').css('font-size');
+    const removeNavbarItems = () => {
+        let navbarHeight = $('.lubelogger-navbar').height();
+        if (navbarHeight > 54) {
+            let sortedElems = $('.lubelogger-navbar > .lubelogger-tab > .nav-item:visible:not(".nav-item-persist")').toArray().sort((a, b) => {
+                let orderA = parseInt($(a).css('order')) || 0;
+                let orderB = parseInt($(b).css('order')) || 0;
+                return orderA - orderB;
+            });
+            for (let i = sortedElems.length - 1; i > -1; i--) {
+                navbarHeight = $('.lubelogger-navbar').height();
+                if (navbarHeight > 54) {
+                    $(sortedElems[i]).hide();
+                    let hiddenButtonId = $(sortedElems[i]).find('button').attr('id');
+                    let buttonToShow = $(`.nav-item-more > ul > li > #${hiddenButtonId}`).closest('li');
+                    buttonToShow.show();
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+    if (iconWidth != iconFontSize) {
+        setTimeout(() => { checkNavBarOverflow(); }, 500);
+    } else {
+        removeNavbarItems();
+    }
+}
+function openAttachmentPreview(fileName, fileLocation) {
+    $.get('/Files/PreviewFile', { fileName: fileName, fileLocation: fileLocation }, function (data) {
+        $('#attachmentPreviewModalContent').html(data);
+        $('#attachmentPreviewModal').modal('show');
+    });
+}
+function closeAttachmentPreview() {
+    $('#attachmentPreviewModal').modal('hide');
+}
+function setBrowserHistory(param, val) {
+    let currentParams = new URLSearchParams(window.location.search);
+    //early return if the param already matches the val.
+    if (currentParams.get(param) == val && val != '') {
+        return;
+    }
+    if (val == '') {
+        currentParams.delete(param);
+    } else {
+        currentParams.set(param, val);
+    }
+    let updatedURL = `${window.location.origin}${window.location.pathname}?${currentParams.toString()}`;
+    window.history.pushState({}, '', updatedURL);
+}
+function getTabNameForURL(tabName) {
+    return tabName.toLowerCase().split('-')[0];
+}
+function getTabNameFromURL(defaultValue) {
+    let currentParams = new URLSearchParams(window.location.search);
+    let currentTab = currentParams.get('tab');
+    if (currentTab == null || currentTab == undefined || currentTab == '') {
+        return `${defaultValue.toLowerCase()}-tab`;
+    } else {
+        return `${currentTab}-tab`;
+    }
+}
+function stretchedLinkClick(e) {
+    let closestCheckElem = $(e).closest('.form-check').find('.form-check-input');
+    if (closestCheckElem.prop('checked')) {
+        closestCheckElem.prop('checked', false).trigger('change');
+    } else {
+        closestCheckElem.prop('checked', true).trigger('change');
+    }
+}
+function clearModalContentOnHide(modalElem) {
+    modalElem.off('hidden.bs.modal').on('hidden.bs.modal', () => {
+        modalElem.find('.modal-content').html('');
+    });
+}
+function handleAttachmentCopyLink(e) {
+    event.stopPropagation();
+    event.preventDefault();
+    let textToCopy = $(e).attr('data-link');
+    navigator.clipboard.writeText(textToCopy);
+    successToast("Copied Link to Clipboard");
+}
+function isOperationResponse(result) {
+    //checks if response from controller is operationresponse
+    if (result.success != undefined && result.message != undefined) {
+        if (!result.success) {
+            errorToast(result.message);
+        }
+        return true;
+    }
+}
+function toggleSelectMode() {
+    $('#chkSelectMode').trigger('click');
+}
+function checkSelectModeToggle() {
+    if ($('#chkSelectMode').is(':checked')) {
+        $('.select-mode-toggle').removeClass('btn-outline-secondary');
+        $('.select-mode-toggle').addClass('btn-primary');
+    } else {
+        $('.select-mode-toggle').removeClass('btn-primary');
+        $('.select-mode-toggle').addClass('btn-outline-secondary');
+    }
+}
+function showDropDownForRecordNav(sender) {
+    $(sender).off('hide.bs.dropdown');
+    let tableRowsActive = $('.table tr.table-active');
+    let siblingContextMenu = $('.lubelogger-record-nav .record-dropdown');
+    if (!siblingContextMenu.hasClass('show')) {
+        return;
+    }
+    //clear off any existing items
+    if (siblingContextMenu.find('li').length > 0) {
+        siblingContextMenu.find('li').remove();
+    }
+    if (tableRowsActive.length == 0) {
+        //clone menu items
+        let storedMenuItems = $('.lubelogger-record-add .record-dropdown > li');
+        storedMenuItems.map((index, elem) => {
+            siblingContextMenu.append($(elem));
+        });
+        $(sender).on('hide.bs.dropdown', () => {
+            if (siblingContextMenu.find('li').length > 0) {
+                siblingContextMenu.find('li').map((index, elem) => {
+                    $('.lubelogger-record-add .record-dropdown').append($(elem));
+                })
+            } else {
+                storedMenuItems.map((index, elem) => {
+                    $('.lubelogger-record-add .record-dropdown').append($(elem));
+                })
+            }
+        });
+    } else {
+        determineContextMenuItems();
+        let storedMenuItems = $('.table-context-menu > li').clone();
+        storedMenuItems.map((index, elem) => {
+            siblingContextMenu.append($(elem));
+        });
+        $(sender).on('hide.bs.dropdown', () => {
+            siblingContextMenu.find('li').remove();
+        });
+    }
+}
+
+function triggerInnerCheckbox(sender, e) {
+    if ($(e.target).is('input')) {
+        return;
+    }
+    let checkbox = $(sender).find('input');
+    if (checkbox.length > 0) {
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        checkbox.trigger('change');
+    }
+}
+
+function checkQueryParams(elemToAwait, callBack, param) {
+    let currentParams = new URLSearchParams(window.location.search);
+    let paramData = currentParams.get(param);
+    if (paramData != null && paramData != undefined) {
+        waitForElement(elemToAwait, callBack, paramData);
+        setBrowserHistory(param, '');
+    }
+}
+
+async function setupEventHub(groupName, callBack, callBackParam) {
+    if (!getGlobalConfig().webSocketEnabled) {
+        return;
+    }
+    //initialize signalr
+    let eventHubUrl = '/api/ws';
+    await resetEventHub();
+    try {
+        eventHubConn = new signalR.HubConnectionBuilder().withUrl(eventHubUrl).build();
+        eventHubConn.off("ReceiveChangeForAllVehicles");
+        eventHubConn.on("ReceiveChangeForAllVehicles", () => {
+            if ($('.modal.show').length == 0) { //only perform update if no modal is actively being shown.
+                setDebounce(() => {
+                    callBack(callBackParam);
+                });
+            }
+        });
+        await eventHubConn.start().then(() => {
+            eventHubConn.invoke("JoinGroup", groupName);
+        });
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
+async function resetEventHub() {
+    if (eventHubConn != undefined) {
+        await eventHubConn.stop();
+        eventHubConn = undefined;
+    }
+}
+
+function bindTabEvents(tab) {
+    switch (tab) {
+        case "servicerecord-tab":
+            checkQueryParams('#serviceRecordModalContent', showEditServiceRecordModal, 'id');
+            checkQueryParams('#serviceRecordModalContent', showAddServiceRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleServiceRecords, GetVehicleId().vehicleId);
+            break;
+        case "notes-tab":
+            checkQueryParams('#noteModalContent', showEditNoteModal, 'id');
+            checkQueryParams('#noteModalContent', showAddNoteModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleNotes, GetVehicleId().vehicleId);
+            break;
+        case "gas-tab":
+            checkQueryParams('#gasRecordModalContent', showEditGasRecordModal, 'id');
+            checkQueryParams('#gasRecordModalContent', showAddGasRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleGasRecords, GetVehicleId().vehicleId);
+            break;
+        case "accident-tab":
+            checkQueryParams('#collisionRecordModalContent', showEditCollisionRecordModal, 'id');
+            checkQueryParams('#collisionRecordModalContent', showAddCollisionRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleCollisionRecords, GetVehicleId().vehicleId);
+            break;
+        case "tax-tab":
+            checkQueryParams('#taxRecordModalContent', showEditTaxRecordModal, 'id');
+            checkQueryParams('#taxRecordModalContent', showAddTaxRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleTaxRecords, GetVehicleId().vehicleId);
+            break;
+        case "report-tab":
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleReport, GetVehicleId().vehicleId);
+            break;
+        case "garage-tab":
+            setupEventHub(`kiosk`, loadGarage, '');
+            break;
+        case "settings-tab":
+            break;
+        case "calendar-tab":
+            setupEventHub(`kiosk`, getVehicleCalendarEvents, '');
+            break;
+        case "reminder-tab":
+            checkQueryParams('#reminderRecordModalContent', showEditReminderRecordModal, 'id');
+            checkQueryParams('#reminderRecordModalContent', showAddReminderModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleReminders, GetVehicleId().vehicleId);
+            break;
+        case "upgrade-tab":
+            checkQueryParams('#upgradeRecordModalContent', showEditUpgradeRecordModal, 'id');
+            checkQueryParams('#upgradeRecordModalContent', showAddUpgradeRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleUpgradeRecords, GetVehicleId().vehicleId);
+            break;
+        case "supply-tab":
+            checkQueryParams('#supplyRecordModalContent', showEditSupplyRecordModal, 'id');
+            checkQueryParams('#supplyRecordModalContent', showAddSupplyRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleSupplyRecords, GetVehicleId().vehicleId);
+            break;
+        case "plan-tab":
+            checkQueryParams('#planRecordModalContent', showEditPlanRecordModal, 'id');
+            checkQueryParams('#planRecordModalContent', showAddPlanRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehiclePlanRecords, GetVehicleId().vehicleId);
+            break;
+        case "odometer-tab":
+            checkQueryParams('#odometerRecordModalContent', showEditOdometerRecordModal, 'id');
+            checkQueryParams('#odometerRecordModalContent', showAddOdometerRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleOdometerRecords, GetVehicleId().vehicleId);
+            break;
+        case "inspection-tab":
+            checkQueryParams('#inspectionRecordModalContent', showEditInspectionRecordModal, 'id');
+            checkQueryParams('#inspectionRecordModalContent', useInspectionRecordTemplate, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleInspectionRecords, GetVehicleId().vehicleId);
+            break;
+        case "equipment-tab":
+            checkQueryParams('#equipmentRecordModalContent', showEditEquipmentRecordModal, 'id');
+            checkQueryParams('#equipmentRecordModalContent', showAddEquipmentRecordModal, 'add');
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleEquipmentRecords, GetVehicleId().vehicleId);
+            break;
+    }
+}
+
+function createQR(param, val) {
+    let currentParams = new URLSearchParams(window.location.search);
+    currentParams.set(param, val);
+    let urlToRender = `${window.location.origin}${window.location.pathname}?${currentParams.toString()}`;
+    let qr = qrcode(0, 'M');
+    qr.addData(urlToRender);
+    qr.make();
+    let svgData = qr.createSvgTag();
+    Swal.fire({
+        title: "QR Code",
+        html: `<div class='qr-container'>${svgData}</div>`,
+        confirmButtonText: 'Download',
+        showCancelButton: true
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            downloadQR();
+        }
+    });
+}
+function downloadQR() {
+    let svgElement = $(".qr-container").find('svg')[0];
+    let parentContainer = $('.qr-container');
+    let svgData = new XMLSerializer().serializeToString(svgElement);
+    let svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    let url = URL.createObjectURL(svgBlob);
+    let img = new Image();
+    let canvas = document.createElement("canvas");
+    img.src = url;
+    img.onload = function () {
+        let targetWidth = 500;
+        let targetHeight = 500;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0, targetWidth, targetHeight);
+        let pngDataUrl = canvas.toDataURL('image/png');
+        let downloadLink = document.createElement('a');
+        downloadLink.href = pngDataUrl;
+        let downloadFileName = new Date().getTime();
+        downloadLink.download = `qr_${downloadFileName}.png`;
+        downloadLink.click();
+        URL.revokeObjectURL(url);
+    };
+}
+
+function handleDualRangeSlider(e) {
+    let isMinSlider = $(e).attr('data-handle') == 'min';
+    let minSlider = $(e).closest('.dual-range').find('[data-handle="min"]');
+    let maxSlider = $(e).closest('.dual-range').find('[data-handle="max"]');
+    let maxRangeValue = parseInt(maxSlider.val());
+    let minRangeValue = parseInt(minSlider.val());
+    let rangePadding = 2;
+    let maxRangeLimit = maxRangeValue - rangePadding;
+    let minRangeLimit = minRangeValue + rangePadding;
+    let rangeHighlight = $(e).closest('.dual-range').find('.dual-range-highlight');
+    if (isMinSlider) {
+        if (minRangeValue >= maxRangeLimit) {
+            minSlider.val(maxRangeLimit);
+        }
+        minSlider.addClass('dual-range-top');
+        maxSlider.removeClass('dual-range-top');
+    } else {
+        if (maxRangeValue <= minRangeLimit) {
+            maxSlider.val(minRangeLimit);
+        }
+        minSlider.removeClass('dual-range-top');
+        maxSlider.addClass('dual-range-top');
+    }
+    //update range highlight
+    rangeHighlight.css('left', (minRangeValue + '%'));
+    rangeHighlight.css('width', ((maxRangeValue - minRangeValue) + '%'));
+    //update labels
+    let minRangeLabel = $(e).closest('.dual-range-container').find('[data-range-label="min"]');
+    let maxRangeLabel = $(e).closest('.dual-range-container').find('[data-range-label="max"]');
+    minRangeLabel.text(`${minSlider.val()}%`);
+    maxRangeLabel.text(`${maxSlider.val()}%`);
+}
+function removeVehicleThumbnail() {
+    uploadedFile = "";
+    $("#inputImageReplaceLabel").addClass('d-none');
+    $("#inputImageUploadLabel").removeClass('d-none');
+}
+function hideActiveModal() {
+    let activeModal = $(".modal.show");
+    if (activeModal.length > 0) {
+        activeModal.modal('hide');
+    }
+}
+function performLogOut() {
+    $.post('/Login/LogOut', function (data) {
+        if (data) {
+            resetEventHub();
+            window.location.href = data;
+        }
+    });
+}
+
+
+function showAccountInformationModal() {
+    $.get('/Home/GetUserAccountInformationModal', function (data) {
+        $('#accountInformationModalContent').html(data);
+        $('#accountInformationModal').modal('show');
+    });
+}
+
+function showRootAccountInformationModal() {
+    $.get('/Home/GetRootAccountInformationModal', function (data) {
+        $('#accountInformationModalContent').html(data);
+        $('#accountInformationModal').modal('show');
+    });
+}
+
+function hideAccountInformationModal() {
+    $('#accountInformationModal').modal('hide');
+}
+
+function validateAndSaveRootUserAccount() {
+    var hasError = false;
+    if ($('#inputUsername').val().trim() == '') {
+        $('#inputUsername').addClass("is-invalid");
+        hasError = true;
+    } else {
+        $('#inputUsername').removeClass("is-invalid");
+    }
+    if ($('#inputPassword').val().trim() == '') {
+        $('#inputPassword').addClass("is-invalid");
+        hasError = true;
+    } else {
+        $('#inputPassword').removeClass("is-invalid");
+    }
+    if (hasError) {
+        errorToast("Please check the form data");
+        return;
+    }
+    var userAccountInfo = {
+        userName: $('#inputUsername').val(),
+        password: $('#inputPassword').val()
+    };
+    $.post('/Login/CreateLoginCreds', { credentials: userAccountInfo }, function (data) {
+        if (data) {
+            hideAccountInformationModal();
+            successToast('Root Account Updated');
+            performLogOut();
+        } else {
+            errorToast(data.message);
+        }
+    });
+}
+
+function validateAndSaveUserAccount() {
+    var hasError = false;
+    if ($('#inputUsername').val().trim() == '') {
+        $('#inputUsername').addClass("is-invalid");
+        hasError = true;
+    } else {
+        $('#inputUsername').removeClass("is-invalid");
+    }
+    $('#inputEmail').removeClass("is-invalid");
+
+    var newPassword = $('#inputPassword').val().trim();
+    var currentPassword = $('#inputCurrentPassword').length ? $('#inputCurrentPassword').val() : '';
+
+    if (newPassword != '' && $('#inputCurrentPassword').length > 0 && currentPassword.trim() == '') {
+        $('#inputCurrentPassword').addClass("is-invalid");
+        errorToast("Debes introducir tu contraseña actual para cambiarla");
+        return;
+    } else {
+        $('#inputCurrentPassword').removeClass("is-invalid");
+    }
+
+    if (hasError) {
+        errorToast("Por favor, revisa los datos del formulario.");
+        return;
+    }
+    var userAccountInfo = {
+        userName: $('#inputUsername').val(),
+        currentPassword: currentPassword,
+        password: newPassword,
+        emailAddress: $('#inputEmail').val(),
+        token: ''
+    };
+    $.post('/Home/UpdateUserAccount', { userAccount: userAccountInfo }, function (data) {
+        if (data.success) {
+            hideAccountInformationModal();
+            successToast(data.message || 'Perfil actualizado con éxito');
+            if (newPassword != '') {
+                setTimeout(performLogOut, 1500);
+            }
+        } else {
+            errorToast(data.message || 'Error al actualizar');
+        }
+    });
+}
+
+// Normalización de separador decimal: permitir tanto '.' como ',' indistintamente
+$(document).on('keydown', 'input[inputmode="decimal"], input[id*="Cost"], input[id*="Gallons"], input[id*="Price"], input[id*="Quantity"], input[id*="Consumption"]', function (e) {
+    var decimalSep = (typeof getDecimalSeparator === 'function' ? getDecimalSeparator() : null) || ',';
+    if (e.key === '.' || e.key === ',' || e.keyCode === 190 || e.keyCode === 110 || e.keyCode === 188) {
+        e.preventDefault();
+        var val = this.value;
+        var selStart = this.selectionStart;
+        var selEnd = this.selectionEnd;
+        var valWithoutSel = val.substring(0, selStart) + val.substring(selEnd);
+        // Evitar introducir múltiples separadores decimales
+        if (valWithoutSel.indexOf('.') === -1 && valWithoutSel.indexOf(',') === -1) {
+            this.value = val.substring(0, selStart) + decimalSep + val.substring(selEnd);
+            if (typeof this.setSelectionRange === 'function') {
+                this.setSelectionRange(selStart + 1, selStart + 1);
+            }
+            $(this).trigger('input').trigger('change');
+        }
+    }
+});
+
+$(document).on('input', 'input[inputmode="decimal"], input[id*="Cost"], input[id*="Gallons"], input[id*="Price"], input[id*="Quantity"], input[id*="Consumption"]', function () {
+    var decimalSep = (typeof getDecimalSeparator === 'function' ? getDecimalSeparator() : null) || ',';
+    var val = this.value;
+    var otherSep = decimalSep === ',' ? '.' : ',';
+    if (val.indexOf(otherSep) > -1 && val.indexOf(decimalSep) === -1) {
+        var selStart = this.selectionStart;
+        this.value = val.replace(otherSep, decimalSep);
+        if (typeof this.setSelectionRange === 'function' && selStart !== null) {
+            this.setSelectionRange(selStart, selStart);
+        }
+    }
+});

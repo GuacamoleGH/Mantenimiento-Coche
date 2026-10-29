@@ -1,650 +1,669 @@
-﻿using CarCareTracker.External.Interfaces;
-using CarCareTracker.Helper;
-using CarCareTracker.Models;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-
-namespace CarCareTracker.Logic
-{
-    public interface ILoginLogic
-    {
-        bool MakeUserAdmin(int userId, bool isAdmin);
-        string GenerateOIDCUserToken(string emailAddress);
-        Task<OperationResponse> GenerateUserToken(string emailAddress, bool autoNotify);
-        bool DeleteUserToken(int tokenId);
-        bool DeleteUser(int userId);
-        OperationResponse RegisterOpenIdUser(LoginModel credentials);
-        OperationResponse UpdateUserDetails(int userId, LoginModel credentials);
-        OperationResponse RegisterNewUser(LoginModel credentials);
-        Task<OperationResponse> RequestResetPassword(LoginModel credentials);
-        OperationResponse ResetPasswordByUser(LoginModel credentials);
-        OperationResponse ResetUserPassword(LoginModel credentials);
-        Task<OperationResponse> SendRegistrationToken(LoginModel credentials);
-        UserData ValidateUserCredentials(LoginModel credentials);
-        UserData ValidateOpenIDUser(LoginModel credentials);
-        UserData ValidateAPIKey(string apiKey);
-        bool CheckIfUserIsValid(int userId);
-        bool CreateRootUserCredentials(LoginModel credentials);
-        bool DeleteRootUserCredentials();
-        Task<bool> GenerateTokenForEmailAddress(string emailAddress, bool isPasswordReset);
-        List<UserData> GetAllUsers();
-        List<Token> GetAllTokens();
-        KeyValuePair<string, string> GetPKCEChallengeCode();
-        bool GetUserCanResetPassword(int userId);
-        OperationResponse RevokeUserPassword(int userId);
-        OperationResponse ResetUserPassword(int userId);
-    }
-    public class LoginLogic : ILoginLogic
-    {
-        private readonly IUserRecordDataAccess _userData;
-        private readonly ITokenRecordDataAccess _tokenData;
-        private readonly IApiKeyRecordDataAccess _apiKeyData;
-        private readonly IMailHelper _mailHelper;
-        private readonly IConfigHelper _configHelper;
-        private IMemoryCache _cache;
-        public LoginLogic(IUserRecordDataAccess userData, 
-            ITokenRecordDataAccess tokenData, 
-            IApiKeyRecordDataAccess apiKeyData,
-            IMailHelper mailHelper,
-            IConfigHelper configHelper,
-            IMemoryCache memoryCache)
-        {
-            _userData = userData;
-            _tokenData = tokenData;
-            _apiKeyData = apiKeyData;
-            _mailHelper = mailHelper;
-            _configHelper = configHelper;
-            _cache = memoryCache;
-        }
-        public bool CheckIfUserIsValid(int userId)
-        {
-            if (userId == -1)
-            {
-                return true;
-            }
-            var result = _userData.GetUserRecordById(userId);
-            if (result == null)
-            {
-                return false;
-            } else
-            {
-                return result.Id != 0;
-            }
-        }
-        public OperationResponse UpdateUserDetails(int userId, LoginModel credentials)
-        {
-            //get current user details
-            var existingUser = _userData.GetUserRecordById(userId);
-            if (existingUser.Id == default)
-            {
-                return OperationResponse.Failed("Usuario no encontrado");
-            }
-
-
-
-            if (!string.IsNullOrWhiteSpace(credentials.UserName) && existingUser.UserName != credentials.UserName)
-            {
-                var existingUserWithUserName = _userData.GetUserRecordByUserName(credentials.UserName);
-                if (existingUserWithUserName.Id != default && existingUserWithUserName.Id != existingUser.Id)
-                {
-                    return OperationResponse.Failed("El nombre de usuario ya está en uso");
-                }
-                existingUser.UserName = credentials.UserName;
-            }
-            if (!string.IsNullOrWhiteSpace(credentials.EmailAddress) && existingUser.EmailAddress != credentials.EmailAddress)
-            {
-                var existingUserWithEmailAddress = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
-                if (existingUserWithEmailAddress.Id != default && existingUserWithEmailAddress.Id != existingUser.Id)
-                {
-                    return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico");
-                }
-                existingUser.EmailAddress = credentials.EmailAddress;
-            }
-            if (!string.IsNullOrWhiteSpace(credentials.Password))
-            {
-                // Si el usuario ya tenía contraseña establecida, exigir y validar la contraseña actual
-                if (!string.IsNullOrWhiteSpace(existingUser.Password))
-                {
-                    if (string.IsNullOrWhiteSpace(credentials.CurrentPassword))
-                    {
-                        return OperationResponse.Failed("Debes introducir tu contraseña actual para cambiarla.");
-                    }
-                    var hashedCurrent = StaticHelper.GetHash(credentials.CurrentPassword);
-                    if (hashedCurrent != existingUser.Password)
-                    {
-                        return OperationResponse.Failed("La contraseña actual no es correcta.");
-                    }
-                }
-
-                var passValidation = StaticHelper.ValidatePasswordComplexity(credentials.Password);
-                if (!passValidation.Success)
-                {
-                    return passValidation;
-                }
-                existingUser.Password = StaticHelper.GetHash(credentials.Password);
-            }
-
-            var result = _userData.SaveUserRecord(existingUser);
-            return OperationResponse.Conditional(result, "Perfil actualizado con éxito", "Error al actualizar");
-        }
-        public OperationResponse RegisterOpenIdUser(LoginModel credentials)
-        {
-            //validate their token.
-            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
-            if (existingToken.Id == default || existingToken.EmailAddress != credentials.EmailAddress)
-            {
-                return OperationResponse.Failed("Invalid Token");
-            }
-            if (string.IsNullOrWhiteSpace(credentials.EmailAddress) || string.IsNullOrWhiteSpace(credentials.UserName))
-            {
-                return OperationResponse.Failed("Username cannot be blank");
-            }
-            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
-            if (existingUser.Id != default)
-            {
-                return OperationResponse.Failed("Username already taken");
-            }
-            var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
-            if (existingUserWithEmail.Id != default)
-            {
-                return OperationResponse.Failed("A user with that email already exists");
-            }
-            _tokenData.DeleteToken(existingToken.Id);
-            var newUser = new UserData()
-            {
-                UserName = credentials.UserName,
-                Password = string.Empty, //OIDC users have empty passwords
-                EmailAddress = credentials.EmailAddress
-            };
-            var result = _userData.SaveUserRecord(newUser);
-            if (result)
-            {
-                return OperationResponse.Succeed("You will be logged in briefly.");
-            }
-            else
-            {
-                return OperationResponse.Failed("Something went wrong, please try again later.");
-            }
-        }
-        //handles user registration - registro libre sin token obligatorio y con validación de contraseña
-        public OperationResponse RegisterNewUser(LoginModel credentials)
-        {
-            if (_configHelper.GetServerDisabledRegistration())
-            {
-                return OperationResponse.Failed("El registro está desactivado en este servidor.");
-            }
-            if (string.IsNullOrWhiteSpace(credentials.EmailAddress) || string.IsNullOrWhiteSpace(credentials.UserName) || string.IsNullOrWhiteSpace(credentials.Password))
-            {
-                return OperationResponse.Failed("Ninguno de los campos puede estar en blanco.");
-            }
-
-            var complexityCheck = StaticHelper.ValidatePasswordComplexity(credentials.Password);
-            if (!complexityCheck.Success)
-            {
-                return complexityCheck;
-            }
-
-            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
-            if (existingUser.Id != default)
-            {
-                return OperationResponse.Failed("El nombre de usuario ya está en uso.");
-            }
-            var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
-            if (existingUserWithEmail.Id != default)
-            {
-                return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
-            }
-
-
-
-            var newUser = new UserData()
-            {
-                UserName = credentials.UserName,
-                Password = StaticHelper.GetHash(credentials.Password),
-                EmailAddress = credentials.EmailAddress
-            };
-            var result = _userData.SaveUserRecord(newUser);
-            if (result)
-            {
-                return OperationResponse.Succeed("Cuenta creada correctamente. Redirigiendo al login...");
-            }
-            else
-            {
-                return OperationResponse.Failed("Error al guardar el usuario.");
-            }
-        }
-        public async Task<OperationResponse> SendRegistrationToken(LoginModel credentials)
-        {
-            if (_configHelper.GetServerDisabledRegistration())
-            {
-                return OperationResponse.Failed("El registro está desactivado en este servidor.");
-            }
-            if (string.IsNullOrWhiteSpace(credentials.EmailAddress))
-            {
-                return OperationResponse.Failed("Por favor, introduce una dirección de correo válida.");
-            }
-            var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress.Trim());
-            if (existingUserWithEmail.Id != default)
-            {
-                return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
-            }
-            var tokenSent = await GenerateTokenForEmailAddress(credentials.EmailAddress.Trim(), false);
-            if (tokenSent)
-            {
-                return OperationResponse.Succeed("Se ha enviado un código de verificación a tu correo.");
-            }
-            else
-            {
-                var mailConfig = _configHelper.GetMailConfig();
-                if (string.IsNullOrWhiteSpace(mailConfig.EmailServer))
-                {
-                    return OperationResponse.Failed("El servidor SMTP no está configurado. Solicita un token de invitación al administrador.");
-                }
-                return OperationResponse.Failed("No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde.");
-            }
-        }
-        /// <summary>
-        /// Generates a token and notifies user via email so they can reset their password.
-        /// </summary>
-        /// <param name="credentials"></param>
-        /// <returns></returns>
-        public async Task<OperationResponse> RequestResetPassword(LoginModel credentials)
-        {
-            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
-            if (existingUser.Id != default && !string.IsNullOrWhiteSpace(existingUser.Password)) //only send email for non-OIDC user
-            {
-                //user exists, generate a token and send email.
-                await GenerateTokenForEmailAddress(existingUser.EmailAddress, true);
-            }
-            //for security purposes we want to always return true for this method.
-            //otherwise someone can spam the reset password method to sniff out users.
-            return OperationResponse.Succeed("If your user exists in the system you should receive an email shortly with instructions on how to proceed.");
-        }
-        public OperationResponse ResetPasswordByUser(LoginModel credentials)
-        {
-            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
-            if (existingToken.Id == default || existingToken.EmailAddress != credentials.EmailAddress)
-            {
-                return OperationResponse.Failed("Invalid Token");
-            }
-            if (string.IsNullOrWhiteSpace(credentials.Password))
-            {
-                return OperationResponse.Failed("New Password cannot be blank");
-            }
-            var complexityCheck = StaticHelper.ValidatePasswordComplexity(credentials.Password);
-            if (!complexityCheck.Success)
-            {
-                return complexityCheck;
-            }
-            //if token is valid.
-            var existingUser = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
-            if (existingUser.Id == default)
-            {
-                return OperationResponse.Failed("Unable to locate user");
-            }
-            if (string.IsNullOrWhiteSpace(existingUser.Password))
-            {
-                //Prevent OIDC User from resetting password
-                return OperationResponse.Failed();
-            }
-            existingUser.Password = StaticHelper.GetHash(credentials.Password);
-            var result = _userData.SaveUserRecord(existingUser);
-            //delete token
-            _tokenData.DeleteToken(existingToken.Id);
-            if (result)
-            {
-                return OperationResponse.Succeed("Password resetted, you will be redirected to login page shortly.");
-            } else
-            {
-                return OperationResponse.Failed();
-            }
-        }
-        /// <summary>
-        /// Returns an empty user if can't auth against neither root nor db user.
-        /// </summary>
-        /// <param name="credentials">credentials from login page</param>
-        /// <returns></returns>
-        public UserData ValidateUserCredentials(LoginModel credentials)
-        {
-            if (UserIsRoot(credentials))
-            {
-                return GetRootUserData(credentials.UserName);
-            }
-            else
-            {
-                //authenticate via DB.
-                var result = _userData.GetUserRecordByUserName(credentials.UserName);
-                if (result.Id == default)
-                {
-                    //user does not exist
-                    return new UserData();
-                }
-                if (string.IsNullOrWhiteSpace(result.Password))
-                {
-                    //prevent OIDC users from logging in via basic auth
-                    return new UserData();
-                }
-                if (StaticHelper.GetHash(credentials.Password) == result.Password)
-                {
-                    result.Password = string.Empty;
-                    return result;
-                }
-                else
-                {
-                    return new UserData();
-                }
-            }
-        }
-        public UserData ValidateOpenIDUser(LoginModel credentials)
-        {
-            //validate for root user
-            var isRootUser = _configHelper.AuthenticateRootUserOIDC(credentials.EmailAddress);
-            if (isRootUser)
-            {
-                return GetRootUserData(credentials.EmailAddress);
-            }
-
-            var result = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
-            if (result.Id != default)
-            {
-                result.Password = string.Empty;
-                return result;
-            }
-            else
-            {
-                return new UserData();
-            }
-        }
-        public UserData ValidateAPIKey(string apiKey)
-        {
-            var hashedAPIKey = StaticHelper.GetHash(apiKey);
-            var apiKeyUser = _apiKeyData.GetAPIKeyByKey(hashedAPIKey);
-            if (apiKeyUser.UserId != default)
-            {
-                if (apiKeyUser.UserId == -1)
-                {
-                    var rootUserData = GetRootUserData(apiKeyUser.Name);
-                    return rootUserData;
-                }
-                var result = _userData.GetUserRecordById(apiKeyUser.UserId);
-                if (result.Id != default)
-                {
-                    result.Password = string.Empty;
-                    return result;
-                }
-            }
-            return new UserData();
-        }
-        public bool GetUserCanResetPassword(int userId)
-        {
-            var result = _userData.GetUserRecordById(userId);
-            return result.Id != default;
-        }
-        public OperationResponse RevokeUserPassword(int userId)
-        {
-            var existingUser = _userData.GetUserRecordById(userId);
-            if (existingUser.Id == default)
-            {
-                return OperationResponse.Failed("Unable to locate user");
-            }
-            existingUser.Password = string.Empty;
-            var result = _userData.SaveUserRecord(existingUser);
-            if (result)
-            {
-                return OperationResponse.Succeed("Password Revoked");
-            }
-            else
-            {
-                return OperationResponse.Failed();
-            }
-        }
-        public OperationResponse ResetUserPassword(int userId)
-        {
-            var existingUser = _userData.GetUserRecordById(userId);
-            if (existingUser.Id == default)
-            {
-                return OperationResponse.Failed("Unable to locate user");
-            }
-            existingUser.Password = StaticHelper.GetHash(NewToken());
-            var result = _userData.SaveUserRecord(existingUser);
-            if (result)
-            {
-                return OperationResponse.Succeed("Password Reset");
-            }
-            else
-            {
-                return OperationResponse.Failed();
-            }
-        }
-        #region "Admin Functions"
-        public bool MakeUserAdmin(int userId, bool isAdmin)
-        {
-            var user = _userData.GetUserRecordById(userId);
-            if (user == default)
-            {
-                return false;
-            }
-            user.IsAdmin = isAdmin;
-            var result = _userData.SaveUserRecord(user);
-            return result;
-        }
-        public List<UserData> GetAllUsers()
-        {
-            var result = _userData.GetUsers();
-            return result;
-        }
-        public List<Token> GetAllTokens()
-        {
-            var result = _tokenData.GetTokens();
-            return result;
-        }
-        public string GenerateOIDCUserToken(string emailAddress)
-        {
-            var existingToken = _tokenData.GetTokenRecordByEmailAddress(emailAddress);
-            if (existingToken.Id != default)
-            {
-                return existingToken.Body;
-            }
-            var token = new Token()
-            {
-                Body = NewToken(),
-                EmailAddress = emailAddress
-            };
-            var result = _tokenData.CreateNewToken(token);
-            if (result)
-            {
-                return token.Body;
-            } else
-            {
-                return string.Empty;
-            }
-        }
-        public async Task<OperationResponse> GenerateUserToken(string emailAddress, bool autoNotify)
-        {
-            //check if email address already has a token attached to it.
-            var existingToken = _tokenData.GetTokenRecordByEmailAddress(emailAddress);
-            if (existingToken.Id != default)
-            {
-                if (autoNotify) //re-send email
-                {
-                    var notificationResult = await _mailHelper.NotifyUserForRegistration(emailAddress, existingToken.Body);
-                    if (notificationResult.Success)
-                    {
-                        return OperationResponse.Failed($"There is an existing token tied to {emailAddress}, a new email has been sent out");
-                    } else
-                    {
-                        return notificationResult;
-                    }
-                }
-                return OperationResponse.Failed($"There is an existing token tied to {emailAddress}");
-            }
-            var token = new Token()
-            {
-                Body = NewToken(),
-                EmailAddress = emailAddress
-            };
-            var result = _tokenData.CreateNewToken(token);
-            if (result && autoNotify)
-            {
-                var emailResponse = await _mailHelper.NotifyUserForRegistration(emailAddress, token.Body);
-                result = emailResponse.Success;
-                if (!result)
-                {
-                    return OperationResponse.Failed("Token Generated, but Email failed to send, please check your SMTP settings.");
-                }
-            }
-            if (result)
-            {
-                return OperationResponse.Succeed("Token Generated!");
-            }
-            else
-            {
-                return OperationResponse.Failed();
-            }
-        }
-        public bool DeleteUserToken(int tokenId)
-        {
-            var result = _tokenData.DeleteToken(tokenId);
-            return result;
-        }
-        public bool DeleteUser(int userId)
-        {
-            var result = _userData.DeleteUserRecord(userId);
-            return result;
-        }
-        public OperationResponse ResetUserPassword(LoginModel credentials)
-        {
-            //user might have forgotten their password.
-            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
-            if (existingUser.Id == default)
-            {
-                return OperationResponse.Failed("Unable to find user");
-            }
-            var newPassword = Guid.NewGuid().ToString().Substring(0, 8);
-            existingUser.Password = StaticHelper.GetHash(newPassword);
-            var result = _userData.SaveUserRecord(existingUser);
-            if (result)
-            {
-                return OperationResponse.Succeed(newPassword);
-            }
-            else
-            {
-                return OperationResponse.Failed();
-            }
-        }
-        #endregion
-        #region "Root User"
-        public bool CreateRootUserCredentials(LoginModel credentials)
-        {
-            //check if file exists
-            if (File.Exists(StaticHelper.UserConfigPath))
-            {
-                var configFileContents = File.ReadAllText(StaticHelper.UserConfigPath);
-                var existingUserConfig = JsonSerializer.Deserialize<UserConfig>(configFileContents);
-                if (existingUserConfig is not null)
-                {
-                    //create hashes of the login credentials.
-                    var hashedUserName = StaticHelper.GetHash(credentials.UserName);
-                    var hashedPassword = StaticHelper.GetHash(credentials.Password);
-                    //copy over settings that are off limits on the settings page.
-                    existingUserConfig.EnableAuth = true;
-                    existingUserConfig.UserNameHash = hashedUserName;
-                    existingUserConfig.UserPasswordHash = hashedPassword;
-                }
-                File.WriteAllText(StaticHelper.UserConfigPath, JsonSerializer.Serialize(existingUserConfig));
-            } else
-            {
-                var newUserConfig = new UserConfig()
-                {
-                    EnableAuth = true,
-                    UserNameHash = StaticHelper.GetHash(credentials.UserName),
-                    UserPasswordHash = StaticHelper.GetHash(credentials.Password)
-                };
-                File.WriteAllText(StaticHelper.UserConfigPath, JsonSerializer.Serialize(newUserConfig));
-            }
-            _cache.Remove($"userConfig_{(-1).ToString()}");
-            return true;
-        }
-        public bool DeleteRootUserCredentials()
-        {
-            var configFileContents = File.ReadAllText(StaticHelper.UserConfigPath);
-            var existingUserConfig = JsonSerializer.Deserialize<UserConfig>(configFileContents);
-            if (existingUserConfig is not null)
-            {
-                //copy over settings that are off limits on the settings page.
-                existingUserConfig.EnableAuth = false;
-                existingUserConfig.UserNameHash = string.Empty;
-                existingUserConfig.UserPasswordHash = string.Empty;
-            }
-            //clear out the cached config for the root user.
-            _cache.Remove($"userConfig_{(-1).ToString()}");
-            File.WriteAllText(StaticHelper.UserConfigPath, JsonSerializer.Serialize(existingUserConfig));
-            return true;
-        }
-        private bool UserIsRoot(LoginModel credentials)
-        {
-            var hashedUserName = StaticHelper.GetHash(credentials.UserName);
-            var hashedPassword = StaticHelper.GetHash(credentials.Password);
-            return _configHelper.AuthenticateRootUser(hashedUserName, hashedPassword);
-        }
-        private UserData GetRootUserData(string username)
-        {
-            return new UserData()
-            {
-                Id = -1,
-                UserName = username,
-                IsAdmin = true,
-                IsRootUser = true,
-                EmailAddress = string.Empty
-            };
-        }
-        #endregion
-        
-        private string NewToken()
-        {
-            return Guid.NewGuid().ToString().Substring(0, 8);
-        }
-        public KeyValuePair<string, string> GetPKCEChallengeCode()
-        {
-            var verifierCode = Base64UrlEncoder.Encode(Guid.NewGuid().ToString().Replace("-", ""));
-            var verifierBytes = Encoding.UTF8.GetBytes(verifierCode);
-            var hashedCode = SHA256.Create().ComputeHash(verifierBytes);
-            var encodedChallengeCode = Base64UrlEncoder.Encode(hashedCode);
-            return new KeyValuePair<string, string>(verifierCode, encodedChallengeCode);
-        }
-        public async Task<bool> GenerateTokenForEmailAddress(string emailAddress, bool isPasswordReset)
-        {
-            bool result = false;
-            //check if there is already a token tied to this email address.
-            var existingToken = _tokenData.GetTokenRecordByEmailAddress(emailAddress);
-            var tokenToSend = string.Empty;
-            if (existingToken.Id == default)
-            {
-                //no token, generate one and send.
-                var token = new Token()
-                {
-                    Body = NewToken(),
-                    EmailAddress = emailAddress
-                };
-                result = _tokenData.CreateNewToken(token);
-                if (result)
-                {
-                    tokenToSend = token.Body;
-                }
-            } else
-            {
-                //token exists, send it again.
-                tokenToSend = existingToken.Body;
-            }
-            if (!string.IsNullOrWhiteSpace(tokenToSend))
-            {
-                var emailResponse = isPasswordReset ? await _mailHelper.NotifyUserForPasswordReset(emailAddress, tokenToSend) : await _mailHelper.NotifyUserForAccountUpdate(emailAddress, tokenToSend);
-                result = emailResponse.Success;
-            }
-            return result;
-        }
-    }
-}
+﻿using CarCareTracker.External.Interfaces;
+using CarCareTracker.Helper;
+using CarCareTracker.Models;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+
+namespace CarCareTracker.Logic
+{
+    public interface ILoginLogic
+    {
+        bool MakeUserAdmin(int userId, bool isAdmin);
+        string GenerateOIDCUserToken(string emailAddress);
+        Task<OperationResponse> GenerateUserToken(string emailAddress, bool autoNotify);
+        bool DeleteUserToken(int tokenId);
+        bool DeleteUser(int userId);
+        OperationResponse RegisterOpenIdUser(LoginModel credentials);
+        OperationResponse UpdateUserDetails(int userId, LoginModel credentials);
+        OperationResponse RegisterNewUser(LoginModel credentials);
+        Task<OperationResponse> RequestResetPassword(LoginModel credentials);
+        OperationResponse ResetPasswordByUser(LoginModel credentials);
+        OperationResponse ResetUserPassword(LoginModel credentials);
+        Task<OperationResponse> SendRegistrationToken(LoginModel credentials);
+        UserData ValidateUserCredentials(LoginModel credentials);
+        UserData ValidateOpenIDUser(LoginModel credentials);
+        UserData ValidateAPIKey(string apiKey);
+        bool CheckIfUserIsValid(int userId);
+        bool CreateRootUserCredentials(LoginModel credentials);
+        bool DeleteRootUserCredentials();
+        Task<bool> GenerateTokenForEmailAddress(string emailAddress, bool isPasswordReset);
+        List<UserData> GetAllUsers();
+        List<Token> GetAllTokens();
+        KeyValuePair<string, string> GetPKCEChallengeCode();
+        bool GetUserCanResetPassword(int userId);
+        OperationResponse RevokeUserPassword(int userId);
+        OperationResponse ResetUserPassword(int userId);
+    }
+    public class LoginLogic : ILoginLogic
+    {
+        private readonly IUserRecordDataAccess _userData;
+        private readonly ITokenRecordDataAccess _tokenData;
+        private readonly IApiKeyRecordDataAccess _apiKeyData;
+        private readonly IMailHelper _mailHelper;
+        private readonly IConfigHelper _configHelper;
+        private IMemoryCache _cache;
+        public LoginLogic(IUserRecordDataAccess userData, 
+            ITokenRecordDataAccess tokenData, 
+            IApiKeyRecordDataAccess apiKeyData,
+            IMailHelper mailHelper,
+            IConfigHelper configHelper,
+            IMemoryCache memoryCache)
+        {
+            _userData = userData;
+            _tokenData = tokenData;
+            _apiKeyData = apiKeyData;
+            _mailHelper = mailHelper;
+            _configHelper = configHelper;
+            _cache = memoryCache;
+        }
+        public bool CheckIfUserIsValid(int userId)
+        {
+            if (userId == -1)
+            {
+                return true;
+            }
+            var result = _userData.GetUserRecordById(userId);
+            if (result == null)
+            {
+                return false;
+            } else
+            {
+                return result.Id != 0;
+            }
+        }
+        public OperationResponse UpdateUserDetails(int userId, LoginModel credentials)
+        {
+            //get current user details
+            var existingUser = _userData.GetUserRecordById(userId);
+            if (existingUser.Id == default)
+            {
+                return OperationResponse.Failed("Usuario no encontrado");
+            }
+
+
+
+            if (!string.IsNullOrWhiteSpace(credentials.UserName) && existingUser.UserName != credentials.UserName)
+            {
+                var existingUserWithUserName = _userData.GetUserRecordByUserName(credentials.UserName);
+                if (existingUserWithUserName.Id != default && existingUserWithUserName.Id != existingUser.Id)
+                {
+                    return OperationResponse.Failed("El nombre de usuario ya está en uso");
+                }
+                existingUser.UserName = credentials.UserName;
+            }
+            if (credentials.EmailAddress != null && existingUser.EmailAddress != credentials.EmailAddress)
+            {
+                var cleanEmail = credentials.EmailAddress.Trim();
+                if (!string.IsNullOrWhiteSpace(cleanEmail))
+                {
+                    var existingUserWithEmailAddress = _userData.GetUserRecordByEmailAddress(cleanEmail);
+                    if (existingUserWithEmailAddress.Id != default && existingUserWithEmailAddress.Id != existingUser.Id)
+                    {
+                        return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico");
+                    }
+                    existingUser.EmailAddress = cleanEmail;
+                }
+                else
+                {
+                    existingUser.EmailAddress = string.Empty;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(credentials.Password))
+            {
+                // Si el usuario ya tenía contraseña establecida, exigir y validar la contraseña actual
+                if (!string.IsNullOrWhiteSpace(existingUser.Password))
+                {
+                    if (string.IsNullOrWhiteSpace(credentials.CurrentPassword))
+                    {
+                        return OperationResponse.Failed("Debes introducir tu contraseña actual para cambiarla.");
+                    }
+                    var hashedCurrent = StaticHelper.GetHash(credentials.CurrentPassword);
+                    if (hashedCurrent != existingUser.Password)
+                    {
+                        return OperationResponse.Failed("La contraseña actual no es correcta.");
+                    }
+                }
+
+                var passValidation = StaticHelper.ValidatePasswordComplexity(credentials.Password);
+                if (!passValidation.Success)
+                {
+                    return passValidation;
+                }
+                existingUser.Password = StaticHelper.GetHash(credentials.Password);
+            }
+
+            var result = _userData.SaveUserRecord(existingUser);
+            return OperationResponse.Conditional(result, "Perfil actualizado con éxito", "Error al actualizar");
+        }
+        public OperationResponse RegisterOpenIdUser(LoginModel credentials)
+        {
+            //validate their token.
+            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
+            if (existingToken.Id == default || existingToken.EmailAddress != credentials.EmailAddress)
+            {
+                return OperationResponse.Failed("Invalid Token");
+            }
+            if (string.IsNullOrWhiteSpace(credentials.EmailAddress) || string.IsNullOrWhiteSpace(credentials.UserName))
+            {
+                return OperationResponse.Failed("Username cannot be blank");
+            }
+            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
+            if (existingUser.Id != default)
+            {
+                return OperationResponse.Failed("Username already taken");
+            }
+            var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
+            if (existingUserWithEmail.Id != default)
+            {
+                return OperationResponse.Failed("A user with that email already exists");
+            }
+            _tokenData.DeleteToken(existingToken.Id);
+            var newUser = new UserData()
+            {
+                UserName = credentials.UserName,
+                Password = string.Empty, //OIDC users have empty passwords
+                EmailAddress = credentials.EmailAddress
+            };
+            var result = _userData.SaveUserRecord(newUser);
+            if (result)
+            {
+                return OperationResponse.Succeed("You will be logged in briefly.");
+            }
+            else
+            {
+                return OperationResponse.Failed("Something went wrong, please try again later.");
+            }
+        }
+        //handles user registration - registro libre sin token obligatorio y con validación de contraseña
+        public OperationResponse RegisterNewUser(LoginModel credentials)
+        {
+            if (_configHelper.GetServerDisabledRegistration())
+            {
+                return OperationResponse.Failed("El registro está desactivado en este servidor.");
+            }
+            if (string.IsNullOrWhiteSpace(credentials.UserName) || string.IsNullOrWhiteSpace(credentials.Password))
+            {
+                return OperationResponse.Failed("El nombre de usuario y la contraseña son obligatorios.");
+            }
+
+            var cleanUserName = credentials.UserName.Trim();
+            var cleanEmail = credentials.EmailAddress?.Trim() ?? string.Empty;
+
+            var complexityCheck = StaticHelper.ValidatePasswordComplexity(credentials.Password);
+            if (!complexityCheck.Success)
+            {
+                return complexityCheck;
+            }
+
+            var existingUser = _userData.GetUserRecordByUserName(cleanUserName);
+            if (existingUser.Id != default)
+            {
+                return OperationResponse.Failed("El nombre de usuario ya está en uso.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(cleanEmail))
+            {
+                var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(cleanEmail);
+                if (existingUserWithEmail.Id != default)
+                {
+                    return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
+                }
+            }
+
+            var newUser = new UserData()
+            {
+                UserName = cleanUserName,
+                Password = StaticHelper.GetHash(credentials.Password),
+                EmailAddress = cleanEmail
+            };
+            var result = _userData.SaveUserRecord(newUser);
+            if (result)
+            {
+                return OperationResponse.Succeed("Cuenta creada correctamente. Redirigiendo al login...");
+            }
+            else
+            {
+                return OperationResponse.Failed("Error al guardar el usuario.");
+            }
+        }
+        public async Task<OperationResponse> SendRegistrationToken(LoginModel credentials)
+        {
+            if (_configHelper.GetServerDisabledRegistration())
+            {
+                return OperationResponse.Failed("El registro está desactivado en este servidor.");
+            }
+            if (string.IsNullOrWhiteSpace(credentials.EmailAddress))
+            {
+                return OperationResponse.Failed("Por favor, introduce una dirección de correo válida.");
+            }
+            var existingUserWithEmail = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress.Trim());
+            if (existingUserWithEmail.Id != default)
+            {
+                return OperationResponse.Failed("Ya existe un usuario con ese correo electrónico.");
+            }
+            var tokenSent = await GenerateTokenForEmailAddress(credentials.EmailAddress.Trim(), false);
+            if (tokenSent)
+            {
+                return OperationResponse.Succeed("Se ha enviado un código de verificación a tu correo.");
+            }
+            else
+            {
+                var mailConfig = _configHelper.GetMailConfig();
+                if (string.IsNullOrWhiteSpace(mailConfig.EmailServer))
+                {
+                    return OperationResponse.Failed("El servidor SMTP no está configurado. Solicita un token de invitación al administrador.");
+                }
+                return OperationResponse.Failed("No se pudo enviar el correo de verificación. Inténtalo de nuevo más tarde.");
+            }
+        }
+        /// <summary>
+        /// Generates a token and notifies user via email so they can reset their password.
+        /// </summary>
+        /// <param name="credentials"></param>
+        /// <returns></returns>
+        public async Task<OperationResponse> RequestResetPassword(LoginModel credentials)
+        {
+            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
+            if (existingUser.Id != default && !string.IsNullOrWhiteSpace(existingUser.Password)) //only send email for non-OIDC user
+            {
+                //user exists, generate a token and send email.
+                await GenerateTokenForEmailAddress(existingUser.EmailAddress, true);
+            }
+            //for security purposes we want to always return true for this method.
+            //otherwise someone can spam the reset password method to sniff out users.
+            return OperationResponse.Succeed("If your user exists in the system you should receive an email shortly with instructions on how to proceed.");
+        }
+        public OperationResponse ResetPasswordByUser(LoginModel credentials)
+        {
+            var existingToken = _tokenData.GetTokenRecordByBody(credentials.Token);
+            if (existingToken.Id == default || existingToken.EmailAddress != credentials.EmailAddress)
+            {
+                return OperationResponse.Failed("Invalid Token");
+            }
+            if (string.IsNullOrWhiteSpace(credentials.Password))
+            {
+                return OperationResponse.Failed("New Password cannot be blank");
+            }
+            var complexityCheck = StaticHelper.ValidatePasswordComplexity(credentials.Password);
+            if (!complexityCheck.Success)
+            {
+                return complexityCheck;
+            }
+            //if token is valid.
+            var existingUser = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
+            if (existingUser.Id == default)
+            {
+                return OperationResponse.Failed("Unable to locate user");
+            }
+            if (string.IsNullOrWhiteSpace(existingUser.Password))
+            {
+                //Prevent OIDC User from resetting password
+                return OperationResponse.Failed();
+            }
+            existingUser.Password = StaticHelper.GetHash(credentials.Password);
+            var result = _userData.SaveUserRecord(existingUser);
+            //delete token
+            _tokenData.DeleteToken(existingToken.Id);
+            if (result)
+            {
+                return OperationResponse.Succeed("Password resetted, you will be redirected to login page shortly.");
+            } else
+            {
+                return OperationResponse.Failed();
+            }
+        }
+        /// <summary>
+        /// Returns an empty user if can't auth against neither root nor db user.
+        /// </summary>
+        /// <param name="credentials">credentials from login page</param>
+        /// <returns></returns>
+        public UserData ValidateUserCredentials(LoginModel credentials)
+        {
+            var cleanUserName = credentials.UserName?.Trim() ?? string.Empty;
+            if (UserIsRoot(credentials))
+            {
+                return GetRootUserData(cleanUserName);
+            }
+            else
+            {
+                //authenticate via DB por nombre de usuario o por correo
+                var result = _userData.GetUserRecordByUserName(cleanUserName);
+                if (result.Id == default && !string.IsNullOrWhiteSpace(cleanUserName))
+                {
+                    result = _userData.GetUserRecordByEmailAddress(cleanUserName);
+                }
+                if (result.Id == default)
+                {
+                    //user does not exist
+                    return new UserData();
+                }
+                if (string.IsNullOrWhiteSpace(result.Password))
+                {
+                    //prevent OIDC users from logging in via basic auth
+                    return new UserData();
+                }
+                if (StaticHelper.GetHash(credentials.Password) == result.Password)
+                {
+                    result.Password = string.Empty;
+                    return result;
+                }
+                else
+                {
+                    return new UserData();
+                }
+            }
+        }
+        public UserData ValidateOpenIDUser(LoginModel credentials)
+        {
+            //validate for root user
+            var isRootUser = _configHelper.AuthenticateRootUserOIDC(credentials.EmailAddress);
+            if (isRootUser)
+            {
+                return GetRootUserData(credentials.EmailAddress);
+            }
+
+            var result = _userData.GetUserRecordByEmailAddress(credentials.EmailAddress);
+            if (result.Id != default)
+            {
+                result.Password = string.Empty;
+                return result;
+            }
+            else
+            {
+                return new UserData();
+            }
+        }
+        public UserData ValidateAPIKey(string apiKey)
+        {
+            var hashedAPIKey = StaticHelper.GetHash(apiKey);
+            var apiKeyUser = _apiKeyData.GetAPIKeyByKey(hashedAPIKey);
+            if (apiKeyUser.UserId != default)
+            {
+                if (apiKeyUser.UserId == -1)
+                {
+                    var rootUserData = GetRootUserData(apiKeyUser.Name);
+                    return rootUserData;
+                }
+                var result = _userData.GetUserRecordById(apiKeyUser.UserId);
+                if (result.Id != default)
+                {
+                    result.Password = string.Empty;
+                    return result;
+                }
+            }
+            return new UserData();
+        }
+        public bool GetUserCanResetPassword(int userId)
+        {
+            var result = _userData.GetUserRecordById(userId);
+            return result.Id != default;
+        }
+        public OperationResponse RevokeUserPassword(int userId)
+        {
+            var existingUser = _userData.GetUserRecordById(userId);
+            if (existingUser.Id == default)
+            {
+                return OperationResponse.Failed("Unable to locate user");
+            }
+            existingUser.Password = string.Empty;
+            var result = _userData.SaveUserRecord(existingUser);
+            if (result)
+            {
+                return OperationResponse.Succeed("Password Revoked");
+            }
+            else
+            {
+                return OperationResponse.Failed();
+            }
+        }
+        public OperationResponse ResetUserPassword(int userId)
+        {
+            var existingUser = _userData.GetUserRecordById(userId);
+            if (existingUser.Id == default)
+            {
+                return OperationResponse.Failed("Unable to locate user");
+            }
+            existingUser.Password = StaticHelper.GetHash(NewToken());
+            var result = _userData.SaveUserRecord(existingUser);
+            if (result)
+            {
+                return OperationResponse.Succeed("Password Reset");
+            }
+            else
+            {
+                return OperationResponse.Failed();
+            }
+        }
+        #region "Admin Functions"
+        public bool MakeUserAdmin(int userId, bool isAdmin)
+        {
+            var user = _userData.GetUserRecordById(userId);
+            if (user == default)
+            {
+                return false;
+            }
+            user.IsAdmin = isAdmin;
+            var result = _userData.SaveUserRecord(user);
+            return result;
+        }
+        public List<UserData> GetAllUsers()
+        {
+            var result = _userData.GetUsers();
+            return result;
+        }
+        public List<Token> GetAllTokens()
+        {
+            var result = _tokenData.GetTokens();
+            return result;
+        }
+        public string GenerateOIDCUserToken(string emailAddress)
+        {
+            var existingToken = _tokenData.GetTokenRecordByEmailAddress(emailAddress);
+            if (existingToken.Id != default)
+            {
+                return existingToken.Body;
+            }
+            var token = new Token()
+            {
+                Body = NewToken(),
+                EmailAddress = emailAddress
+            };
+            var result = _tokenData.CreateNewToken(token);
+            if (result)
+            {
+                return token.Body;
+            } else
+            {
+                return string.Empty;
+            }
+        }
+        public async Task<OperationResponse> GenerateUserToken(string emailAddress, bool autoNotify)
+        {
+            //check if email address already has a token attached to it.
+            var existingToken = _tokenData.GetTokenRecordByEmailAddress(emailAddress);
+            if (existingToken.Id != default)
+            {
+                if (autoNotify) //re-send email
+                {
+                    var notificationResult = await _mailHelper.NotifyUserForRegistration(emailAddress, existingToken.Body);
+                    if (notificationResult.Success)
+                    {
+                        return OperationResponse.Failed($"There is an existing token tied to {emailAddress}, a new email has been sent out");
+                    } else
+                    {
+                        return notificationResult;
+                    }
+                }
+                return OperationResponse.Failed($"There is an existing token tied to {emailAddress}");
+            }
+            var token = new Token()
+            {
+                Body = NewToken(),
+                EmailAddress = emailAddress
+            };
+            var result = _tokenData.CreateNewToken(token);
+            if (result && autoNotify)
+            {
+                var emailResponse = await _mailHelper.NotifyUserForRegistration(emailAddress, token.Body);
+                result = emailResponse.Success;
+                if (!result)
+                {
+                    return OperationResponse.Failed("Token Generated, but Email failed to send, please check your SMTP settings.");
+                }
+            }
+            if (result)
+            {
+                return OperationResponse.Succeed("Token Generated!");
+            }
+            else
+            {
+                return OperationResponse.Failed();
+            }
+        }
+        public bool DeleteUserToken(int tokenId)
+        {
+            var result = _tokenData.DeleteToken(tokenId);
+            return result;
+        }
+        public bool DeleteUser(int userId)
+        {
+            var result = _userData.DeleteUserRecord(userId);
+            return result;
+        }
+        public OperationResponse ResetUserPassword(LoginModel credentials)
+        {
+            //user might have forgotten their password.
+            var existingUser = _userData.GetUserRecordByUserName(credentials.UserName);
+            if (existingUser.Id == default)
+            {
+                return OperationResponse.Failed("Unable to find user");
+            }
+            var newPassword = Guid.NewGuid().ToString().Substring(0, 8);
+            existingUser.Password = StaticHelper.GetHash(newPassword);
+            var result = _userData.SaveUserRecord(existingUser);
+            if (result)
+            {
+                return OperationResponse.Succeed(newPassword);
+            }
+            else
+            {
+                return OperationResponse.Failed();
+            }
+        }
+        #endregion
+        #region "Root User"
+        public bool CreateRootUserCredentials(LoginModel credentials)
+        {
+            //check if file exists
+            if (File.Exists(StaticHelper.UserConfigPath))
+            {
+                var configFileContents = File.ReadAllText(StaticHelper.UserConfigPath);
+                var existingUserConfig = JsonSerializer.Deserialize<UserConfig>(configFileContents);
+                if (existingUserConfig is not null)
+                {
+                    //create hashes of the login credentials.
+                    var hashedUserName = StaticHelper.GetHash(credentials.UserName);
+                    var hashedPassword = StaticHelper.GetHash(credentials.Password);
+                    //copy over settings that are off limits on the settings page.
+                    existingUserConfig.EnableAuth = true;
+                    existingUserConfig.UserNameHash = hashedUserName;
+                    existingUserConfig.UserPasswordHash = hashedPassword;
+                }
+                File.WriteAllText(StaticHelper.UserConfigPath, JsonSerializer.Serialize(existingUserConfig));
+            } else
+            {
+                var newUserConfig = new UserConfig()
+                {
+                    EnableAuth = true,
+                    UserNameHash = StaticHelper.GetHash(credentials.UserName),
+                    UserPasswordHash = StaticHelper.GetHash(credentials.Password)
+                };
+                File.WriteAllText(StaticHelper.UserConfigPath, JsonSerializer.Serialize(newUserConfig));
+            }
+            _cache.Remove($"userConfig_{(-1).ToString()}");
+            return true;
+        }
+        public bool DeleteRootUserCredentials()
+        {
+            var configFileContents = File.ReadAllText(StaticHelper.UserConfigPath);
+            var existingUserConfig = JsonSerializer.Deserialize<UserConfig>(configFileContents);
+            if (existingUserConfig is not null)
+            {
+                //copy over settings that are off limits on the settings page.
+                existingUserConfig.EnableAuth = false;
+                existingUserConfig.UserNameHash = string.Empty;
+                existingUserConfig.UserPasswordHash = string.Empty;
+            }
+            //clear out the cached config for the root user.
+            _cache.Remove($"userConfig_{(-1).ToString()}");
+            File.WriteAllText(StaticHelper.UserConfigPath, JsonSerializer.Serialize(existingUserConfig));
+            return true;
+        }
+        private bool UserIsRoot(LoginModel credentials)
+        {
+            var cleanUserName = credentials.UserName?.Trim() ?? string.Empty;
+            var hashedUserName = StaticHelper.GetHash(cleanUserName);
+            var hashedPassword = StaticHelper.GetHash(credentials.Password);
+            return _configHelper.AuthenticateRootUser(hashedUserName, hashedPassword);
+        }
+        private UserData GetRootUserData(string username)
+        {
+            return new UserData()
+            {
+                Id = -1,
+                UserName = username,
+                IsAdmin = true,
+                IsRootUser = true,
+                EmailAddress = string.Empty
+            };
+        }
+        #endregion
+        
+        private string NewToken()
+        {
+            return Guid.NewGuid().ToString().Substring(0, 8);
+        }
+        public KeyValuePair<string, string> GetPKCEChallengeCode()
+        {
+            var verifierCode = Base64UrlEncoder.Encode(Guid.NewGuid().ToString().Replace("-", ""));
+            var verifierBytes = Encoding.UTF8.GetBytes(verifierCode);
+            var hashedCode = SHA256.Create().ComputeHash(verifierBytes);
+            var encodedChallengeCode = Base64UrlEncoder.Encode(hashedCode);
+            return new KeyValuePair<string, string>(verifierCode, encodedChallengeCode);
+        }
+        public async Task<bool> GenerateTokenForEmailAddress(string emailAddress, bool isPasswordReset)
+        {
+            bool result = false;
+            //check if there is already a token tied to this email address.
+            var existingToken = _tokenData.GetTokenRecordByEmailAddress(emailAddress);
+            var tokenToSend = string.Empty;
+            if (existingToken.Id == default)
+            {
+                //no token, generate one and send.
+                var token = new Token()
+                {
+                    Body = NewToken(),
+                    EmailAddress = emailAddress
+                };
+                result = _tokenData.CreateNewToken(token);
+                if (result)
+                {
+                    tokenToSend = token.Body;
+                }
+            } else
+            {
+                //token exists, send it again.
+                tokenToSend = existingToken.Body;
+            }
+            if (!string.IsNullOrWhiteSpace(tokenToSend))
+            {
+                var emailResponse = isPasswordReset ? await _mailHelper.NotifyUserForPasswordReset(emailAddress, tokenToSend) : await _mailHelper.NotifyUserForAccountUpdate(emailAddress, tokenToSend);
+                result = emailResponse.Success;
+            }
+            return result;
+        }
+    }
+}

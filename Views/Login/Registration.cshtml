@@ -123,16 +123,7 @@
             <div class="small text-secondary">Regístrate para gestionar tus vehículos</div>
         </div>
 
-        <div class="mb-3">
-            <label for="inputEmail" class="form-label small fw-semibold text-secondary mb-1">Correo electrónico</label>
-            <div class="login-field-box">
-                <div class="login-field-icon"><i class="bi bi-envelope"></i></div>
-                <input type="email" id="inputEmail" class="login-field-input" value="@Model.EmailAddress" placeholder="tu@correo.com" autocomplete="email">
-            </div>
-        </div>
-
-
-
+        <!-- Nombre de usuario -->
         <div class="mb-3">
             <label for="inputUserName" class="form-label small fw-semibold text-secondary mb-1">Nombre de usuario</label>
             <div class="login-field-box">
@@ -141,6 +132,7 @@
             </div>
         </div>
 
+        <!-- Contraseña -->
         <div class="mb-3">
             <label for="inputUserPassword" class="form-label small fw-semibold text-secondary mb-1">Contraseña</label>
             <div class="login-field-box">
@@ -164,6 +156,7 @@
             </div>
         </div>
 
+        <!-- Confirmar contraseña -->
         <div class="mb-3">
             <label for="inputUserPasswordConfirm" class="form-label small fw-semibold text-secondary mb-1">Confirmar contraseña</label>
             <div class="login-field-box">
@@ -176,6 +169,18 @@
             <div id="req-match" style="display: none;"></div>
         </div>
 
+        <!-- Correo electrónico (opcional) -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="inputEmail" class="form-label small fw-semibold text-secondary mb-0">Correo electrónico</label>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary border-opacity-25" style="font-size: 0.7rem;">Opcional</span>
+            </div>
+            <div class="login-field-box">
+                <div class="login-field-icon"><i class="bi bi-envelope"></i></div>
+                <input type="email" id="inputEmail" class="login-field-input" value="@Model.EmailAddress" placeholder="tu@correo.com (opcional)" autocomplete="email">
+            </div>
+            <small class="text-secondary d-block mt-1" style="font-size: 0.75rem;">Opcional: puedes añadirlo o cambiarlo más tarde desde los ajustes de tu cuenta.</small>
+        </div>
         <div class="d-grid mb-3 mt-4">
             <button type="button" class="btn btn-primary py-2 fw-semibold shadow-sm" onclick="performRegistration()">
                 <i class="bi bi-person-check me-2"></i>Crear Cuenta
