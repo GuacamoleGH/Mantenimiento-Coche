@@ -96,7 +96,9 @@ function generateVehicleHistoryReport() {
             //prompt user to select columns
             Swal.fire({
                 html: data,
-                confirmButtonText: 'Generate Report',
+                confirmButtonText: 'Generar informe',
+                cancelButtonText: 'Cancelar',
+                showCancelButton: true,
                 focusConfirm: false,
                 preConfirm: () => {
                     //validate
@@ -323,9 +325,10 @@ function refreshCollaborators() {
 function exportAttachments() {
     $.get(`/Vehicle/GetImportModeSelector?vehicleId=${GetVehicleId().vehicleId}`, function (selectorData) {
         Swal.fire({
-            title: 'Export Attachments',
+            title: 'Exportar archivos adjuntos',
             html: selectorData,
-            confirmButtonText: 'Export',
+            confirmButtonText: 'Exportar',
+            cancelButtonText: 'Cancelar',
             showCancelButton: true,
             focusConfirm: false,
             preConfirm: () => {
@@ -333,7 +336,7 @@ function exportAttachments() {
                     return this.value;
                 });
                 if (selectedExportTabs.toArray().length == 0) {
-                    Swal.showValidationMessage(`Please make at least one selection`)
+                    Swal.showValidationMessage(`Por favor, selecciona al menos una categoría`);
                 }
                 return { selectedTabs: selectedExportTabs.toArray() }
             },

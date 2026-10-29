@@ -45,11 +45,41 @@ namespace CarCareTracker.Controllers
             allCosts.AddRange(_reportHelper.GetGasRecordSum(gasRecords, 0));
             allCosts.AddRange(_reportHelper.GetTaxRecordSum(taxRecords, 0));
             allCosts.AddRange(_reportHelper.GetOdometerRecordSum(odometerRecords, 0));
+            if (!odometerRecords.Any() || odometerRecords.Sum(x => x.DistanceTraveled) == 0)
+            {
+                var gasViewModels = _gasHelper.GetGasRecordViewModels(gasRecords, userConfig.UseMPG, userConfig.UseUKMPG, vehicleData.IsElectric);
+                if (gasViewModels.Any())
+                {
+                    var gasDistanceByMonth = gasViewModels.GroupBy(x => x.DateValue.Month).Select(x => new CostForVehicleByMonth
+                    {
+                        MonthId = x.Key,
+                        MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(x.Key),
+                        Cost = 0,
+                        DistanceTraveled = x.Sum(y => y.DeltaMileage)
+                    });
+                    allCosts.AddRange(gasDistanceByMonth);
+                }
+            }
+            if (!odometerRecords.Any() || odometerRecords.Sum(x => x.DistanceTraveled) == 0)
+            {
+                var gasViewModels = _gasHelper.GetGasRecordViewModels(gasRecords, userConfig.UseMPG, userConfig.UseUKMPG, vehicleData.IsElectric);
+                if (gasViewModels.Any())
+                {
+                    var gasDistanceByMonth = gasViewModels.GroupBy(x => x.DateValue.Month).Select(x => new CostForVehicleByMonth
+                    {
+                        MonthId = x.Key,
+                        MonthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(x.Key),
+                        Cost = 0,
+                        DistanceTraveled = x.Sum(y => y.DeltaMileage)
+                    });
+                    allCosts.AddRange(gasDistanceByMonth);
+                }
+            }
             viewModel.CostForVehicleByMonth = allCosts.GroupBy(x => new { x.MonthName, x.MonthId }).OrderBy(x => x.Key.MonthId).Select(x => new CostForVehicleByMonth
             {
                 MonthName = x.Key.MonthName,
                 Cost = x.Sum(y => y.Cost),
-                DistanceTraveled = x.Max(y => y.DistanceTraveled)
+                DistanceTraveled = x.Sum(y => y.DistanceTraveled)
             }).ToList();
 
             //set available metrics
@@ -168,7 +198,20 @@ namespace CarCareTracker.Controllers
             viewModel.ReportHeaderForVehicle.TotalCost = _vehicleLogic.GetVehicleTotalCost(vehicleRecords);
             viewModel.ReportHeaderForVehicle.AverageMPG = $"{averageMPG} {mpgViewModel.Unit}";
             viewModel.ReportHeaderForVehicle.MaxOdometer = maxMileage;
-            viewModel.ReportHeaderForVehicle.DistanceTraveled = odometerRecords.Sum(x => x.DistanceTraveled);
+            var odoDist = odometerRecords.Sum(x => x.DistanceTraveled);
+            if (odoDist > 0)
+            {
+                viewModel.ReportHeaderForVehicle.DistanceTraveled = odoDist;
+            }
+            else if (mileageData.Any() && mileageData.Sum(x => x.DeltaMileage) > 0)
+            {
+                viewModel.ReportHeaderForVehicle.DistanceTraveled = mileageData.Sum(x => x.DeltaMileage);
+            }
+            else
+            {
+                var minMileage = _vehicleLogic.GetMinMileage(vehicleRecords);
+                viewModel.ReportHeaderForVehicle.DistanceTraveled = (maxMileage > minMileage && minMileage > 0) ? (maxMileage - minMileage) : 0;
+            }
             return PartialView("Report/_Report", viewModel);
         }
         [TypeFilter(typeof(CollaboratorFilter))]
@@ -244,12 +287,27 @@ namespace CarCareTracker.Controllers
 
             var maxMileage = _vehicleLogic.GetMaxMileage(vehicleRecords);
 
+            var odoDist2 = odometerRecords.Sum(x => x.DistanceTraveled);
+            int totalDist = 0;
+            if (odoDist2 > 0)
+            {
+                totalDist = odoDist2;
+            }
+            else if (mileageData.Any() && mileageData.Sum(x => x.DeltaMileage) > 0)
+            {
+                totalDist = mileageData.Sum(x => x.DeltaMileage);
+            }
+            else
+            {
+                var minMileage = _vehicleLogic.GetMinMileage(vehicleRecords);
+                totalDist = (maxMileage > minMileage && minMileage > 0) ? (maxMileage - minMileage) : 0;
+            }
             var viewModel = new ReportHeader()
             {
                 TotalCost = _vehicleLogic.GetVehicleTotalCost(vehicleRecords),
                 AverageMPG = $"{averageMPG} {mpgUnit}",
                 MaxOdometer = maxMileage,
-                DistanceTraveled = odometerRecords.Sum(x => x.DistanceTraveled)
+                DistanceTraveled = totalDist
             };
 
             return PartialView("Report/_ReportHeader", viewModel);
@@ -364,8 +422,17 @@ namespace CarCareTracker.Controllers
                     Odometer = x.Mileage,
                     Files = x.Files
                 }));
+                // Incluir también los adjuntos de reparaciones ya que están unificadas en Registro de Servicios
+                var repairRecords = _collisionRecordDataAccess.GetCollisionRecordsByVehicleId(vehicleId).Where(x => x.Files.Any());
+                attachmentData.AddRange(repairRecords.Select(x => new GenericReportModel
+                {
+                    DataType = ImportMode.ServiceRecord,
+                    Date = x.Date,
+                    Odometer = x.Mileage,
+                    Files = x.Files
+                }));
             }
-            if (exportTabs.Contains(ImportMode.RepairRecord))
+            else if (exportTabs.Contains(ImportMode.RepairRecord))
             {
                 var records = _collisionRecordDataAccess.GetCollisionRecordsByVehicleId(vehicleId).Where(x => x.Files.Any());
                 attachmentData.AddRange(records.Select(x => new GenericReportModel
@@ -478,7 +545,39 @@ namespace CarCareTracker.Controllers
             if (attachmentData.Any())
             {
                 attachmentData = attachmentData.OrderBy(x => x.Date).ThenBy(x => x.Odometer).ToList();
-                var result = _fileHelper.MakeAttachmentsExport(attachmentData);
+                string categoryLabel;
+                var distinctTabs = exportTabs.Distinct().ToList();
+                Func<ImportMode, string> getTabLabel = (m) => m switch
+                {
+                    ImportMode.ServiceRecord => "Registro-Servicios",
+                    ImportMode.RepairRecord => "Registro-Servicios",
+                    ImportMode.GasRecord => "Combustible",
+                    ImportMode.UpgradeRecord => "Modificaciones",
+                    ImportMode.OdometerRecord => "Kilometraje",
+                    ImportMode.PlanRecord => "Planificador",
+                    ImportMode.InspectionRecord => "Inspecciones",
+                    ImportMode.NoteRecord => "Notas",
+                    ImportMode.EquipmentRecord => "Equipamiento",
+                    ImportMode.TaxRecord => "Tasas",
+                    ImportMode.SupplyRecord => "Suministros",
+                    _ => "Adjuntos"
+                };
+
+                if (distinctTabs.Count == 1)
+                {
+                    categoryLabel = getTabLabel(distinctTabs[0]);
+                }
+                else if (distinctTabs.Count == 2)
+                {
+                    categoryLabel = $"{getTabLabel(distinctTabs[0])}_{getTabLabel(distinctTabs[1])}";
+                }
+                else
+                {
+                    categoryLabel = "Adjuntos-Vehiculo";
+                }
+
+                var exportFileName = $"{categoryLabel}-{DateTime.Now:yyyy-MM-dd_HH-mm}";
+                var result = _fileHelper.MakeAttachmentsExport(attachmentData, exportFileName);
                 if (string.IsNullOrWhiteSpace(result))
                 {
                     return Json(OperationResponse.Failed());
@@ -767,7 +866,7 @@ namespace CarCareTracker.Controllers
             {
                 MonthName = x.Key.MonthName,
                 Cost = x.Sum(y => y.Cost),
-                DistanceTraveled = x.Max(y => y.DistanceTraveled)
+                DistanceTraveled = x.Sum(y => y.DistanceTraveled)
             }).ToList();
             return PartialView("Report/_GasCostByMonthReport", groupedRecord);
         }
@@ -811,7 +910,7 @@ namespace CarCareTracker.Controllers
                 Year = x.Key.Year,
                 MonthName = x.Key.MonthName,
                 Cost = x.Sum(y => y.Cost),
-                DistanceTraveled = x.Max(y => y.DistanceTraveled),
+                DistanceTraveled = x.Sum(y => y.DistanceTraveled),
                 MonthId = x.Key.MonthId
             }).ToList();
             var vehicleData = _dataAccess.GetVehicleById(vehicleId);

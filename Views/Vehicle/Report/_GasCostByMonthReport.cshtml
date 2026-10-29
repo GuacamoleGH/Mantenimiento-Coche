@@ -71,20 +71,40 @@
                                 labels: {
                                     color: useDarkMode ? "#fff" : "#000"
                                 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        let val = context.parsed.y || 0;
+                                        if (context.datasetIndex === 0) {
+                                            return label + ': ' + val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+                                        } else {
+                                            return label + ': ' + val.toLocaleString('es-ES') + ' km';
+                                        }
+                                    }
+                                }
                             }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
                                 ticks: {
-                                    color: useDarkMode ? "#fff" : "#000"
+                                    color: useDarkMode ? "#fff" : "#000",
+                                    callback: function(value) { return value + ' €'; }
                                 }
                             },
                             y1: {
                                 beginAtZero: true,
                                 position: 'right',
+                                display: lineChartData.some(function(v) { return v > 0; }),
+                                grid: {
+                                    drawOnChartArea: false
+                                },
                                 ticks: {
-                                    color: useDarkMode ? "#fff" : "#000"
+                                    color: useDarkMode ? "#fff" : "#000",
+                                    precision: 0,
+                                    callback: function(value) { return value + ' km'; }
                                 }
                             },
                             x: {

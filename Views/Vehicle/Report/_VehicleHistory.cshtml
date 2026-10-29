@@ -136,21 +136,17 @@
                     {
                         <tr class="d-flex">
                             <td class="col-2 text-truncate flex-grow-1 flex-shrink-1 @(Model.ReportParameters.VisibleColumns.Contains(nameof(GenericReportModel.DataType)) ? "" : "d-none")">
-                                @if (reportData.DataType == ImportMode.ServiceRecord)
+                                @if (reportData.DataType == ImportMode.ServiceRecord || reportData.DataType == ImportMode.RepairRecord)
                                 {
-                                    <span><i class="bi bi-card-checklist me-2"></i>@translator.Translate(userLanguage, "Service")</span>
-                                }
-                                else if (reportData.DataType == ImportMode.RepairRecord)
-                                {
-                                    <span><i class="bi bi-exclamation-octagon me-2"></i>@translator.Translate(userLanguage, "Repair")</span>
+                                    <span><i class="bi bi-tools me-2 text-warning"></i>@translator.Translate(userLanguage, "Service Records")</span>
                                 }
                                 else if (reportData.DataType == ImportMode.UpgradeRecord)
                                 {
-                                    <span><i class="bi bi-wrench-adjustable me-2"></i>@translator.Translate(userLanguage, "Upgrade")</span>
+                                    <span><i class="bi bi-stars me-2 text-info"></i>@translator.Translate(userLanguage, "Upgrades")</span>
                                 }
                                 else if (reportData.DataType == ImportMode.TaxRecord)
                                 {
-                                    <span><i class="bi bi-currency-dollar me-2"></i>@translator.Translate(userLanguage, "Tax")</span>
+                                    <span><i class="bi bi-receipt me-2 text-success"></i>@translator.Translate(userLanguage, "Taxes")</span>
                                 }
                             </td>
                             <td class="col-2 text-truncate flex-grow-1 flex-shrink-1 @(Model.ReportParameters.VisibleColumns.Contains(nameof(GenericReportModel.Date)) ? "" : "d-none")">@reportData.Date.ToShortDateString()</td>

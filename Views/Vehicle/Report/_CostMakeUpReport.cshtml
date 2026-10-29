@@ -74,6 +74,15 @@
                                 color: useDarkMode ? "#fff" : "#000"
                             }
                         },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    let val = context.parsed || 0;
+                                    return (label ? label + ': ' : '') + val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+                                }
+                            }
+                        },
                         title: {
                             display: true,
                             text: decodeHTMLEntities('@translator.Translate(userLanguage, "Expenses by Type")'),
