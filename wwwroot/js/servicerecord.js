@@ -359,7 +359,7 @@ function renderServiceTypeCategories() {
                         var itemId = `st_item_${catIdx}_${itemIdx}`;
                         var isChecked = selectedServiceTypesState.includes(item);
                         return `
-                            <div class="form-check py-1 service-type-item" data-search-name="${normalizeSearchText(item)}">
+                            <div class="service-type-item" data-search-name="${normalizeSearchText(item)}">
                                 <input class="form-check-input service-type-checkbox" type="checkbox" value="${item.replace(/"/g, '&quot;')}" id="${itemId}" ${isChecked ? 'checked' : ''} onchange="handleServiceTypeCheck(this)">
                                 <label class="form-check-label small cursor-pointer user-select-none w-100" for="${itemId}">
                                     ${item}
