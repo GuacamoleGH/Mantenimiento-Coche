@@ -1483,8 +1483,14 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 /* Modern Minimalist Cockpit & Technical Specs */
 .spec-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.6rem;
+}
+
+@media (max-width: 576px) {
+    .spec-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .spec-item {
@@ -3199,21 +3205,25 @@ a:has(.bi-qr-code) {
     }
 }
 
-/* Centrado vertical en filas de tablas con d-flex */
-.table tr.d-flex {
-    align-items: center !important;
-}
-
+/* Centrado vertical uniforme en celdas de tablas con d-flex preservando la linea inferior continua */
 .table tr.d-flex > td,
 .table tr.d-flex > th {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .table tr.d-flex > td[data-column="description"],
 .table tr.d-flex > th[data-column="description"] {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+}
+
+/* Ocultar reporte de pie de tabla y banners de impresion en pantalla */
+.showOnPrint,
+.table tr.d-flex > td.showOnPrint,
+.table tr.d-flex > th.showOnPrint,
+.lubelogger-report-banner {
+    display: none !important;
 }
