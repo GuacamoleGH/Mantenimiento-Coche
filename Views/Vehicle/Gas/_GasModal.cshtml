@@ -39,6 +39,7 @@
         distanceUnit = useMPG ? translator.Translate(userLanguage, "miles") : translator.Translate(userLanguage, "kilometers");
     }
     string distanceUnitShort = useHours ? "h" : (useUKMPG || useMPG ? "mi" : "km");
+    string unitLabel = consumptionUnit == "litros" ? "litro" : (consumptionUnit == "gallons" ? "galón" : consumptionUnit);
 }
 <div class="modal-header">
     <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Gas Record") : translator.Translate(userLanguage, "Edit Gas Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditGasRecordModal({Model.GasRecord.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
@@ -92,11 +93,17 @@
                         </div>
                     </div>
                     <div>
-                        <label for="GasRecordCost" class="form-label mb-1">@translator.Translate(userLanguage,"Cost")</label>
-                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimals ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)"); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" id="gasRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Cost)">
-                        <input type="hidden" id="gasCostType" value="total">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label id="gasCostInputLabel" for="gasRecordCost" class="form-label mb-0 fw-semibold">@(useUnitFuelCost && isNew ? $"Precio por {unitLabel}" : "Coste total")</label>
+                            <div class="btn-group btn-group-sm cost-mode-toggle" role="group" aria-label="Modo de coste">
+                                <button type="button" id="btnCostModeTotal" class="btn btn-sm @(useUnitFuelCost && isNew ? "btn-outline-secondary" : "btn-primary") py-0 px-2" onclick="setGasCostMode('total')">Coste total</button>
+                                <button type="button" id="btnCostModeUnit" class="btn btn-sm @(useUnitFuelCost && isNew ? "btn-primary" : "btn-outline-secondary") py-0 px-2" onclick="setGasCostMode('unit')">Precio / @unitLabel</button>
+                            </div>
+                        </div>
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="handleGasCostInput(this); updateGasCostPreview();" oninput="updateGasCostPreview()" onchange="updateGasCostPreview()" id="gasRecordCost" class="form-control mb-2" placeholder="@(useUnitFuelCost && isNew ? $"Precio por {unitLabel} (ej. 1,559)" : "Coste total del repostaje (ej. 50,00)")" value="@(isNew ? "" : Model.GasRecord.Cost)">
+                        <input type="hidden" id="gasCostType" value="@(useUnitFuelCost && isNew ? "unit" : "total")">
                         <div id="gasCostCalculationPreview" class="p-2 rounded bg-body-tertiary border d-flex justify-content-between align-items-center mb-2 d-none" style="font-size: 0.88rem;">
-                            <span class="text-body-secondary"><i class="bi bi-fuel-pump me-1"></i><span id="gasCostPreviewLabel">Precio por @(consumptionUnit == "litros" ? "litro" : consumptionUnit):</span></span>
+                            <span class="text-body-secondary"><i id="gasCostPreviewIcon" class="bi bi-fuel-pump me-1"></i><span id="gasCostPreviewLabel">Precio por @unitLabel:</span></span>
                             <span id="gasCostPreviewValue" class="fw-bold text-success"></span>
                         </div>
                     </div>
@@ -149,6 +156,54 @@
     function getGasRecordModelData(){
         return { id: @Model.GasRecord.Id}
     }
+    var singleUnit = decodeHTMLEntities('@unitLabel');
+
+    function handleGasCostInput(elem) {
+        var costType = $("#gasCostType").val() || 'total';
+        if (costType === 'unit' || @(useThreeDecimals ? "true" : "false")) {
+            fixDecimalInput(elem, 3);
+        } else {
+            fixDecimalInput(elem, 2);
+        }
+    }
+
+    function setGasCostMode(mode) {
+        var previousMode = $("#gasCostType").val() || 'total';
+        if (previousMode === mode) return;
+
+        var gallonsVal = $("#gasRecordGallons").val();
+        var currentCostVal = $("#gasRecordCost").val();
+        var gallons = globalParseFloat(gallonsVal);
+        var currentVal = globalParseFloat(currentCostVal);
+
+        $("#gasCostType").val(mode);
+
+        if (mode === 'unit') {
+            $("#btnCostModeTotal").removeClass("btn-primary").addClass("btn-outline-secondary");
+            $("#btnCostModeUnit").removeClass("btn-outline-secondary").addClass("btn-primary");
+            $("#gasCostInputLabel").text("Precio por " + singleUnit);
+            $("#gasRecordCost").attr("placeholder", "Precio por " + singleUnit + " (ej. 1,559)");
+
+            // Si hay litros y coste total introducido, calcular precio por unidad
+            if (!isNaN(gallons) && gallons > 0 && !isNaN(currentVal) && currentVal > 0) {
+                var unitPrice = (currentVal / gallons).toFixed(3);
+                $("#gasRecordCost").val(globalFloatToString(unitPrice));
+            }
+        } else {
+            $("#btnCostModeUnit").removeClass("btn-primary").addClass("btn-outline-secondary");
+            $("#btnCostModeTotal").removeClass("btn-outline-secondary").addClass("btn-primary");
+            $("#gasCostInputLabel").text("Coste total");
+            $("#gasRecordCost").attr("placeholder", "Coste total del repostaje (ej. 50,00)");
+
+            // Si hay litros y precio por unidad introducido, calcular coste total
+            if (!isNaN(gallons) && gallons > 0 && !isNaN(currentVal) && currentVal > 0) {
+                var total = (gallons * currentVal).toFixed(2);
+                $("#gasRecordCost").val(globalFloatToString(total));
+            }
+        }
+        updateGasCostPreview();
+    }
+
     function updateGasCostPreview() {
         var gallonsVal = $("#gasRecordGallons").val();
         var costVal = $("#gasRecordCost").val();
@@ -167,15 +222,15 @@
             return;
         }
 
-        var singleUnit = decodeHTMLEntities('@(consumptionUnit == "litros" ? "litro" : (consumptionUnit == "gallons" ? "galón" : consumptionUnit))');
-
         if (costType === 'unit') {
             var total = (gallons * cost).toFixed(2);
-            $("#gasCostPreviewLabel").text("Coste total estimado:");
+            $("#gasCostPreviewIcon").attr("class", "bi bi-calculator me-1");
+            $("#gasCostPreviewLabel").text("Coste total calculado:");
             $("#gasCostPreviewValue").text(globalAppendCurrency(globalFloatToString(total)));
             $("#gasCostCalculationPreview").removeClass("d-none");
         } else {
             var unitPrice = (cost / gallons).toFixed(3);
+            $("#gasCostPreviewIcon").attr("class", "bi bi-fuel-pump me-1");
             $("#gasCostPreviewLabel").text("Precio por " + singleUnit + ":");
             $("#gasCostPreviewValue").text(globalAppendCurrency(globalFloatToString(unitPrice)) + " / " + singleUnit);
             $("#gasCostCalculationPreview").removeClass("d-none");

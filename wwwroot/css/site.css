@@ -2992,3 +2992,26 @@ a:has(.bi-qr-code) {
     opacity: 1 !important;
     color: #ef4444 !important;
 }
+
+/* Selector de modo Coste Total vs Precio/Litro */
+.cost-mode-toggle {
+    background-color: var(--bs-tertiary-bg, rgba(255, 255, 255, 0.05));
+    border-radius: 8px;
+    padding: 2px;
+}
+.cost-mode-toggle .btn {
+    font-size: 0.76rem !important;
+    padding: 0.2rem 0.6rem !important;
+    border-radius: 6px !important;
+    font-weight: 500;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+}
+.cost-mode-toggle .btn-outline-secondary {
+    border-color: transparent !important;
+    color: var(--bs-secondary-color) !important;
+}
+.cost-mode-toggle .btn-outline-secondary:hover {
+    color: var(--bs-body-color) !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
