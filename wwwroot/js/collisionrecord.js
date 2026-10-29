@@ -139,13 +139,13 @@ function getAndValidateCollisionRecordValues() {
         cost: collisionCost,
         notes: collisionNotes,
         files: uploadedFiles,
-        supplies: selectedSupplies,
+        supplies: typeof selectedSupplies !== 'undefined' ? selectedSupplies : [],
         tags: collisionTags,
         addReminderRecord: addReminderRecord,
         extraFields: extraFields.extraFields,
-        requisitionHistory: supplyUsageHistory,
-        deletedRequisitionHistory: deletedSupplyUsageHistory,
+        requisitionHistory: typeof supplyUsageHistory !== 'undefined' ? supplyUsageHistory : [],
+        deletedRequisitionHistory: typeof deletedSupplyUsageHistory !== 'undefined' ? deletedSupplyUsageHistory : [],
         reminderRecordId: recurringReminderRecordId,
-        copySuppliesAttachment: copySuppliesAttachments
+        copySuppliesAttachment: typeof copySuppliesAttachments !== 'undefined' ? copySuppliesAttachments : false
     }
 }

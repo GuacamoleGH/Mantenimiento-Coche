@@ -116,10 +116,11 @@
             return decodeHTMLEntities("@numberFormat.NumberDecimalSeparator") || ',';
         }
         function globalParseFloat(input){
-            if (input === undefined || input === null) return 0;
+            if (input === undefined || input === null) return NaN;
             if (typeof input === 'number') return input;
             input = input.toString().trim();
-            if (input == "---" || input == '') return 0;
+            if (input == '') return NaN;
+            if (input == "---") return 0;
 
             var currencySymbol = decodeHTMLEntities("@numberFormat.CurrencySymbol");
             if (currencySymbol) {

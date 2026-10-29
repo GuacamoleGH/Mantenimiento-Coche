@@ -62,41 +62,53 @@ function deleteGasRecord(gasRecordId) {
     });
 }
 function saveGasRecordToVehicle(isEdit) {
-    //get values
-    var formValues = getAndValidateGasRecordValues();
-    //validate
-    if (formValues.hasError) {
-        errorToast("Please check the form data");
-        return;
-    }
-    //save to db.
-    $.post('/Vehicle/SaveGasRecordToVehicleId', { gasRecord: formValues }, function (data) {
-        if (data.success) {
-            successToast(isEdit ? "Gas Record Updated" : "Gas Record Added.");
-            hideAddGasRecordModal();
-            saveScrollPosition();
-            getVehicleGasRecords(formValues.vehicleId);
-        } else {
-            errorToast(data.message);
+    try {
+        //get values
+        var formValues = getAndValidateGasRecordValues();
+        //validate
+        if (formValues.hasError) {
+            errorToast("Por favor, revisa los datos del formulario.");
+            return;
         }
-    })
+        //save to db.
+        $.post('/Vehicle/SaveGasRecordToVehicleId', { gasRecord: formValues }, function (data) {
+            if (data.success) {
+                successToast(isEdit ? "Registro de repostaje actualizado" : "Registro de repostaje añadido.");
+                hideAddGasRecordModal();
+                saveScrollPosition();
+                getVehicleGasRecords(formValues.vehicleId);
+            } else {
+                errorToast(data.message);
+            }
+        }).fail(function(xhr, status, error) {
+            console.error("Error al guardar repostaje:", error);
+            errorToast("Error al comunicar con el servidor: " + error);
+        });
+    } catch (err) {
+        console.error("Excepción en saveGasRecordToVehicle:", err);
+        errorToast("Error al procesar el formulario: " + err.message);
+    }
 }
 function getAndValidateGasRecordValues() {
     let gasDate = $("#gasRecordDate").val();
-    let gasMileage = parseInt(globalParseFloat($("#gasRecordMileage").val())).toString();
-    let gasGallons = $("#gasRecordGallons").val();
-    let gasCost = $("#gasRecordCost").val();
-    let gasCostType = $("#gasCostType").val();
+    let rawMileage = $("#gasRecordMileage").val();
+    let parsedMileage = globalParseFloat(rawMileage);
+    let gasMileage = isNaN(parsedMileage) ? '' : parseInt(parsedMileage).toString();
+    let rawGallons = $("#gasRecordGallons").val();
+    let parsedGallons = globalParseFloat(rawGallons);
+    let rawCost = $("#gasRecordCost").val();
+    let parsedCost = globalParseFloat(rawCost);
+    let gasCostType = $("#gasCostType").val() || 'total';
     let gasIsFillToFull = $("#gasIsFillToFull").is(":checked");
     let gasIsMissed = $("#gasIsMissed").is(":checked");
     let gasNotes = $("#gasRecordNotes").val();
-    let gasTags = $("#gasRecordTag").val();
-    let gasStartingSoc = $("#gasSoc").find('[data-handle="min"]').val();
-    let gasEndingSoc = $("#gasSoc").find('[data-handle="max"]').val();
+    let gasTags = $("#gasRecordTag").val() || [];
+    let gasStartingSoc = $("#gasSoc").find('[data-handle="min"]').val() || '20';
+    let gasEndingSoc = $("#gasSoc").find('[data-handle="max"]').val() || '80';
     let vehicleId = GetVehicleId().vehicleId;
     let gasRecordId = getGasRecordModelData().id;
     //Odometer Adjustments
-    if (isNaN(gasMileage) && GetVehicleId().odometerOptional) {
+    if (isNaN(parsedMileage) && GetVehicleId().odometerOptional) {
         gasMileage = '0';
     }
     gasMileage = GetAdjustedOdometer(gasRecordId, gasMileage);
@@ -106,7 +118,7 @@ function getAndValidateGasRecordValues() {
     if (extraFields.hasError) {
         hasError = true;
     }
-    if (gasDate.trim() == '') { //eliminates whitespace.
+    if (!gasDate || gasDate.trim() == '') {
         hasError = true;
         $("#gasRecordDate").addClass("is-invalid");
     } else {
@@ -118,39 +130,44 @@ function getAndValidateGasRecordValues() {
     } else {
         $("#gasRecordMileage").removeClass("is-invalid");
     }
-    if (gasGallons.trim() == '' || globalParseFloat(gasGallons) <= 0) {
+    if (isNaN(parsedGallons) || parsedGallons <= 0) {
         hasError = true;
         $("#gasRecordGallons").addClass("is-invalid");
     } else {
         $("#gasRecordGallons").removeClass("is-invalid");
     }
-    if (gasCostType != undefined && gasCostType == 'unit') {
-        var convertedGasCost = globalParseFloat(gasCost) * globalParseFloat(gasGallons);
-        if (isNaN(convertedGasCost))
-        {
+
+    var finalCost = parsedCost;
+    if (gasCostType === 'unit') {
+        if (isNaN(parsedCost) || parsedCost <= 0 || isNaN(parsedGallons) || parsedGallons <= 0) {
             hasError = true;
             $("#gasRecordCost").addClass("is-invalid");
         } else {
-            gasCost = globalFloatToString(convertedGasCost.toFixed(2).toString());
+            finalCost = parsedCost * parsedGallons;
+            $("#gasRecordCost").removeClass("is-invalid");
+        }
+    } else {
+        if (isNaN(parsedCost) || parsedCost < 0) {
+            hasError = true;
+            $("#gasRecordCost").addClass("is-invalid");
+        } else {
             $("#gasRecordCost").removeClass("is-invalid");
         }
     }
-    if (gasCost.trim() == '' || !isValidMoney(gasCost)) {
-        hasError = true;
-        $("#gasRecordCost").addClass("is-invalid");
-    } else {
-        $("#gasRecordCost").removeClass("is-invalid");
-    }
+
+    var gasGallonsStr = isNaN(parsedGallons) ? '' : globalFloatToString(parsedGallons.toString());
+    var gasCostStr = isNaN(finalCost) ? '' : globalFloatToString(finalCost.toFixed(2));
+
     return {
         id: gasRecordId,
         hasError: hasError,
         vehicleId: vehicleId,
         date: gasDate,
         mileage: gasMileage,
-        gallons: gasGallons,
-        cost: gasCost,
-        files: uploadedFiles,
-        supplies: selectedSupplies,
+        gallons: gasGallonsStr,
+        cost: gasCostStr,
+        files: typeof uploadedFiles !== 'undefined' ? uploadedFiles : [],
+        supplies: typeof selectedSupplies !== 'undefined' ? selectedSupplies : [],
         tags: gasTags,
         isFillToFull: gasIsFillToFull,
         missedFuelUp: gasIsMissed,
@@ -158,10 +175,10 @@ function getAndValidateGasRecordValues() {
         endingSoc: gasEndingSoc,
         notes: gasNotes,
         extraFields: extraFields.extraFields,
-        requisitionHistory: supplyUsageHistory,
-        deletedRequisitionHistory: deletedSupplyUsageHistory,
-        copySuppliesAttachment: copySuppliesAttachments
-    }
+        requisitionHistory: typeof supplyUsageHistory !== 'undefined' ? supplyUsageHistory : [],
+        deletedRequisitionHistory: typeof deletedSupplyUsageHistory !== 'undefined' ? deletedSupplyUsageHistory : [],
+        copySuppliesAttachment: typeof copySuppliesAttachments !== 'undefined' ? copySuppliesAttachments : false
+    };
 }
 
 function saveUserGasTabPreferences() {

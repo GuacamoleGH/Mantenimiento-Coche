@@ -247,16 +247,16 @@ function getAndValidatePlanRecordValues() {
         cost: planCost,
         notes: planNotes,
         files: uploadedFiles,
-        supplies: selectedSupplies,
+        supplies: typeof selectedSupplies !== 'undefined' ? selectedSupplies : [],
         priority: planPriority,
         progress: planProgress,
         importMode: planType,
         extraFields: extraFields.extraFields,
-        requisitionHistory: supplyUsageHistory,
-        deletedRequisitionHistory: deletedSupplyUsageHistory,
+        requisitionHistory: typeof supplyUsageHistory !== 'undefined' ? supplyUsageHistory : [],
+        deletedRequisitionHistory: typeof deletedSupplyUsageHistory !== 'undefined' ? deletedSupplyUsageHistory : [],
         reminderRecordId: reminderRecordId,
         reminderRecordIds: recurringReminderRecordId,
-        copySuppliesAttachment: copySuppliesAttachments
+        copySuppliesAttachment: typeof copySuppliesAttachments !== 'undefined' ? copySuppliesAttachments : false
     }
 }
 //drag and drop stuff.

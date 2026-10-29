@@ -1,3 +1,9 @@
+
+// Variables globales de reserva para compatibilidad con módulos de suministros
+var supplyUsageHistory = [];
+var deletedSupplyUsageHistory = [];
+var selectedSupplies = [];
+var copySuppliesAttachments = false;
 ﻿$.expr.pseudos.containsNC = $.expr.createPseudo(function (arg) {
     return function (elem) {
         return $(elem).text().toUpperCase().indexOf(arg.toUpperCase()) >= 0;
