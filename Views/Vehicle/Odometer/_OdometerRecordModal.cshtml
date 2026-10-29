@@ -44,16 +44,7 @@
                             <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                         </div>
                     </div>
-                    <div>
-                        <label for="initialOdometerRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage, "Initial Odometer")</label>
-                        <div class="input-group">
-                            <input type="number" inputmode="numeric" id="initialOdometerRecordMileage" @(Model.InitialMileage != default ? "disabled" : "") class="form-control" placeholder="@translator.Translate(userLanguage,"Initial Odometer reading")" value="@(Model.InitialMileage)">
-                            @if (Model.InitialMileage != default)
-                            {
-                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="toggleInitialOdometerEnabled()" title="Editar"><i class="bi bi-pencil"></i></button>
-                            }
-                        </div>
-                    </div>
+                    <input type="hidden" id="initialOdometerRecordMileage" value="@(Model.InitialMileage)">
                     <div>
                         <label for="odometerRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage,"Odometer")</label>
                         <div class="input-group">
