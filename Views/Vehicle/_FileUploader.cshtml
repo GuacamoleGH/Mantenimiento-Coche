@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @{
@@ -7,7 +7,7 @@
     var uploaderId = Guid.NewGuid();
 }
 @model bool
-<label for="@uploaderId">@translator.Translate(userLanguage, Model ? "Upload more documents" : "Upload documents(optional)")</label>
+<label for="@uploaderId" class="form-label mb-1">@translator.Translate(userLanguage, Model ? "Upload more documents" : "Upload documents(optional)")</label>
 <input onChange="uploadVehicleFilesAsync(this)" type="file" multiple accept="@config.GetAllowedFileUploadExtensions()" class="d-none" id="@uploaderId">
 <div class="lubelogger-uploader d-flex justify-content-center align-items-center align-content-center" onclick="toggleUploadFileBrowser(this)" ondragover="handlePotentialFileDrop(event)" ondragleave="handleNoFileDrop(event)" ondrop="handleEndFileDrop(event)">
     <div class="lubelogger-link-uploader"><button class="btn btn-sm btn-primary" type="button" onclick="uploadVehicleLinksAsync(event)">@translator.Translate(userLanguage, "Attach Link")</button></div>

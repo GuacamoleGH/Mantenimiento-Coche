@@ -765,9 +765,12 @@ html[data-bs-theme="light"] .api-method:hover {
 
 .lubelogger-uploader {
     border: 1px dashed rgb(73,80,87);
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     cursor: pointer;
     position: relative;
+    min-height: 88px;
+    padding: 1.25rem 1rem;
+    margin-top: 2px !important;
     transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
 
@@ -2380,7 +2383,13 @@ a:hover {
 }
 
 .modal-body .lubelogger-uploader {
-    margin-top: 0.35rem;
+    margin-top: 2px !important;
+}
+
+@media (min-width: 992px) {
+    .modal-lg {
+        max-width: 880px;
+    }
 }
 
 /* ========================================================
