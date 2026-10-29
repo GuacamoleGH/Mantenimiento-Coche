@@ -2038,21 +2038,24 @@ a:hover {
 /* Badges de agregados y resumen en las pestañas */
 .badge[data-aggregate-type],
 [data-aggregate-type],
+.gas-stat-badge,
 #averageFuelMileageLabel,
 #minFuelMileageLabel,
 #maxFuelMileageLabel,
 #totalDistanceLabel,
 #totalFuelConsumedLabel {
-    padding: 0.42rem 0.85rem !important;
-    font-size: 0.82rem !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 0.78rem !important;
     font-weight: 600 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     display: inline-flex !important;
     align-items: center !important;
-    letter-spacing: 0.015em;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    margin-right: 0.35rem !important;
-    margin-bottom: 0.35rem !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.01em !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    margin-right: 0.25rem !important;
+    margin-bottom: 0 !important;
     backdrop-filter: blur(4px);
 }
 

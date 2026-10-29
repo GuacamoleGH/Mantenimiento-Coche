@@ -55,22 +55,62 @@
     var noteColumnLength = userConfig.EnableNotesColumnWrap ? 100 : 25;
 }
 <div class="d-flex flex-column vehicleTabPane">
-<div class="row">
-    <div class="d-flex justify-content-between">
-        <div class="d-flex align-items-center flex-wrap gap-2 py-1">
-            <span class="badge" data-aggregate-type="count">@($"{translator.Translate(userLanguage, "# of Gas Records")}: {Model.GasRecords.Count()}")</span>
+<style>
+.gas-stat-badge {
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 0 10px !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.01em !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    margin: 0 !important;
+}
+.gas-stat-badge.badge-neutral {
+    background-color: rgba(148, 163, 184, 0.12) !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(148, 163, 184, 0.28) !important;
+}
+.gas-stat-badge.badge-cyan {
+    background-color: rgba(14, 165, 233, 0.14) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+}
+.gas-stat-badge.badge-purple {
+    background-color: rgba(168, 85, 247, 0.14) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+.gas-stat-badge.badge-emerald {
+    background-color: rgba(34, 197, 94, 0.14) !important;
+    color: #4ade80 !important;
+    border: 1px solid rgba(34, 197, 94, 0.35) !important;
+}
+.gas-stat-badge.badge-amber {
+    background-color: rgba(251, 196, 30, 0.14) !important;
+    color: #fbc41e !important;
+    border: 1px solid rgba(251, 196, 30, 0.45) !important;
+}
+</style>
+<div class="row mb-2">
+    <div class="d-flex justify-content-between align-items-center flex-nowrap gap-2 py-1 overflow-x-auto">
+        <div class="d-flex align-items-center flex-nowrap gap-2">
+            <span class="gas-stat-badge badge-neutral" data-aggregate-type="count">@($"Registros: {Model.GasRecords.Count()}")</span>
             @if (Model.GasRecords.Where(x => x.MilesPerGallon > 0).Any())
             {
                 var nonZeroMPGRecords = Model.GasRecords.Where(y => y.MilesPerGallon > 0);
                 var minConsumption = nonZeroMPGRecords.Any() ? nonZeroMPGRecords.Min(x => x.MilesPerGallon).ToString("F2") : "0";
                 var maxConsumption = Model.GasRecords.Any() ? Model.GasRecords.Max(x => x.MilesPerGallon).ToString("F2") : "0";
-                <span class="badge" data-aggregate-type="economy" id="averageFuelMileageLabel">@($"{translator.Translate(userLanguage, "Average Fuel Economy")}: {gasHelper.GetAverageGasMileage(Model.GasRecords, useMPG)} {fuelEconomyUnit}")</span>
-                <span class="badge" data-aggregate-type="economy" id="minFuelMileageLabel">@($"{translator.Translate(userLanguage, "Min Fuel Economy")}: {minConsumption} {fuelEconomyUnit}")</span>
-                <span class="badge" data-aggregate-type="economy" id="maxFuelMileageLabel">@($"{translator.Translate(userLanguage, "Max Fuel Economy")}: {maxConsumption} {fuelEconomyUnit}")</span>
-                <span class="badge" data-aggregate-type="distance" id="totalDistanceLabel">@($"{translator.Translate(userLanguage, "Total Distance")}: {Model.GasRecords.Sum(x => x.DeltaMileage).ToString("N0") ?? "0"} {distanceUnit}")</span>
+                <span class="gas-stat-badge badge-cyan" data-aggregate-type="economy" id="averageFuelMileageLabel">@($"Consumo medio: {gasHelper.GetAverageGasMileage(Model.GasRecords, useMPG)} L/100 km")</span>
+                <span class="gas-stat-badge badge-cyan" data-aggregate-type="economy" id="minFuelMileageLabel">@($"Mín: {minConsumption} L/100 km")</span>
+                <span class="gas-stat-badge badge-cyan" data-aggregate-type="economy" id="maxFuelMileageLabel">@($"Máx: {maxConsumption} L/100 km")</span>
+                <span class="gas-stat-badge badge-purple" data-aggregate-type="distance" id="totalDistanceLabel">@($"Distancia: {Model.GasRecords.Sum(x => x.DeltaMileage).ToString("N0") ?? "0"} {distanceUnit}")</span>
             }
-            <span class="badge" id="totalFuelConsumedLabel" data-aggregate-type="consumption">@($"{translator.Translate(userLanguage, "Total Fuel Consumed")}: {Model.GasRecords.Sum(x => x.Gallons).ToString("F2")} {consumptionUnit.ToUpper()}")</span>
-            <span class="badge" data-aggregate-type="sum">@($"{translator.Translate(userLanguage, "Total Cost")}: {Model.GasRecords.Sum(x => x.Cost).ToString("C2")}")</span>
+            <span class="gas-stat-badge badge-emerald" id="totalFuelConsumedLabel" data-aggregate-type="consumption">@($"Combustible: {Model.GasRecords.Sum(x => x.Gallons).ToString("F2")} {consumptionUnit.ToUpper()}")</span>
+            <span class="gas-stat-badge badge-amber" data-aggregate-type="sum">@($"Coste: {Model.GasRecords.Sum(x => x.Cost).ToString("C2")}")</span>
             @foreach (string recordTag in recordTags)
             {
                 <span onclick="toggleGasFilter(this)" class="user-select-none rounded-pill badge bg-secondary tagfilter" style="cursor:pointer;">@recordTag</span>
@@ -82,7 +122,7 @@
                 }
             </datalist>
         </div>
-            <div class="lubelogger-record-add">
+        <div class="lubelogger-record-add flex-shrink-0 ms-auto">
             <div class="btn-group">
                 <button onclick="showAddGasRecordModal()" class="btn btn-primary btn-md mt-1 mb-1"><i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Add Gas Record")</button>
                 <button type="button" class="btn btn-md btn-primary btn-md mt-1 mb-1 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
