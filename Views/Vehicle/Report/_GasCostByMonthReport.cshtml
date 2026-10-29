@@ -73,14 +73,22 @@
                                 }
                             },
                             tooltip: {
+                                padding: 10,
+                                boxPadding: 6,
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                usePointStyle: true,
+                                bodyFont: {
+                                    size: 13
+                                },
                                 callbacks: {
                                     label: function(context) {
                                         let label = context.dataset.label || '';
                                         let val = context.parsed.y || 0;
                                         if (context.datasetIndex === 0) {
-                                            return label + ': ' + val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+                                            return ' ' + label + ': ' + val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
                                         } else {
-                                            return label + ': ' + val.toLocaleString('es-ES') + ' km';
+                                            return ' ' + label + ': ' + val.toLocaleString('es-ES') + ' km';
                                         }
                                     }
                                 }

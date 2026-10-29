@@ -68,6 +68,14 @@
                                 text: decodeHTMLEntities('@($"{translator.Translate(userLanguage, "Fuel Mileage by Month")} ({Model.Unit})")')
                             },
                             tooltip: {
+                                padding: 10,
+                                boxPadding: 6,
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                usePointStyle: true,
+                                bodyFont: {
+                                    size: 13
+                                },
                                 callbacks: {
                                     label: function (context) {
                                         let val = context.parsed.y !== null ? context.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : '';
