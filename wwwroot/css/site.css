@@ -2037,19 +2037,24 @@ a:hover {
 
 /* Badges de agregados y resumen en las pestañas */
 .badge[data-aggregate-type],
-[data-aggregate-type] {
-    padding: 0.35rem 0.75rem !important;
-    font-size: 0.8rem !important;
+[data-aggregate-type],
+#totalFuelConsumedLabel {
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.82rem !important;
     font-weight: 600 !important;
     border-radius: 6px !important;
     display: inline-flex;
     align-items: center;
     letter-spacing: 0.015em;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin-right: 0.45rem !important;
+    margin-bottom: 0.35rem !important;
 }
 
 .badge[data-aggregate-type="count"],
-.badge[data-aggregate-type="noturgent-count"] {
+.badge[data-aggregate-type="noturgent-count"],
+.badge[data-aggregate-type="consumption"],
+#totalFuelConsumedLabel {
     background-color: rgba(34, 197, 94, 0.16) !important;
     color: #4ade80 !important;
     border: 1px solid rgba(34, 197, 94, 0.35) !important;

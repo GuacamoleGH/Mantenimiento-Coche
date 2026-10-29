@@ -57,7 +57,7 @@
 <div class="d-flex flex-column vehicleTabPane">
 <div class="row">
     <div class="d-flex justify-content-between">
-        <div class="d-flex align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center flex-wrap gap-3">
             <span class="badge bg-success" data-aggregate-type="count">@($"{translator.Translate(userLanguage, "# of Gas Records")}: {Model.GasRecords.Count()}")</span>
             @if (Model.GasRecords.Where(x => x.MilesPerGallon > 0).Any())
             {
@@ -74,7 +74,7 @@
                 }
                 <span class="badge bg-success" id="totalDistanceLabel">@($"{translator.Translate(userLanguage, "Total Distance")}: {Model.GasRecords.Sum(x => x.DeltaMileage).ToString("N0") ?? "0"} {distanceUnit}")</span>
             }
-            <span class="badge bg-success" id="totalFuelConsumedLabel">@($"{translator.Translate(userLanguage, "Total Fuel Consumed")}: {Model.GasRecords.Sum(x => x.Gallons).ToString("F2")} {consumptionUnit.ToUpper()}")</span>
+            <span class="badge bg-success" id="totalFuelConsumedLabel" data-aggregate-type="consumption">@($"{translator.Translate(userLanguage, "Total Fuel Consumed")}: {Model.GasRecords.Sum(x => x.Gallons).ToString("F2")} {consumptionUnit.ToUpper()}")</span>
             <span class="badge bg-success" data-aggregate-type="sum">@($"{translator.Translate(userLanguage, "Total Cost")}: {Model.GasRecords.Sum(x => x.Cost).ToString("C2")}")</span>
             @foreach (string recordTag in recordTags)
             {
