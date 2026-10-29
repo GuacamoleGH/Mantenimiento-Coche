@@ -506,15 +506,32 @@ function handleDateInputAutoSlash(e) {
     }
 }
 
+function handleDateInputKeydown(e) {
+    if (e.key === 'Enter' || e.keyCode === 13 || e.key === 'Escape' || e.keyCode === 27) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $input = $(this);
+        if (typeof $input.datepicker === 'function') {
+            try {
+                $input.datepicker('update');
+                $input.datepicker('hide');
+            } catch (err) {}
+        }
+        $('.datepicker.datepicker-dropdown').hide();
+        $input.blur();
+    }
+}
+
 function attachDateInputMask(input) {
     if (!input || !input.length) return;
     input.addClass('has-date-mask');
     input.attr('maxlength', '10');
     input.attr('autocomplete', 'off');
     input.off('input.dateAutoSlash').on('input.dateAutoSlash', handleDateInputAutoSlash);
+    input.off('keydown.dateCloseOnEnter').on('keydown.dateCloseOnEnter', handleDateInputKeydown);
 }
 
-// Delegación global para cualquier campo de fecha en la aplicación
+// Delegacion global para cualquier campo de fecha en la aplicacion
 $(document).on('input.dateAutoSlash', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', function (e) {
     if (!$(this).hasClass('has-date-mask')) {
         $(this).addClass('has-date-mask');
@@ -523,6 +540,8 @@ $(document).on('input.dateAutoSlash', 'input.has-date-mask, input[id*="Date"], i
     }
     handleDateInputAutoSlash(e);
 });
+
+$(document).on('keydown.dateCloseOnEnter', 'input.has-date-mask, input[id*="Date"], input[id*="Expiry"], input[name*="Date"], input[name*="Expiry"], .datepicker-input', handleDateInputKeydown);
 
 function initDatePicker(input, mode) {
     var datepickerOptions = {
