@@ -18,14 +18,14 @@
     addOnBlur: true,
     maxTags: undefined,
     maxChars: undefined,
-    confirmKeys: [13,32],
+    confirmKeys: [13, 44, 188],
     delimiter: ',',
     delimiterRegex: null,
     cancelConfirmKeysOnEmpty: true,
     onTagExists: function(item, $tag) {
       $tag.hide().fadeIn();
     },
-    trimValue: false,
+    trimValue: true,
     allowDuplicates: false
   };
 
@@ -343,7 +343,7 @@
             case 67:
                 if (event.ctrlKey || event.metaKey) {
                     event.preventDefault();
-                    navigator.clipboard.writeText(self.itemsArray.join(" "));
+                    navigator.clipboard.writeText(self.itemsArray.join(", "));
                 }
                 break;
             //PASTE EVENT
@@ -355,20 +355,26 @@
                         $input.val('');
                         //process input one by one.
                         if (pastedString.length > 0) {
-                            var tagsToAdd = pastedString.split(" ");
+                            var tagsToAdd = pastedString.includes(",") ? pastedString.split(",") : [pastedString];
                             tagsToAdd.forEach(x => {
-                                self.add(x);
-                            })
+                                var trimmed = x.trim();
+                                if (trimmed.length > 0) {
+                                    self.add(trimmed);
+                                }
+                            });
                         }
                     }, 250);
                 }
                 break;
-            //ENTER EVENT
+            //ENTER OR COMMA EVENT
             case 13:
-            case 32:
+            case 188:
+                event.preventDefault();
                 var tagToAdd = $input.val();
                 $input.val('');
-                self.add(tagToAdd);
+                if (tagToAdd && tagToAdd.trim().length > 0) {
+                    self.add(tagToAdd.trim());
+                }
                 break;
          default:
              // ignore
@@ -383,15 +389,16 @@
 
       self.$container.on('input', (event) => {
           var $input = $(event.target);
-          //check if the previous inserted value was a space.
           var text = $input.val();
-          if (text.length > 0) {
-              var lastChar = text.charAt(text.length - 1);
-              if (lastChar == " ") {
-                  text = text.replace(" ", "");
-                  self.add(text);
-                  $input.val('');
+          if (text.length > 0 && text.indexOf(',') !== -1) {
+              var tags = text.split(',');
+              for (var i = 0; i < tags.length - 1; i++) {
+                  var tag = tags[i].trim();
+                  if (tag.length > 0) {
+                      self.add(tag);
+                  }
               }
+              $input.val(tags[tags.length - 1]);
           }
       });
 

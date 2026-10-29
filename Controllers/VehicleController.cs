@@ -509,7 +509,7 @@ namespace CarCareTracker.Controllers
             {
                 return Json(searchResults);
             }
-            var tagsFilter = tags.Split(' ').Distinct();
+            var tagsFilter = tags.Contains(',') ? tags.Split(',').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).Distinct() : tags.Split(' ').Where(x => !string.IsNullOrEmpty(x)).Distinct();
             bool andOperator = operation.Trim().ToLower() == "and";
             foreach (ImportMode visibleTab in _config.GetUserConfig(User).VisibleTabs)
             {

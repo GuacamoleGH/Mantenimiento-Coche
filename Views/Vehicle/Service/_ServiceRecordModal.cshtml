@@ -81,7 +81,7 @@
                     </div>
                     <div>
                         <label for="serviceRecordTag" class="form-label mb-1">@translator.Translate(userLanguage,"Tags(optional)")</label>
-                        <select multiple class="form-select" id="serviceRecordTag" placeholder="Escribe una etiqueta y pulsa Enter...">
+                        <select multiple class="form-select" id="serviceRecordTag" placeholder="Escribe una etiqueta y pulsa coma o Enter...">
                             @foreach(string tag in Model.Tags)
                             {
                                 <!option value="@tag">@tag</!option>

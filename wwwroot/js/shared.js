@@ -577,10 +577,15 @@ function initDatePicker(input, mode) {
 function initTagSelector(input, noDataList) {
     if (noDataList) {
         input.tagsinput({
-            useDataList: false
+            useDataList: false,
+            confirmKeys: [13, 44, 188],
+            trimValue: true
         });
     } else {
-        input.tagsinput();
+        input.tagsinput({
+            confirmKeys: [13, 44, 188],
+            trimValue: true
+        });
     }
 }
 function getAndValidateSelectedVehicle() {
