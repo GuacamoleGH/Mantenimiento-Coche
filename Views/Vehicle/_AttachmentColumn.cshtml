@@ -1,9 +1,23 @@
-﻿@model List<UploadedFiles>
-@if (Model.Any()){
-    <span class="position-relative">
-        <i class="bi bi-paperclip"></i>
-        <span class="position-absolute attachment-badge-xs start-100 translate-middle badge rounded-pill bg-secondary">
-            @Model.Count()
-        </span>
-    </span>
+@model List<UploadedFiles>
+@if (Model != null && Model.Any())
+{
+    <div class="d-flex align-items-center justify-content-center flex-wrap gap-1">
+        @foreach (var file in Model)
+        {
+            var isPdf = file.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+            var isImg = file.Name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || 
+                        file.Name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || 
+                        file.Name.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
+            var iconClass = isPdf ? "bi-file-earmark-pdf-fill" : 
+                            isImg ? "bi-file-earmark-image-fill" : 
+                            "bi-file-earmark-text-fill";
+
+            <a href="@file.Location" target="_blank" onclick="event.stopPropagation();" 
+               class="attachment-pill-btn @(isPdf ? "attachment-pdf" : "attachment-generic")"
+               title="@file.Name">
+                <i class="bi @iconClass"></i>
+                <span class="attachment-pill-name">@file.Name</span>
+            </a>
+        }
+    </div>
 }

@@ -122,8 +122,8 @@
                     <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 95px;" data-column="date">@translator.Translate(userLanguage, "Date")</th>
                     <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 105px;" data-column="odometer">@($"{translator.Translate(userLanguage, "Odometer")} (KM)")</th>
                     <th scope="col" class="col-5 col-xl-6 flex-grow-1 text-truncate" data-column="description">@translator.Translate(userLanguage, "Description")</th>
-                    <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate text-end" style="min-width: 95px;" data-column="cost" onclick="toggleSort('servicerecord-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
-                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
+                    <th scope="col" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 95px;" data-column="cost" onclick="toggleSort('servicerecord-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
+                    <th scope="col" class="col-2 col-xl-2 flex-grow-0 text-truncate" style='display:none; min-width: 140px;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                     <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                     @foreach (string extraFieldColumn in extraFields)
                     {
@@ -153,8 +153,8 @@
                                     </div>
                                 }
                             </td>
-                            <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-2 col-xl-1 flex-grow-0 text-truncate text-end" style="min-width: 95px;" data-column="cost" data-record-type="cost">@(StaticHelper.HideZeroCost(serviceRecord.Cost, hideZero))</td>
-                            <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", serviceRecord.Files)</td>
+                            <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-2 col-xl-1 flex-grow-0 text-truncate" style="min-width: 95px;" data-column="cost" data-record-type="cost">@(StaticHelper.HideZeroCost(serviceRecord.Cost, hideZero))</td>
+                            <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-2 col-xl-2 flex-grow-0 text-truncate" style='display:none; min-width: 140px;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", serviceRecord.Files)</td>
                             <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 @noteColumnStyle" data-column="notes">@StaticHelper.TruncateStrings(serviceRecord.Notes, noteColumnLength)</td>
                         @foreach (string extraFieldColumn in extraFields)
                         {

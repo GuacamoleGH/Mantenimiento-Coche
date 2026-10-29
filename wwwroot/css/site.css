@@ -1497,17 +1497,50 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 6px;
-    padding: 0.55rem 0.85rem;
-    min-height: 48px;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 0.65rem 0.95rem;
+    min-height: 52px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .spec-item:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.spec-item-motor {
+    border-left: 3.5px solid #38bdf8 !important;
+    background: linear-gradient(90deg, rgba(56, 189, 248, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+}
+.spec-label-motor {
+    color: #38bdf8 !important;
+}
+
+.spec-item-aceite {
+    border-left: 3.5px solid #fbbf24 !important;
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+}
+.spec-label-aceite {
+    color: #fbbf24 !important;
+}
+
+.spec-item-bujias {
+    border-left: 3.5px solid #c084fc !important;
+    background: linear-gradient(90deg, rgba(192, 132, 252, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+}
+.spec-label-bujias {
+    color: #c084fc !important;
+}
+
+.spec-item-ruedas {
+    border-left: 3.5px solid #34d399 !important;
+    background: linear-gradient(90deg, rgba(52, 211, 153, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+}
+.spec-label-ruedas {
+    color: #34d399 !important;
 }
 
 .spec-icon {
@@ -1534,13 +1567,18 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 .spec-label {
-    font-size: 0.68rem;
+    font-size: 0.74rem;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: #94a3b8;
-    font-weight: 600;
-    line-height: 1.1;
-    margin-bottom: 2px;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+}
+
+.spec-label i {
+    font-size: 0.85rem;
 }
 
 .spec-value {
@@ -3226,4 +3264,88 @@ a:has(.bi-qr-code) {
 .table tr.d-flex > th.showOnPrint,
 .lubelogger-report-banner {
     display: none !important;
+}
+
+/* Centrado horizontal de columnas numericas, fechas y adjuntos */
+.table tr.d-flex > td[data-column="date"],
+.table tr.d-flex > th[data-column="date"],
+.table tr.d-flex > td[data-column="odometer"],
+.table tr.d-flex > th[data-column="odometer"],
+.table tr.d-flex > td[data-column="cost"],
+.table tr.d-flex > th[data-column="cost"],
+.table tr.d-flex > td[data-column="attachments"],
+.table tr.d-flex > th[data-column="attachments"],
+.table tr.d-flex > td[data-column="delta"],
+.table tr.d-flex > th[data-column="delta"],
+.table tr.d-flex > td[data-column="consumption"],
+.table tr.d-flex > th[data-column="consumption"],
+.table tr.d-flex > td[data-column="fuelconsumed"],
+.table tr.d-flex > th[data-column="fuelconsumed"],
+.table tr.d-flex > td[data-column="unitcost"],
+.table tr.d-flex > th[data-column="unitcost"] {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+/* Alineacion a la izquierda para campos de texto (descripcion y notas) */
+.table tr.d-flex > td[data-column="description"],
+.table tr.d-flex > th[data-column="description"],
+.table tr.d-flex > td[data-column="notes"],
+.table tr.d-flex > th[data-column="notes"] {
+    justify-content: flex-start !important;
+    text-align: start !important;
+}
+
+/* Pill / Tarjeta de archivo adjunto PDF */
+.attachment-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    max-width: 175px;
+    transition: all 0.15s ease;
+}
+
+.attachment-pill-btn i {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.attachment-pill-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attachment-pdf {
+    background-color: rgba(239, 68, 68, 0.12) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    color: #fca5a5 !important;
+}
+
+.attachment-pdf i {
+    color: #ef4444 !important;
+}
+
+.attachment-pdf:hover {
+    background-color: rgba(239, 68, 68, 0.22) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25);
+}
+
+.attachment-generic {
+    background-color: rgba(148, 163, 184, 0.12) !important;
+    border: 1px solid rgba(148, 163, 184, 0.3) !important;
+    color: #cbd5e1 !important;
+}
+
+.attachment-generic:hover {
+    background-color: rgba(148, 163, 184, 0.2) !important;
+    color: #ffffff !important;
 }
