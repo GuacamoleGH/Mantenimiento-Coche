@@ -3514,3 +3514,14 @@ a:has(.bi-qr-code) {
 .btn-quick-gas:hover span {
     color: #0F172A !important;
 }
+
+/* Ajuste de columna de adjuntos y prevención de colapso de celdas vacías */
+.table tr.d-flex > td[data-column="attachments"],
+.table tr.d-flex > th[data-column="attachments"] {
+    min-width: 140px !important;
+}
+
+.table tr.d-flex > td:empty::before {
+    content: "\00a0";
+    display: inline-block;
+}

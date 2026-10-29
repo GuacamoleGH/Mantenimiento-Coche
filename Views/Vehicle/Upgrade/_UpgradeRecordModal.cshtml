@@ -1,143 +1,143 @@
-@inject IConfigHelper config
-@inject ITranslationHelper translator
-@using CarCareTracker.Helper
-@model UpgradeRecordInput
-@{
-    var isNew = Model.Id == 0;
-    var userConfig = config.GetUserConfig(User);
-    var userLanguage = userConfig.UserLanguage;
-}
-<div class="modal-header">
-    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Upgrade Record") : translator.Translate(userLanguage, "Edit Upgrade Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditUpgradeRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
-    <button type="button" class="btn-close" onclick="hideAddUpgradeRecordModal()" aria-label="Close"></button>
-</div>
-<div class="modal-body" onkeydown="handleEnter(this)">
-    <form>
-        <div class="form-group">
-            <div class="row g-4">
-                <div class="col-md-6 col-12 d-flex flex-column gap-3">
-                    <input type="text" id="workAroundInput" style="height:0px; width:0px; display:none;">
-                    <div>
-                        <label for="upgradeRecordDate" class="form-label mb-1">@translator.Translate(userLanguage, "Date")</label>
-                        <div class="input-group">
-                            <input type="text" id="upgradeRecordDate" class="form-control" placeholder="@translator.Translate(userLanguage,"Date upgrade/mods was installed")" value="@Model.Date">
-                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="upgradeRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage, "Odometer")</label>
-                        <div class="input-group">
-                            <input type="number" inputmode="numeric" id="upgradeRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading when upgraded/modded")" value="@(isNew || Model.Mileage == default ? "" : Model.Mileage)">
-                            @if (isNew)
-                            {
-                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="getLastOdometerReadingAndIncrement('upgradeRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus-lg"></i></button>
-                            }
-                        </div>
-                    </div>
-                    <div>
-                        <label for="upgradeRecordDescription" class="form-label mb-1">@translator.Translate(userLanguage, "Description")</label>
-                        <input type="text" id="upgradeRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of item(s) upgraded/modded")" value="@Model.Description">
-                        @if (isNew)
-                        {
-                            <div class="mt-1">
-                                <a onclick="showRecurringReminderSelector('upgradeRecordDescription', 'upgradeRecordNotes')" class="btn btn-link p-0 text-decoration-none">@translator.Translate(userLanguage, "Select Reminder")</a>
-                            </div>
-                        }
-                    </div>
-                    <div>
-                        <label for="upgradeRecordCost" class="form-label mb-1">@translator.Translate(userLanguage, "Cost")</label>
-                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="upgradeRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the upgrade/mods")" value="@(isNew ? "" : Model.Cost)">
-                    </div>
-                    <div>
-                        <label for="upgradeRecordTag" class="form-label mb-1">@translator.Translate(userLanguage, "Tags(optional)")</label>
-                        <select multiple class="form-select" id="upgradeRecordTag" placeholder="Escribe una etiqueta y pulsa coma o Enter...">
-                            @foreach (string tag in Model.Tags)
-                            {
-                                <!option value="@tag">@tag</!option>
-                            }
-                        </select>
-                    </div>
-                    @await Html.PartialAsync("_ExtraField", Model.ExtraFields)
-                </div>
-                <div class="col-md-6 col-12 d-flex flex-column gap-3">
-                    <div>
-                        <label for="upgradeRecordNotes" class="form-label mb-1">@translator.Translate(userLanguage, "Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
-                        <textarea id="upgradeRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
-                        @if (isNew)
-                        {
-                            <div class="form-check mt-2">
-                                <input class="form-check-input" type="checkbox" value="" id="addReminderCheck">
-                                <label class="form-check-label" for="addReminderCheck">
-                                    @translator.Translate(userLanguage, "Add Reminder")
-                                </label>
-                            </div>
-                        }
-                        <div class="card p-2 bg-dark bg-opacity-25 border border-secondary border-opacity-25 mt-2 rounded">
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" id="syncToEquipmentCheck" onchange="$('#syncEquipmentFields').slideToggle(this.checked)">
-                                <label class="form-check-label fw-semibold text-light small" for="syncToEquipmentCheck">
-                                    <i class="bi bi-disc text-info me-1"></i>Añadir / actualizar en Equipamiento actual
-                                </label>
-                            </div>
-                            <div id="syncEquipmentFields" style="display:none;" class="mt-2 pt-2 border-top border-secondary border-opacity-25">
-                                <div class="mb-2">
-                                    <label for="syncEquipmentDesc" class="form-label small mb-1 text-secondary">Nombre en Equipamiento</label>
-                                    <input type="text" id="syncEquipmentDesc" class="form-control form-control-sm" placeholder="Dejar en blanco para usar la descripción de la modificación">
-                                </div>
-                                <div>
-                                    <label for="syncEquipmentNotes" class="form-label small mb-1 text-secondary">Notas o detalles del equipamiento</label>
-                                    <input type="text" id="syncEquipmentNotes" class="form-control form-control-sm" placeholder="Ej: Marca, modelo, ubicación...">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex flex-column gap-2">
-                        @await Html.PartialAsync("_UploadedFiles", Model.Files)
-                        @await Html.PartialAsync("_FileUploader", Model.Files.Any())
-                    </div>
-                    <div id="filesPendingUpload"></div>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-<div class="modal-footer">
-    @if (!isNew)
-    {
-        
-        <div class="btn-group" style="margin-right:auto;">
-            <button type="button" class="btn btn-md mt-1 mb-1 btn-danger" onclick="deleteUpgradeRecord(@Model.Id)">@translator.Translate(userLanguage, "Delete")</button>
-            <button type="button" class="btn btn-md btn-danger btn-md mt-1 mb-1 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="visually-hidden">Toggle Dropdown</span>
-            </button>
-            <ul class="dropdown-menu">
-                <li><h6 class="dropdown-header">@translator.Translate(userLanguage, "Move To")</h6></li>
-                <li><a class="dropdown-item" href="#" onclick="moveRecord(@Model.Id, 'UpgradeRecord', 'ServiceRecord')">@translator.Translate(userLanguage, "Service Records")</a></li>
-            </ul>
-        </div>
-    }
-    <button type="button" class="btn btn-secondary" onclick="hideAddUpgradeRecordModal()">@translator.Translate(userLanguage, "Cancel")</button>
-    @if (isNew)
-    {
-        <button type="button" class="btn btn-primary" onclick="saveUpgradeRecordToVehicle()">@translator.Translate(userLanguage, "Add New Upgrade Record")</button>
-    }
-    else if (!isNew)
-    {
-        <button type="button" class="btn btn-primary" onclick="saveUpgradeRecordToVehicle(true)">@translator.Translate(userLanguage, "Edit Upgrade Record")</button>
-    }
-</div>
-
-<script>
-    var selectedSupplies = [];
-    var recurringReminderRecordId = [];
-    var copySuppliesAttachments = false;
-    function getUpgradeRecordModelData() {
-        return { id: @Model.Id}
-    }
-</script>
-@if (isNew && userConfig.EnableAutoFillOdometer)
-{
-    <script>
-        setLastOdometer('upgradeRecordMileage');
-    </script>
+@inject IConfigHelper config
+@inject ITranslationHelper translator
+@using CarCareTracker.Helper
+@model UpgradeRecordInput
+@{
+    var isNew = Model.Id == 0;
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+<div class="modal-header">
+    <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Upgrade Record") : translator.Translate(userLanguage, "Edit Upgrade Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditUpgradeRecordModal({Model.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
+    <button type="button" class="btn-close" onclick="hideAddUpgradeRecordModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body" onkeydown="handleEnter(this)">
+    <form>
+        <div class="form-group">
+            <div class="row g-4">
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
+                    <input type="text" id="workAroundInput" style="height:0px; width:0px; display:none;">
+                    <div>
+                        <label for="upgradeRecordDate" class="form-label mb-1">@translator.Translate(userLanguage, "Date")</label>
+                        <div class="input-group">
+                            <input type="text" id="upgradeRecordDate" class="form-control" placeholder="@translator.Translate(userLanguage,"Date upgrade/mods was installed")" value="@Model.Date">
+                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="upgradeRecordMileage" class="form-label mb-1">@translator.Translate(userLanguage, "Odometer")</label>
+                        <div class="input-group">
+                            <input type="number" inputmode="numeric" id="upgradeRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading when upgraded/modded")" value="@(isNew || Model.Mileage == default ? "" : Model.Mileage)">
+                            @if (isNew)
+                            {
+                                <button type="button" class="btn input-group-text btn-odometer-increment" onclick="getLastOdometerReadingAndIncrement('upgradeRecordMileage')" title="Calcular a partir del último kilometraje registrado"><i class="bi bi-plus-lg"></i></button>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <label for="upgradeRecordDescription" class="form-label mb-1">@translator.Translate(userLanguage, "Description")</label>
+                        <input type="text" id="upgradeRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of item(s) upgraded/modded")" value="@Model.Description">
+                        @if (isNew)
+                        {
+                            <div class="mt-1">
+                                <a onclick="showRecurringReminderSelector('upgradeRecordDescription', 'upgradeRecordNotes')" class="btn btn-link p-0 text-decoration-none">@translator.Translate(userLanguage, "Select Reminder")</a>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <label for="upgradeRecordCost" class="form-label mb-1">@translator.Translate(userLanguage, "Cost")</label>
+                        <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="fixDecimalInput(this, 2)" id="upgradeRecordCost" class="form-control mb-2" placeholder="@translator.Translate(userLanguage,"Cost of the upgrade/mods")" value="@(isNew ? "" : Model.Cost)">
+                    </div>
+                    <div>
+                        <label for="upgradeRecordTag" class="form-label mb-1">@translator.Translate(userLanguage, "Tags(optional)")</label>
+                        <select multiple class="form-select" id="upgradeRecordTag" placeholder="Escribe una etiqueta y pulsa coma o Enter...">
+                            @foreach (string tag in StaticHelper.NormalizeTags(Model.Tags))
+                            {
+                                <!option value="@tag">@tag</!option>
+                            }
+                        </select>
+                    </div>
+                    @await Html.PartialAsync("_ExtraField", Model.ExtraFields)
+                </div>
+                <div class="col-md-6 col-12 d-flex flex-column gap-3">
+                    <div>
+                        <label for="upgradeRecordNotes" class="form-label mb-1">@translator.Translate(userLanguage, "Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
+                        <textarea id="upgradeRecordNotes" class="form-control" rows="5">@Model.Notes</textarea>
+                        @if (isNew)
+                        {
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" value="" id="addReminderCheck">
+                                <label class="form-check-label" for="addReminderCheck">
+                                    @translator.Translate(userLanguage, "Add Reminder")
+                                </label>
+                            </div>
+                        }
+                        <div class="card p-2 bg-dark bg-opacity-25 border border-secondary border-opacity-25 mt-2 rounded">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="syncToEquipmentCheck" onchange="$('#syncEquipmentFields').slideToggle(this.checked)">
+                                <label class="form-check-label fw-semibold text-light small" for="syncToEquipmentCheck">
+                                    <i class="bi bi-disc text-info me-1"></i>Añadir / actualizar en Equipamiento actual
+                                </label>
+                            </div>
+                            <div id="syncEquipmentFields" style="display:none;" class="mt-2 pt-2 border-top border-secondary border-opacity-25">
+                                <div class="mb-2">
+                                    <label for="syncEquipmentDesc" class="form-label small mb-1 text-secondary">Nombre en Equipamiento</label>
+                                    <input type="text" id="syncEquipmentDesc" class="form-control form-control-sm" placeholder="Dejar en blanco para usar la descripción de la modificación">
+                                </div>
+                                <div>
+                                    <label for="syncEquipmentNotes" class="form-label small mb-1 text-secondary">Notas o detalles del equipamiento</label>
+                                    <input type="text" id="syncEquipmentNotes" class="form-control form-control-sm" placeholder="Ej: Marca, modelo, ubicación...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        @await Html.PartialAsync("_UploadedFiles", Model.Files)
+                        @await Html.PartialAsync("_FileUploader", Model.Files.Any())
+                    </div>
+                    <div id="filesPendingUpload"></div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    @if (!isNew)
+    {
+        
+        <div class="btn-group" style="margin-right:auto;">
+            <button type="button" class="btn btn-md mt-1 mb-1 btn-danger" onclick="deleteUpgradeRecord(@Model.Id)">@translator.Translate(userLanguage, "Delete")</button>
+            <button type="button" class="btn btn-md btn-danger btn-md mt-1 mb-1 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><h6 class="dropdown-header">@translator.Translate(userLanguage, "Move To")</h6></li>
+                <li><a class="dropdown-item" href="#" onclick="moveRecord(@Model.Id, 'UpgradeRecord', 'ServiceRecord')">@translator.Translate(userLanguage, "Service Records")</a></li>
+            </ul>
+        </div>
+    }
+    <button type="button" class="btn btn-secondary" onclick="hideAddUpgradeRecordModal()">@translator.Translate(userLanguage, "Cancel")</button>
+    @if (isNew)
+    {
+        <button type="button" class="btn btn-primary" onclick="saveUpgradeRecordToVehicle()">@translator.Translate(userLanguage, "Add New Upgrade Record")</button>
+    }
+    else if (!isNew)
+    {
+        <button type="button" class="btn btn-primary" onclick="saveUpgradeRecordToVehicle(true)">@translator.Translate(userLanguage, "Edit Upgrade Record")</button>
+    }
+</div>
+
+<script>
+    var selectedSupplies = [];
+    var recurringReminderRecordId = [];
+    var copySuppliesAttachments = false;
+    function getUpgradeRecordModelData() {
+        return { id: @Model.Id}
+    }
+</script>
+@if (isNew && userConfig.EnableAutoFillOdometer)
+{
+    <script>
+        setLastOdometer('upgradeRecordMileage');
+    </script>
 }
