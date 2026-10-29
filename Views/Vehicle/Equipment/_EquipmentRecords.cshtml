@@ -114,7 +114,7 @@
                     <tr class="d-flex">
                         <th scope="col" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description">@translator.Translate(userLanguage, "Description")</th>
                         <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="equipped">@translator.Translate(userLanguage, "Equipped")</th>
-                        <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" onclick="toggleSort('equipment-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Distance")</th>
+                        <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" onclick="toggleSort('equipment-tab-pane', this)" style="cursor:pointer;">@($"{translator.Translate(userLanguage, "Distance")} (KM)")</th>
                         <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                         <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                         @foreach (string extraFieldColumn in extraFields)
@@ -129,7 +129,7 @@
                         <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@equipmentRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditEquipmentRecordModal,@equipmentRecord.Id)" data-tags='@string.Join(" ", equipmentRecord.Tags)'>
                             <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description" data-record-type="cost">@equipmentRecord.Description</td>
                             <td data-label="@translator.Translate(userLanguage, "Equipped")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="equipped"><i class="bi bi-check-lg @(equipmentRecord.IsEquipped ? "" : "d-none")"></i></td>
-                            <td data-label="@translator.Translate(userLanguage, "Distance")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance">@(equipmentRecord.DistanceTraveled == default ? "---" : equipmentRecord.DistanceTraveled)</td>
+                            <td data-label="@($"{translator.Translate(userLanguage, "Distance")} (KM)")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance">@(equipmentRecord.DistanceTraveled == default ? "---" : $"{equipmentRecord.DistanceTraveled.ToString("N0")} km")</td>
                             <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", equipmentRecord.Files)</td>
                             <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 @noteColumnStyle" data-column="notes">@StaticHelper.TruncateStrings(equipmentRecord.Notes, noteColumnLength)</td>
                             @foreach (string extraFieldColumn in extraFields)

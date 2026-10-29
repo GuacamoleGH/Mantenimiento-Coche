@@ -17,13 +17,13 @@ html {
     min-height: 100%;
 }
 
-:root {
+:root, [data-bs-theme="dark"], [data-bs-theme="light"] {
     --app-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --app-card-radius: 14px;
     --app-transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    --bs-success: #34d399;
-    --bs-success-rgb: 52, 211, 153;
-    --bs-success-text-emphasis: #34d399;
+    --bs-success: #35D298 !important;
+    --bs-success-rgb: 53, 210, 152 !important;
+    --bs-success-text-emphasis: #35D298 !important;
 }
 
 body {
@@ -1414,8 +1414,8 @@ html[data-bs-theme="dark"] .swal2-validation-message {
 }
 
 .status-dot-success {
-    background-color: #34d399;
-    box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+    background-color: #35D298 !important;
+    box-shadow: 0 0 8px rgba(53, 210, 152, 0.6) !important;
 }
 
 .status-dot-warning {
@@ -1428,14 +1428,24 @@ html[data-bs-theme="dark"] .swal2-validation-message {
     box-shadow: 0 0 8px #ef4444;
 }
 
-/* Verde esmeralda (#34D399) coherente con los indicadores del cockpit */
+/* Verde esmeralda (#35D298) exacto para iconos de Tasas, Repostaje y componentes */
 .text-success,
 i.text-success,
 .bi.text-success,
 .nav-link i.text-success,
+.nav-link.active i.text-success,
 .dropdown-item i.text-success,
-.dropdown-header i.text-success {
-    color: #34d399 !important;
+.dropdown-header i.text-success,
+.btn i.text-success,
+.btn-action-cockpit i.text-success,
+#tax-tab i,
+#tax-tab .bi,
+#gas-tab i,
+#gas-tab .bi,
+.bi-fuel-pump,
+.bi-fuel-pump-fill,
+.bi-receipt {
+    color: #35D298 !important;
 }
 
 /* Botones de acción 1-Click */
@@ -1445,22 +1455,44 @@ i.text-success,
     color: #F1F5F9 !important;
     border-radius: 6px !important;
     font-weight: 600;
-    padding: 0.4rem 0.85rem;
+    padding: 0.45rem 0.75rem 0.45rem 10px !important;
     font-size: 0.84rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    line-height: 1 !important;
     transition: all 0.15s ease-in-out;
 }
 
 .btn-action-cockpit i {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     color: #94A3B8;
-    margin-right: 0.35rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    font-size: 0.95rem !important;
     transition: color 0.15s ease, filter 0.15s ease;
 }
 
-.btn-action-cockpit i.text-success {
-    color: #34d399 !important;
+.btn-action-cockpit i::before {
+    vertical-align: 0 !important;
+    line-height: 1 !important;
+}
+
+.btn-action-cockpit span {
+    display: inline-flex !important;
+    align-items: center !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.btn-action-cockpit i.text-success,
+.btn-action-cockpit i.bi-fuel-pump-fill {
+    color: #35D298 !important;
 }
 
 .btn-action-cockpit:hover {
@@ -1471,9 +1503,10 @@ i.text-success,
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.btn-action-cockpit:hover i.text-success {
-    color: #34d399 !important;
-    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.5));
+.btn-action-cockpit:hover i.text-success,
+.btn-action-cockpit:hover i.bi-fuel-pump-fill {
+    color: #35D298 !important;
+    filter: drop-shadow(0 0 6px rgba(53, 210, 152, 0.6)) !important;
 }
 
 .btn-action-cockpit:hover i.text-warning {
@@ -1564,11 +1597,11 @@ i.text-success,
 }
 
 .spec-item-ruedas {
-    border-left: 3.5px solid #34d399 !important;
-    background: linear-gradient(90deg, rgba(52, 211, 153, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+    border-left: 3.5px solid #35D298 !important;
+    background: linear-gradient(90deg, rgba(53, 210, 152, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
 }
 .spec-label-ruedas {
-    color: #34d399 !important;
+    color: #35D298 !important;
 }
 
 .spec-icon {
@@ -2899,20 +2932,20 @@ button[onclick="performLogOut()"] i {
    INDICADORES VIBRANTES Y LEGIBLES PARA COCKPIT (ITV Y SEGURO)
    ======================================================== */
 .cockpit-card .cockpit-val-success {
-    color: #34D399 !important;
-    text-shadow: 0 0 12px rgba(52, 211, 153, 0.28);
+    color: #35D298 !important;
+    text-shadow: 0 0 12px rgba(53, 210, 152, 0.28);
 }
 .cockpit-card .icon-watermark-success {
-    color: #34D399 !important;
+    color: #35D298 !important;
     opacity: 0.85 !important;
-    filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.35));
+    filter: drop-shadow(0 0 8px rgba(53, 210, 152, 0.35));
 }
 .cockpit-card .badge.bg-success {
-    background-color: rgba(16, 185, 129, 0.22) !important;
-    color: #34D399 !important;
-    border: 1px solid rgba(52, 211, 153, 0.5) !important;
+    background-color: rgba(53, 210, 152, 0.22) !important;
+    color: #35D298 !important;
+    border: 1px solid rgba(53, 210, 152, 0.5) !important;
     font-weight: 700 !important;
-    box-shadow: 0 0 10px rgba(52, 211, 153, 0.25) !important;
+    box-shadow: 0 0 10px rgba(53, 210, 152, 0.25) !important;
 }
 
 .cockpit-card .cockpit-val-warning {
@@ -3276,6 +3309,8 @@ a:has(.bi-qr-code) {
 .table tr.d-flex > th {
     display: flex !important;
     align-items: center !important;
+    align-self: stretch !important;
+    min-height: 48px;
 }
 
 .table tr.d-flex > td[data-column="description"],
@@ -3284,6 +3319,7 @@ a:has(.bi-qr-code) {
     flex-direction: column !important;
     justify-content: center !important;
     align-items: flex-start !important;
+    align-self: stretch !important;
 }
 
 /* Ocultar reporte de pie de tabla y banners de impresion en pantalla */
@@ -3376,4 +3412,105 @@ a:has(.bi-qr-code) {
 .attachment-generic:hover {
     background-color: rgba(148, 163, 184, 0.2) !important;
     color: #ffffff !important;
+}
+
+/* ========================================================
+   ALINEACIÓN DE TABLAS DE VEHÍCULO (VERTICAL Y HORIZONTAL)
+   ======================================================== */
+.table thead tr.d-flex,
+.table tbody tr.d-flex,
+.table tfoot tr.d-flex {
+    align-items: stretch !important;
+    min-width: 100%;
+}
+
+.table td,
+.table th {
+    vertical-align: middle !important;
+}
+
+/* Centrado horizontal estricto para todas las columnas numéricas y de control */
+.table th[data-column="date"],
+.table td[data-column="date"],
+.table th[data-column="daterefueled"],
+.table td[data-column="daterefueled"],
+.table th[data-column="odometer"],
+.table td[data-column="odometer"],
+.table th[data-column="initialodometer"],
+.table td[data-column="initialodometer"],
+.table th[data-column="distance"],
+.table td[data-column="distance"],
+.table th[data-column="cost"],
+.table td[data-column="cost"],
+.table th[data-column="unitcost"],
+.table td[data-column="unitcost"],
+.table th[data-column="fueleconomy"],
+.table td[data-column="fueleconomy"],
+.table th[data-column="consumption"],
+.table td[data-column="consumption"],
+.table th[data-column="delta"],
+.table td[data-column="delta"],
+.table th[data-column="startsoc"],
+.table td[data-column="startsoc"],
+.table th[data-column="endsoc"],
+.table td[data-column="endsoc"],
+.table th[data-column="urgency"],
+.table td[data-column="urgency"],
+.table th[data-column="metric"],
+.table td[data-column="metric"],
+.table th[data-column="duedays"],
+.table td[data-column="duedays"],
+.table th[data-column="duedistance"],
+.table td[data-column="duedistance"],
+.table th[data-column="attachments"],
+.table td[data-column="attachments"],
+.table th[data-column="result"],
+.table td[data-column="result"],
+.table th[data-column="equipped"],
+.table td[data-column="equipped"],
+.table th[data-column="done"],
+.table td[data-column="done"],
+.table th[data-column="delete"],
+.table td[data-column="delete"] {
+    text-align: center !important;
+    justify-content: center !important;
+}
+
+/* Las columnas de texto permanecen siempre alineadas a la izquierda */
+.table th[data-column="description"],
+.table td[data-column="description"],
+.table th[data-column="notes"],
+.table td[data-column="notes"],
+.table th[data-column="note"],
+.table td[data-column="note"] {
+    text-align: left !important;
+    justify-content: flex-start !important;
+}
+
+/* Centrado de badges y botones en celdas centradas */
+.table td[data-column="urgency"],
+.table td[data-column="equipped"],
+.table td[data-column="done"],
+.table td[data-column="delete"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Botón Registrar Repostaje en Panel */
+.btn-quick-gas {
+    color: #35D298 !important;
+    border: 1px solid rgba(53, 210, 152, 0.45) !important;
+    background: rgba(53, 210, 152, 0.08) !important;
+    transition: all 0.15s ease-in-out;
+}
+.btn-quick-gas:hover {
+    color: #0F172A !important;
+    background: #35D298 !important;
+    border-color: #35D298 !important;
+    box-shadow: 0 0 10px rgba(53, 210, 152, 0.4) !important;
+}
+.btn-quick-gas:hover i,
+.btn-quick-gas:hover span {
+    color: #0F172A !important;
 }

@@ -15,7 +15,7 @@ namespace CarCareTracker.Helper
     /// </summary>
     public static class StaticHelper
     {
-        public const string VersionNumber = "1.8.9.16";
+        public const string VersionNumber = "1.8.9.25";
         public const string DbName = "data/cartracker.db";
         public const string UserConfigPath = "data/config/userConfig.json";
         public const string ServerConfigPath = "data/config/serverConfig.json";
@@ -34,6 +34,19 @@ namespace CarCareTracker.Helper
         public const string ReportNote = "";
         public const string LoginCookieName = "ACCESS_TOKEN";
         public const string DefaultCookieLifeSpan = "30";
+        public static string SanitizeFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return string.Empty;
+            }
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var clean = string.Concat(fileName.Select(c => invalidChars.Contains(c) ? '-' : c));
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"[<>:""/\\|?*]", "-");
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\s+", "-");
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"-+", "-").Trim('-');
+            return clean;
+        }
         public static string GetTitleCaseReminderUrgency(ReminderUrgency input)
         {
             switch (input)

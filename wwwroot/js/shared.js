@@ -947,19 +947,141 @@ function printTab() {
     }, 500);
 }
 function printContainer(htmlData) {
-    $(".vehicleDetailTabContainer").addClass("hideOnPrint");
-    $(".stickerPrintContainer").addClass("showOnPrint");
-    $(".stickerPrintContainer").removeClass("hideOnPrint");
-    $(".stickerPrintContainer").html(htmlData);
+    // Asegurar limpieza de estados modales o backdrop de SweetAlert2
+    $('body').removeClass('swal2-shown swal2-height-auto');
+    $('.swal2-container').remove();
+    $('[aria-hidden]').removeAttr('aria-hidden');
+
+    // Crear un iframe aislado para imprimir limpiamente sin conflictos de pantalla ni modo oscuro
+    var frameId = 'lubelogger_print_frame';
+    $('#' + frameId).remove();
+    var iframe = document.createElement('iframe');
+    iframe.id = frameId;
+    iframe.name = frameId;
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    var frameDoc = iframe.contentWindow || iframe.contentDocument;
+    if (frameDoc.document) frameDoc = frameDoc.document;
+
+    frameDoc.open();
+    frameDoc.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>${document.title || 'Informe de Mantenimiento'}</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap-icons.css" />
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-sizing: border-box;
+        }
+        html, body {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+            margin: 0;
+            padding: 12px;
+        }
+        .lubelogger-logo {
+            max-height: 48px;
+            width: auto;
+            object-fit: contain;
+        }
+        .display-6 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: #111827 !important;
+        }
+        .lead {
+            font-size: 0.95rem;
+            color: #374151 !important;
+        }
+        .list-group {
+            border-radius: 6px;
+        }
+        .list-group-item {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            padding: 0.45rem 0.75rem;
+        }
+        .table {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .table th {
+            background-color: #f3f4f6 !important;
+            color: #111827 !important;
+            font-weight: 600;
+            border: 1px solid #d1d5db !important;
+            border-bottom: 2px solid #9ca3af !important;
+            padding: 6px 10px;
+        }
+        .table td {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb !important;
+            padding: 6px 10px;
+        }
+        .table tr {
+            page-break-inside: avoid;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #d1d5db;
+            margin: 0.85rem 0;
+            opacity: 1;
+        }
+        .lubelogger-report-banner {
+            font-size: 11px;
+            color: #6b7280 !important;
+            text-align: center;
+            padding-top: 8px;
+        }
+        @media print {
+            @page {
+                margin: 1.2cm;
+                size: auto;
+            }
+            body {
+                padding: 0;
+            }
+            .showOnPrint {
+                display: block !important;
+            }
+            .hideOnPrint {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    ${htmlData}
+</body>
+</html>`);
+    frameDoc.close();
+
+    // Tiempo prudente para que el DOM y estilos del iframe se evalúen antes de imprimir
     setTimeout(function () {
-        window.print();
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
         setTimeout(function () {
-            $(".stickerPrintContainer").removeClass("showOnPrint");
-            $(".stickerPrintContainer").addClass("hideOnPrint");
-            $(".vehicleDetailTabContainer").removeClass("hideOnPrint");
-            $(".stickerPrintContainer").html("");
-        }, 1000);
-    }, 500);
+            $('#' + frameId).remove();
+        }, 2000);
+    }, 350);
 }
 function printTabStickers(ids, source) {
     var vehicleId = GetVehicleId().vehicleId;

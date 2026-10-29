@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @{
@@ -120,12 +120,12 @@
         <table class="table table-hover @(userConfig.UseGridInMobile ? "" : "ll-responsive-table")">
             <thead class="sticky-top">
                 <tr class="d-flex">
-                    <th scope="col" class="col-2 col-xl-1 flex-grow-1 text-truncate" data-column="date">@translator.Translate(userLanguage, "Date")</th>
-                    <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="initialodometer">@translator.Translate(userLanguage, "Initial Odometer")</th>
-                    <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@translator.Translate(userLanguage, "Odometer")</th>
-                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" onclick="toggleSort('odometer-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Distance")</th>
-                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
-                    <th scope="col" class="col-2 col-xl-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
+                    <th scope="col" class="col-2 col-xl-1 flex-grow-1 text-center text-truncate" data-column="date">@translator.Translate(userLanguage, "Date")</th>
+                    <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-center text-truncate" data-column="initialodometer">@($"{translator.Translate(userLanguage, "Initial Odometer")} (KM)")</th>
+                    <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-center text-truncate" data-column="odometer">@($"{translator.Translate(userLanguage, "Odometer")} (KM)")</th>
+                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-center text-truncate" data-column="distance" onclick="toggleSort('odometer-tab-pane', this)" style="cursor:pointer;">@($"{translator.Translate(userLanguage, "Distance")} (KM)")</th>
+                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-center text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
+                    <th scope="col" class="col-2 col-xl-3 flex-grow-1 flex-shrink-1 text-start text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                     @foreach (string extraFieldColumn in extraFields)
                     {
                         <th scope="col" style='display:none;' class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="@extraFieldColumn">@extraFieldColumn</th>
@@ -136,12 +136,12 @@
                 @foreach (OdometerRecord odometerRecord in Model)
                 {
                     <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@odometerRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditOdometerRecordModal,@odometerRecord.Id)" data-tags='@string.Join(" ", odometerRecord.Tags)'>
-                        <td data-label="@translator.Translate(userLanguage, "Date")" class="col-2 col-xl-1 flex-grow-1 text-truncate" data-column="date">@odometerRecord.Date.ToShortDateString()</td>
-                        <td data-label="@translator.Translate(userLanguage, "Initial Odometer")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="initialodometer">@odometerRecord.InitialMileage.ToString("N0")</td>
-                        <td data-label="@translator.Translate(userLanguage, "Odometer")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer" data-record-type="cost">@odometerRecord.Mileage.ToString("N0")</td>
-                        <td data-label="@translator.Translate(userLanguage, "Distance")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" data-record-type="distance">@(odometerRecord.DistanceTraveled == default ? "---" : odometerRecord.DistanceTraveled)</td>
-                        <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", odometerRecord.Files)</td>
-                        <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-2 col-xl-3 flex-grow-1 flex-shrink-1 @noteColumnStyle" data-column="notes">@StaticHelper.TruncateStrings(odometerRecord.Notes, noteColumnLength)</td>
+                        <td data-label="@translator.Translate(userLanguage, "Date")" class="col-2 col-xl-1 flex-grow-1 text-center text-truncate" data-column="date">@odometerRecord.Date.ToShortDateString()</td>
+                        <td data-label="@($"{translator.Translate(userLanguage, "Initial Odometer")} (KM)")" class="col-3 flex-grow-1 flex-shrink-1 text-center text-truncate" data-column="initialodometer">@($"{odometerRecord.InitialMileage.ToString("N0")} km")</td>
+                        <td data-label="@($"{translator.Translate(userLanguage, "Odometer")} (KM)")" class="col-3 flex-grow-1 flex-shrink-1 text-center text-truncate" data-column="odometer" data-record-type="cost">@($"{odometerRecord.Mileage.ToString("N0")} km")</td>
+                        <td data-label="@($"{translator.Translate(userLanguage, "Distance")} (KM)")" class="col-2 flex-grow-1 flex-shrink-1 text-center text-truncate" data-column="distance" data-record-type="distance">@(odometerRecord.DistanceTraveled == default ? "---" : $"{odometerRecord.DistanceTraveled.ToString("N0")} km")</td>
+                        <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-center text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", odometerRecord.Files)</td>
+                        <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-2 col-xl-3 flex-grow-1 flex-shrink-1 text-start @noteColumnStyle" data-column="notes">@StaticHelper.TruncateStrings(odometerRecord.Notes, noteColumnLength)</td>
                         @foreach (string extraFieldColumn in extraFields)
                         {
                             <td data-label="@extraFieldColumn" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="@extraFieldColumn">

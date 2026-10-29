@@ -97,7 +97,7 @@
             <thead class="sticky-top">
                 <tr class="d-flex">
                     <th scope="col" class="col-2 col-xl-1 flex-grow-1 text-truncate" data-column="date">@translator.Translate(userLanguage, "Date")</th>
-                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@translator.Translate(userLanguage, "Odometer")</th>
+                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@($"{translator.Translate(userLanguage, "Odometer")} (KM)")</th>
                     <th scope="col" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description">@translator.Translate(userLanguage, "Description")</th>
                     <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" onclick="toggleSort('inspection-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
                     <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="result">@translator.Translate(userLanguage, "Result")</th>
@@ -109,7 +109,7 @@
                 {
                     <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@inspectionRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditInspectionRecordModal,@inspectionRecord.Id)" data-tags='@string.Join(" ", inspectionRecord.Tags)'>
                         <td data-label="@translator.Translate(userLanguage, "Date")" class="col-2 col-xl-1 flex-grow-1 text-truncate" data-column="date" data-date="@StaticHelper.GetEpochFromDateTime(inspectionRecord.Date)">@inspectionRecord.Date.ToShortDateString()</td>
-                        <td data-label="@translator.Translate(userLanguage, "Odometer")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@(inspectionRecord.Mileage == default ? "---" : inspectionRecord.Mileage.ToString())</td>
+                        <td data-label="@($"{translator.Translate(userLanguage, "Odometer")} (KM)")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@(inspectionRecord.Mileage == default ? "---" : $"{inspectionRecord.Mileage.ToString("N0")} km")</td>
                         <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description">@inspectionRecord.Description</td>
                         <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" data-record-type="cost">@(StaticHelper.HideZeroCost(inspectionRecord.Cost, hideZero))</td>
                         <td data-label="@translator.Translate(userLanguage, "Result")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="result">@(inspectionRecord.Failed? translator.Translate(userLanguage, "Fail") : translator.Translate(userLanguage, "Pass"))</td>
