@@ -57,16 +57,16 @@
 <div class="d-flex flex-column vehicleTabPane">
 <style>
 .gas-stat-badge {
-    height: 32px !important;
+    height: 34px !important;
     display: inline-flex !important;
     align-items: center !important;
-    padding: 0 10px !important;
-    font-size: 0.78rem !important;
+    padding: 0 12px !important;
+    font-size: 0.82rem !important;
     font-weight: 600 !important;
-    border-radius: 6px !important;
+    border-radius: 7px !important;
     white-space: nowrap !important;
-    letter-spacing: 0.01em !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    letter-spacing: 0.015em !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
     margin: 0 !important;
 }
 .gas-stat-badge.badge-neutral {
@@ -96,7 +96,7 @@
 }
 </style>
 <div class="row mb-2">
-    <div class="d-flex justify-content-between align-items-center flex-nowrap gap-2 py-1 overflow-x-auto">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-1">
         <div class="d-flex align-items-center flex-nowrap gap-2">
             <span class="gas-stat-badge badge-neutral" data-aggregate-type="count">@($"Registros: {Model.GasRecords.Count()}")</span>
             @if (Model.GasRecords.Where(x => x.MilesPerGallon > 0).Any())
