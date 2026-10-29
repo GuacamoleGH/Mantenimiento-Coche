@@ -128,13 +128,6 @@
                         </ul>
                     </li>
 
-                    <!-- 5. Gastos e Impuestos -->
-                    <li class="nav-item" role="presentation">
-                        <button type="button" class="nav-link resizable-nav-link d-flex align-items-center gap-1 @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" role="tab" aria-selected="false">
-                            <i class="bi bi-receipt text-success" style="color: #35D298 !important;"></i>
-                            <span class="ms-1">Tasas</span>
-                        </button>
-                    </li>
 
                     <!-- 6. Buscar -->
                     <li class="nav-item" role="presentation">
@@ -244,9 +237,6 @@
         </li>
         <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.EquipmentRecord)">
             <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.EquipmentRecord)" id="equipment-tab" data-bs-toggle="tab" data-bs-target="#equipment-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-disc me-2"></i>@translator.Translate(userLanguage, "Equipment")</span></button>
-        </li>
-        <li class="nav-item d-flex" role="presentation" style="order: @userConfig.TabOrder.FindIndex(x => x == ImportMode.TaxRecord)">
-            <button class="nav-link flex-grow-1 text-start @StaticHelper.DefaultActiveTab(userConfig, ImportMode.TaxRecord)" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tax-tab-pane" type="button" role="tab" aria-selected="false"><span class="display-3 ms-2"><i class="bi bi-currency-dollar me-2"></i>@translator.Translate(userLanguage, "Taxes")</span></button>
         </li>
     </ul>
 </div>
