@@ -199,7 +199,7 @@ function convertGasConsumptionUnits(currentUnit, destinationUnit, save) {
             case "l":
                 $("[data-gas-type='consumption']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) * 3.785;
-                    elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                    elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                 });
                 $("[data-gas-type='unitcost']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) / 3.785;
@@ -213,7 +213,7 @@ function convertGasConsumptionUnits(currentUnit, destinationUnit, save) {
             case "imp gal":
                 $("[data-gas-type='consumption']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) / 1.201;
-                    elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                    elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                 });
                 $("[data-gas-type='unitcost']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) * 1.201;
@@ -231,7 +231,7 @@ function convertGasConsumptionUnits(currentUnit, destinationUnit, save) {
             case "US gal":
                 $("[data-gas-type='consumption']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) / 3.785;
-                    elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                    elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                 });
                 $("[data-gas-type='unitcost']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) * 3.785;
@@ -245,7 +245,7 @@ function convertGasConsumptionUnits(currentUnit, destinationUnit, save) {
             case "imp gal":
                 $("[data-gas-type='consumption']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) / 4.546;
-                    elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                    elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                 });
                 $("[data-gas-type='unitcost']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) * 4.546;
@@ -262,7 +262,7 @@ function convertGasConsumptionUnits(currentUnit, destinationUnit, save) {
             case "US gal":
                 $("[data-gas-type='consumption']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) * 1.201;
-                    elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                    elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                 });
                 $("[data-gas-type='unitcost']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) / 1.201;
@@ -276,7 +276,7 @@ function convertGasConsumptionUnits(currentUnit, destinationUnit, save) {
             case "l":
                 $("[data-gas-type='consumption']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) * 4.546;
-                    elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                    elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                 });
                 $("[data-gas-type='unitcost']").map((index, elem) => {
                     var convertedAmount = globalParseFloat(elem.innerText) / 4.546;
@@ -303,7 +303,7 @@ function convertFuelMileageUnits(currentUnit, destinationUnit, save) {
                     var convertedAmount = globalParseFloat(elem.innerText);
                     if (convertedAmount > 0) {
                         convertedAmount = 100 / convertedAmount;
-                        elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                        elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                     }
                 });
                 sender.text(sender.text().replace(sender.attr("data-unit"), "km/l"));
@@ -319,7 +319,7 @@ function convertFuelMileageUnits(currentUnit, destinationUnit, save) {
                     var convertedAmount = globalParseFloat(elem.innerText);
                     if (convertedAmount > 0) {
                         convertedAmount = 100 / convertedAmount;
-                        elem.innerText = globalFloatToString(convertedAmount.toFixed(2));
+                        elem.innerText = `${globalFloatToString(convertedAmount.toFixed(2))} ${destinationUnit.toUpperCase()}`;
                     }
                 });
                 sender.text(sender.text().replace(sender.attr("data-unit"), "l/100km"));
