@@ -38,6 +38,7 @@
     {
         distanceUnit = useMPG ? translator.Translate(userLanguage, "miles") : translator.Translate(userLanguage, "kilometers");
     }
+    string distanceUnitShort = useHours ? "h" : (useUKMPG || useMPG ? "mi" : "km");
 }
 <div class="modal-header">
     <h5 class="modal-title">@(isNew? translator.Translate(userLanguage, "Add New Gas Record") : translator.Translate(userLanguage, "Edit Gas Record"))<small style="display:none; @(isNew ? "" : "cursor:pointer;")" class="cached-banner ms-2 text-warning" onclick='@(isNew ? "" : $"showEditGasRecordModal({Model.GasRecord.Id}, true)")'>@translator.Translate(userLanguage, "Unsaved Changes")</small></h5>
@@ -57,7 +58,7 @@
                         </div>
                     </div>
                     <div>
-                        <label for="gasRecordMileage" class="form-label mb-1">@($"{translator.Translate(userLanguage,"Odometer Reading")} ({distanceUnit})")</label>
+                        <label for="gasRecordMileage" class="form-label mb-1">@($"{translator.Translate(userLanguage, "Odometer")} ({distanceUnitShort})")</label>
                         <div class="input-group">
                             <input type="number" inputmode="numeric" id="gasRecordMileage" class="form-control" placeholder="@translator.Translate(userLanguage,"Odometer reading when refueled")" value="@(isNew || Model.GasRecord.Mileage == default ? "" : Model.GasRecord.Mileage)">
                             @if (isNew)
