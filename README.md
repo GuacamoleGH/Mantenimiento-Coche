@@ -1,6 +1,6 @@
 # Mantenimiento Coche (Fork Personal de LubeLogger)
 
-> Aplicación web *self-hosted* para el control exhaustivo de vehículos, mantenimientos, reparaciones, repostajes, gastos, documentación y vencimientos.
+> Aplicación web para el control exhaustivo de vehículos, mantenimientos, reparaciones, repostajes, gastos, documentación y vencimientos.
 
 Este proyecto es un fork y evolución personalizada basada en [LubeLogger](https://github.com/hargata/lubelog) (de Hargata Softworks, licencia MIT), adaptado específicamente a las necesidades del mercado español y europeo, con una interfaz minimalista, soporte multiusuario controlado y ficha técnica detallada.
 
@@ -15,9 +15,7 @@ Este proyecto es un fork y evolución personalizada basada en [LubeLogger](https
 - [x] **Permisos de Garaje Compartido y Visibilidad:** Los usuarios pueden consultar los vehículos públicos de la comunidad (modo lectura), pero solo el propietario del coche (o el administrador) puede modificar o borrar sus registros.
 - [x] **Autenticación Ampliada:** Inicio de sesión local con usuario/contraseña + botones directos para **Google** y **Discord** (OAuth2/OIDC).
 - [x] **Entorno y Secretos Seguros:** Soporte para archivo local `.env` (ignorado en git), variables de entorno y `dotnet user-secrets`.
-- [x] **Persistencia Flexible:**
-  - **Local:** LiteDB embebida (cero dependencias externas en desarrollo).
-  - **Servidor:** PostgreSQL nativo con contenedor Docker y script de copias de seguridad.
+- [x] **Persistencia Flexible:** Soporte tanto para LiteDB embebida (cero dependencias externas) como para base de datos PostgreSQL.
 
 ---
 
@@ -58,7 +56,7 @@ Write-Host "UserNameHash:     $userHash"
 Write-Host "UserPasswordHash: $passHash"
 ```
 
-Copia ambos valores en tu `.env` o en las variables de entorno de tu servidor:
+Copia ambos valores en tu `.env` o en las variables de entorno:
 ```ini
 UserNameHash=tu_hash_de_usuario
 UserPasswordHash=tu_hash_de_clave
@@ -73,7 +71,7 @@ Si creaste vehículos mientras la autenticación estaba desactivada (`EnableAuth
 ### 4. Política de Registro (`DisableRegistration`)
 
 - **En Desarrollo:** Se recomienda `DisableRegistration=false` para poder crear la primera cuenta de usuario con la que realizar pruebas.
-- **En Producción:** Se recomienda `DisableRegistration=true` una vez creada tu cuenta principal. Esto impide que cualquier persona no invitada cree cuentas en tu servidor expuesto a internet.
+- **En Producción:** Se recomienda `DisableRegistration=true` una vez creada tu cuenta principal. Esto impide que cualquier persona no invitada cree cuentas en la aplicación.
 
 ---
 
@@ -96,16 +94,13 @@ Si creaste vehículos mientras la autenticación estaba desactivada (`EnableAuth
    dotnet run
    ```
 
-3. Abre tu navegador en:
-   ```
-   http://localhost:5000
-   ```
+3. Abre tu navegador en la dirección web indicada por la consola.
 
 ---
 
 ## 📖 Documentación Adicional
 
-- [Guía de Compilación y Despliegue (BUILD.md)](./BUILD.md)
+- [Guía de Compilación y Configuración (BUILD.md)](./BUILD.md)
 - [Plantilla de Variables de Entorno (.env.example)](./.env.example)
 
 ---
